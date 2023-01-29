@@ -28,6 +28,20 @@
   </head>
 
   <body>
+    <!-- Thank you message modal after message submission -->
+    <div class="thankyou-modal hidden">
+      <h3 class="heading-1">Thanks for your message!</h3>
+      <img
+        class="thankyou-puppy"
+        src="../assets/images/bubblypupsstockimages/puppy-thankyou-cutout.png"
+        alt=""
+      />
+      <p class="thankyou-text">
+        I will get back to you as soon as possible. In the meantime, check out
+        my social media pages!
+      </p>
+    </div>
+
     <div class="wrapper">
       <main class="main">
         <div class="navbar" id="navBar">
@@ -37,7 +51,7 @@
           <div class="nav">
             <a href="#">My work</a>
             <a href="#">services</a>
-            <a href="#">contact</a>
+            <a href="#contact-form-section">contact</a>
             <a href="book.html"
               ><button class="btn nav-btn">book now</button></a
             >
@@ -501,13 +515,7 @@
           <h2 class="heading-1">
             Who's ready for a #Cute Dog Summer? Book now!
           </h2>
-          <div class="puppy-lineup">
-            <img
-              class="cutout-1"
-              src="../assets/images/bubblypupsstockimages/puppy-thankyou-cutout.png"
-              alt=""
-            />
-          </div>
+
           <iframe
             class="booking-app"
             width="80%"
@@ -519,7 +527,7 @@
           </iframe>
         </section>
 
-        <section class="contact">
+        <section id="contact-form-section" class="contact">
           <div class="contact-form">
             <h2 id="contact-heading" class="heading-1">Contact Me</h2>
             <p class="section-paragraph">
