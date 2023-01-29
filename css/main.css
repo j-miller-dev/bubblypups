@@ -553,7 +553,7 @@ textarea:focus {
 }
 
 .hero {
-  background-image: url(../../assets/images/BPBackgroundHero.png);
+  background-image: url(../assets/images/BPBackgroundHero.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -598,7 +598,7 @@ textarea:focus {
   height: 90vh;
   z-index: -1000;
   position: absolute;
-  background-image: url(../../assets/images/cheeky-dog.jpeg);
+  background-image: url(../assets/images/cheeky-dog.jpeg);
   opacity: 0.5;
   background-repeat: no-repeat;
   background-size: cover;
@@ -723,7 +723,7 @@ textarea:focus {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-image: url(../../assets/images/contactBackground.jpg);
+  background-image: url(../assets/images/contactBackground.jpg);
   background-size: cover;
 }
 .landing-page-book .heading-1 {
@@ -741,7 +741,7 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   flex-direction: row;
-  background-image: url(../../assets/images/BPBackgroundHero.png);
+  background-image: url(../assets/images/BPBackgroundHero.png);
   background-repeat: no-repeat;
   background-size: cover;
 }
