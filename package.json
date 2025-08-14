@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "bubbly-pups-website",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.11",
+        "@vitejs/plugin-react": "^4.7.0",
+        "axios": "^1.8.2",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^2.0.0",
+        "tailwindcss": "^4.1.11",
+        "vite": "^7.0.4"
+    },
+    "dependencies": {
+        "@headlessui/react": "^2.2.6",
+        "@heroicons/react": "^2.2.0",
+        "@inertiajs/react": "^2.0.17",
+        "@types/react": "^19.1.9",
+        "@types/react-dom": "^19.1.7",
+        "clsx": "^2.1.1",
+        "framer-motion": "^12.23.11",
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
+        "react-use-measure": "^2.1.7",
+        "typescript": "^5.8.3"
+    }
+}
+
