@@ -7,7 +7,7 @@ import {
 } from '@headlessui/react'
 import { Bars2Icon } from '@heroicons/react/24/solid'
 import { motion } from 'framer-motion'
-import { Link } from './Link'
+import { Link } from '../ui/Link'
 import { PlusGrid, PlusGridItem, PlusGridRow } from './PlusGrid'
 
 const links = [
@@ -73,6 +73,17 @@ function MobileNav() {
         <div className="absolute inset-x-0 top-2 border-t border-black/5" />
       </div>
     </DisclosurePanel>
+  )
+}
+
+export function NavbarItem({ className, children, ...props }: React.ComponentPropsWithoutRef<'button'>) {
+  return (
+    <button
+      className={`flex size-12 items-center justify-center self-center rounded-lg data-hover:bg-black/5 ${className || ''}`}
+      {...props}
+    >
+      {children}
+    </button>
   )
 }
 

@@ -14,7 +14,7 @@ const SectionHeading: React.FC<SectionHeadingProps> = ({
                                                            className = ""
                                                        }) => {
     const subtitleColors = {
-        light: 'text-pink-400',
+        light: 'text-pink-500',
         dark: 'text-indigo-400'
     };
 
@@ -35,4 +35,5 @@ const SectionHeading: React.FC<SectionHeadingProps> = ({
     );
 };
 
+export { SectionHeading };
 export default SectionHeading;

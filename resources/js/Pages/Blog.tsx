@@ -1,9 +1,9 @@
 import React from 'react';
 import MainLayout from '@/Layouts/MainLayout';
-import { Container } from '@/Components/Container';
-import { Gradient } from '@/Components/Gradient';
-import { Link } from '@/Components/Link';
-import { Image } from '@/Components/Image';
+import { Container } from '@/Components/layout';
+import { Gradient } from '@/Components/graphics';
+import { Link } from '@/Components/ui';
+import { Image } from '@/Components/graphics';
 
 // Sample blog post data
 const blogPosts = [

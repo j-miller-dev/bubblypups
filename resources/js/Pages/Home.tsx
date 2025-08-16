@@ -1,12 +1,9 @@
 
 import MainLayout from '@/Layouts/MainLayout';
-import { Container } from '@/Components/Container';
-import { Button } from '@/Components/Button';
-import { Testimonials } from '@/Components/Testimonials';
-import { Services } from '@/Components/Services';
-import { FacebookFeed } from '@/Components/FacebookFeed';
-import { AboutMe } from '@/Components/AboutMe';
-import { Bubbles } from '@/Components/Bubbles';
+import { Container } from '@/Components/layout';
+import { Button } from '@/Components/ui';
+import { Testimonials, Services, FacebookFeed, AboutMe } from '@/Components/business';
+import { Bubbles } from '@/Components/graphics';
 
 function Hero() {
   return (
@@ -23,7 +20,7 @@ function Hero() {
           </div>
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button href="/booking">Book Now</Button>
-            <Button variant="secondary" href="#services">Services</Button>
+
           </div>
         </div>
       </Container>

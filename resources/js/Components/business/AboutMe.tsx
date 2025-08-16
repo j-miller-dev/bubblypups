@@ -1,12 +1,19 @@
-import React from 'react'
-import { Container } from '@/Components/Container'
-import { Image } from '@/Components/Image'
-import SectionHeading from "@/Components/SectionHeading.tsx";
+import { Container } from '@/Components/layout'
+import { Image } from '@/Components/graphics'
+import { SectionHeading } from "@/Components/graphics";
+import PastelBackground from "@/Components/graphics/PastelBackground.tsx";
 
 export function AboutMe() {
   return (
-    <section className="py-20">
-      <Container>
+    <section className="relative py-20 overflow-hidden">
+      {/* Pastel Background */}
+      <div className="absolute inset-0 w-full h-full">
+        <PastelBackground />
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <Container>
         <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-2">
           <div>
               <div className="py-16 bg-white">
@@ -37,7 +44,8 @@ export function AboutMe() {
             />
           </div>
         </div>
-      </Container>
+        </Container>
+      </div>
     </section>
   )
 }

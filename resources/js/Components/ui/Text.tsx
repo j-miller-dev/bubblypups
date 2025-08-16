@@ -54,3 +54,15 @@ export function Lead({
     />
   )
 }
+
+export function Text({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'p'>) {
+  return (
+    <p
+      className={clsx(className, 'text-base text-gray-700')}
+      {...props}
+    />
+  )
+}

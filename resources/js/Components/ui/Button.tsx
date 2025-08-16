@@ -5,9 +5,9 @@ import { Link } from './Link'
 const variants = {
   primary: clsx(
     'inline-flex items-center justify-center px-4 py-[calc(--spacing(2)-1px)]',
-    'rounded-full border border-transparent bg-pink-300 shadow-md',
-    'text-base font-medium whitespace-nowrap text-white',
-    'data-disabled:bg-gray-950 data-disabled:opacity-40 data-hover:bg-gray-800',
+    'rounded-full border border-transparent bg-pink-400 shadow-md',
+    'text-base font-bold whitespace-nowrap text-white',
+    'data-disabled:bg-gray-950 data-disabled:opacity-40 data-hover:bg-white data-hover:text-pink-400 transition-all duration-300',
   ),
   secondary: clsx(
     'relative inline-flex items-center justify-center px-4 py-[calc(--spacing(2)-1px)]',
@@ -43,4 +43,12 @@ export function Button({
   }
 
   return <Link {...props} className={className} />
+}
+
+export function TouchTarget({ children, ...props }: React.ComponentPropsWithoutRef<'span'>) {
+  return (
+    <span className="absolute inset-0" {...props}>
+      {children}
+    </span>
+  )
 }

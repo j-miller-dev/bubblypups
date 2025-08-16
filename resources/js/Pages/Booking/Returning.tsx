@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import MainLayout from '@/Layouts/MainLayout'
-import { Container } from '@/Components/Container'
-import { Button } from '@/Components/Button'
+import { Container } from '@/Components/layout'
+import { Button } from '@/Components/ui'
 import { Head, router } from '@inertiajs/react'
 
 export default function Returning() {

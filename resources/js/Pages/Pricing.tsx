@@ -1,7 +1,7 @@
 import React from 'react';
 import MainLayout from '@/Layouts/MainLayout';
-import { Container } from '@/Components/Container';
-import { Gradient } from '@/Components/Gradient';
+import { Container } from '@/Components/layout';
+import { Gradient } from '@/Components/graphics';
 
 export default function Pricing() {
   return (

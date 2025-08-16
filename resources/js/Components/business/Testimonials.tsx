@@ -11,53 +11,53 @@ import {
 } from 'framer-motion'
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import useMeasure, { type RectReadOnly } from 'react-use-measure'
-import { Container } from './Container'
-import { Link } from './Link'
-import { Heading, Subheading } from './Text'
-import SectionHeading from "@/Components/SectionHeading.tsx";
+import { Container } from '../layout/Container'
+import { Link } from '../ui/Link'
+import { Heading, Subheading } from '../ui/Text'
+import { SectionHeading } from "@/Components/graphics";
 
-// Sample testimonial data - replace with your actual testimonials
+// Dog grooming testimonials
 const testimonials = [
   {
-    img: '/testimonials/tina-yards.jpg',
-    name: 'Tina Yards',
-    title: 'VP of Sales, Protocol',
+    img: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=600&fit=crop&crop=face',
+    name: 'Sarah Mitchell',
+    title: 'Buddy (Golden Retriever) • Sunbury',
     quote:
-      'Thanks to Radiant, we are finding new leads that we never would have found with legal methods.',
+      'Amazing service! Buddy has never looked so good. The team was so gentle and professional. Highly recommend for any dog owner in Sunbury!',
   },
   {
-    img: '/testimonials/conor-neville.jpg',
-    name: 'Conor Neville',
-    title: 'Head of Customer Success, TaxPal',
+    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=face',
+    name: 'James Thompson',
+    title: 'Luna (Border Collie) • Diggers Rest',
     quote:
-      'Radiant made undercutting all of our competitors an absolute breeze.',
+      'Luna was so nervous about grooming, but the team made her feel completely at ease. The results were fantastic - she looks like a show dog!',
   },
   {
-    img: '/testimonials/amy-chase.jpg',
-    name: 'Amy Chase',
-    title: 'Head of GTM, Pocket',
+    img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face',
+    name: 'Emily Rodriguez',
+    title: 'Max (French Bulldog) • Sunbury',
     quote:
-      'We closed a deal in literally a few minutes because we knew their exact budget.',
+      'Incredible attention to detail! Max\'s nails were perfectly trimmed and his coat is so shiny. The mobile service is so convenient too.',
   },
   {
-    img: '/testimonials/veronica-winton.jpg',
-    name: 'Veronica Winton',
-    title: 'CSO, Planeteria',
+    img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&crop=face',
+    name: 'Michael Chen',
+    title: 'Bella (Labrador) • Fraser Rise',
     quote:
-      'We have managed to put two of our main competitors out of business in 6 months.',
+      'Bella has been going for 6 months now and loves it every time. Professional, caring, and reasonably priced. Couldn\'t ask for better!',
   },
   {
-    img: '/testimonials/dillon-lenora.jpg',
-    name: 'Dillon Lenora',
-    title: 'VP of Sales, Detax',
-    quote: 'I was able to replace 80% of my team with RadiantAI bots.',
+    img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop&crop=face',
+    name: 'Jessica Parker',
+    title: 'Charlie (Poodle) • Sunbury',
+    quote: 'Charlie\'s coat has never looked better! The team knows exactly how to handle different breeds. Five stars all the way!',
   },
   {
-    img: '/testimonials/harriet-arron.jpg',
-    name: 'Harriet Arron',
-    title: 'Account Manager, Commit',
+    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop&crop=face',
+    name: 'David Wilson',
+    title: 'Ruby (Beagle) • Sunbury',
     quote:
-      'I have smashed all my targets without having to speak to a lead in months.',
+      'Ruby used to hate bath time, but now she gets excited when she sees the grooming van! The transformation is amazing every single time.',
   },
 ]
 
@@ -156,15 +156,14 @@ function CallToAction() {
   return (
     <div>
       <p className="max-w-sm text-sm/6 text-gray-600">
-        Join the best sellers in the business and start using our services to hit
-        your targets today.
+        Join hundreds of happy pet owners in Sunbury and surrounding areas. Book your dog's grooming session today.
       </p>
       <div className="mt-2">
         <Link
-          href="#"
+          href="/booking"
           className="inline-flex items-center gap-2 text-sm/6 font-medium text-pink-600"
         >
-          Get started
+          Book Now
           <ArrowLongRightIcon className="size-5" />
         </Link>
       </div>

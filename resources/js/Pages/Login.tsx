@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import MainLayout from '@/Layouts/MainLayout';
-import { Container } from '@/Components/Container';
-import { Gradient } from '@/Components/Gradient';
-import { Button } from '@/Components/Button';
-import { Link } from '@/Components/Link';
+import { Container } from '@/Components/layout';
+import { Gradient } from '@/Components/graphics';
+import { Button } from '@/Components/ui';
+import { Link } from '@/Components/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');

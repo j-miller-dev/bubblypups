@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 import { motion } from 'framer-motion'
-import { Subheading } from './Text'
+import { Subheading } from '../ui/Text'
 
 export function BentoCard({
   dark = false,

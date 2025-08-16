@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
-import { Container } from '@/Components/Container';
-import { Button } from '@/Components/Button';
+import { Container } from '@/Components/layout';
+import { Button } from '@/Components/ui';
 
 // Step components
 const ServiceSelection: React.FC<{

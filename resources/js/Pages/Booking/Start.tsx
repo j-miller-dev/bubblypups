@@ -1,8 +1,8 @@
 import React from 'react'
 import MainLayout from '@/Layouts/MainLayout'
-import { Container } from '@/Components/Container'
-import { Button } from '@/Components/Button'
-import { Link } from '@/Components/Link'
+import { Container } from '@/Components/layout'
+import { Button } from '@/Components/ui'
+import { Link } from '@/Components/ui'
 import { Head } from '@inertiajs/react'
 
 export default function Start() {
