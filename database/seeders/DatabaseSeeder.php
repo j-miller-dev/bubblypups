@@ -13,11 +13,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Create admin user
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Clarissa Admin',
+            'email' => 'admin@bubblypups.com',
+        ]);
+
+        // Seed all business data
+        $this->call([
+            ServiceSeeder::class,
+            AvailabilitySeeder::class,
+            OwnerSeeder::class,
+            DogSeeder::class,
+            // BookingSeeder::class, // Will add this after completing models
         ]);
     }
 }

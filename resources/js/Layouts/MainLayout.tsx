@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import { Navbar, Footer } from '@/Components/layout';
-import { CallNowButton } from '@/Components/business';
+
 
 interface MainLayoutProps {
   children: React.ReactNode;

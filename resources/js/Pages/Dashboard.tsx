@@ -56,7 +56,7 @@ export default function Example() {
         This example requires updating your template:
 
         ```
-        <html class="h-full bg-white dark:bg-gray-900">
+        <html class="h-full bg-white">
         <body class="h-full">
         ```
       */}
@@ -82,12 +82,12 @@ export default function Example() {
                             </TransitionChild>
 
                             {/* Sidebar component, swap this element with another sidebar if you like */}
-                            <div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 dark:bg-gray-900 dark:ring dark:ring-white/10 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-black/10">
+                            <div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                                 <div className="relative flex h-16 shrink-0 items-center">
                                     <img
                                         alt="Your Company"
                                         src="/images/PNG FIles/BubblyPups_LogoAlt(LBG).png"
-                                        className="h-8 w-auto dark:hidden"
+                                        className="h-8 w-auto"
                                     />
                                     <img
                                         alt="Your Company"
@@ -105,8 +105,8 @@ export default function Example() {
                                                             href={item.href}
                                                             className={classNames(
                                                                 item.current
-                                                                    ? 'bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white'
-                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+                                                                    ? 'bg-gray-50 text-indigo-600'
+                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
                                                                 'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                             )}
                                                         >
@@ -114,8 +114,8 @@ export default function Example() {
                                                                 aria-hidden="true"
                                                                 className={classNames(
                                                                     item.current
-                                                                        ? 'text-indigo-600 dark:text-white'
-                                                                        : 'text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white',
+                                                                        ? 'text-indigo-600'
+                                                                        : 'text-gray-400 group-hover:text-indigo-600',
                                                                     'size-6 shrink-0',
                                                                 )}
                                                             />
@@ -134,17 +134,17 @@ export default function Example() {
                                                             href={team.href}
                                                             className={classNames(
                                                                 team.current
-                                                                    ? 'bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white'
-                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+                                                                    ? 'bg-gray-50 text-indigo-600'
+                                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
                                                                 'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                             )}
                                                         >
                               <span
                                   className={classNames(
                                       team.current
-                                          ? 'border-indigo-600 text-indigo-600 dark:border-white/20 dark:text-white'
-                                          : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600 dark:border-white/10 dark:group-hover:border-white/20 dark:group-hover:text-white',
-                                      'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium dark:bg-white/5',
+                                          ? 'border-indigo-600 text-indigo-600'
+                                          : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600',
+                                      'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium',
                                   )}
                               >
                                 {team.initial}
@@ -158,11 +158,11 @@ export default function Example() {
                                         <li className="mt-auto">
                                             <a
                                                 href="#"
-                                                className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+                                                className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
                                             >
                                                 <Cog6ToothIcon
                                                     aria-hidden="true"
-                                                    className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white"
+                                                    className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
                                                 />
                                                 Settings
                                             </a>
@@ -177,12 +177,12 @@ export default function Example() {
                 {/* Static sidebar for desktop */}
                 <div className="hidden bg-gray-900 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
                     {/* Sidebar component, swap this element with another sidebar if you like */}
-                    <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4 dark:border-white/10 dark:bg-black/10">
+                    <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
                         <div className="flex h-16 shrink-0 items-center">
                             <img
                                 alt="Your Company"
                                 src="/images/PNG FIles/BubblyPups_LogoAlt(LBG).png"
-                                className="h-12 w-auto dark:hidden"
+                                className="h-12 w-auto"
                             />
                             <img
                                 alt="Your Company"
@@ -200,8 +200,8 @@ export default function Example() {
                                                     href={item.href}
                                                     className={classNames(
                                                         item.current
-                                                            ? 'bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white'
-                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+                                                            ? 'bg-gray-50 text-indigo-600'
+                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
                                                         'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                     )}
                                                 >
@@ -209,8 +209,8 @@ export default function Example() {
                                                         aria-hidden="true"
                                                         className={classNames(
                                                             item.current
-                                                                ? 'text-indigo-600 dark:text-white'
-                                                                : 'text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white',
+                                                                ? 'text-indigo-600'
+                                                                : 'text-gray-400 group-hover:text-indigo-600',
                                                             'size-6 shrink-0',
                                                         )}
                                                     />
@@ -229,17 +229,17 @@ export default function Example() {
                                                     href={team.href}
                                                     className={classNames(
                                                         team.current
-                                                            ? 'bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white'
-                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+                                                            ? 'bg-gray-50 text-indigo-600'
+                                                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
                                                         'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
                                                     )}
                                                 >
                           <span
                               className={classNames(
                                   team.current
-                                      ? 'border-indigo-600 text-indigo-600 dark:border-white/20 dark:text-white'
-                                      : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600 dark:border-white/10 dark:group-hover:border-white/20 dark:group-hover:text-white',
-                                  'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium dark:bg-white/5',
+                                      ? 'border-indigo-600 text-indigo-600'
+                                      : 'border-gray-200 text-gray-400 group-hover:border-indigo-600 group-hover:text-indigo-600',
+                                  'flex size-6 shrink-0 items-center justify-center rounded-lg border bg-white text-[0.625rem] font-medium',
                               )}
                           >
                             {team.initial}
@@ -253,11 +253,11 @@ export default function Example() {
                                 <li className="mt-auto">
                                     <a
                                         href="#"
-                                        className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+                                        className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
                                     >
                                         <Cog6ToothIcon
                                             aria-hidden="true"
-                                            className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white"
+                                            className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
                                         />
                                         Settings
                                     </a>
@@ -268,18 +268,18 @@ export default function Example() {
                 </div>
 
                 <div className="lg:pl-72">
-                    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8 dark:border-white/10 dark:bg-gray-900 dark:shadow-none">
+                    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(true)}
-                            className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white"
+                            className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 lg:hidden"
                         >
                             <span className="sr-only">Open sidebar</span>
                             <Bars3Icon aria-hidden="true" className="size-6" />
                         </button>
 
                         {/* Separator */}
-                        <div aria-hidden="true" className="h-6 w-px bg-gray-200 lg:hidden dark:bg-white/10" />
+                        <div aria-hidden="true" className="h-6 w-px bg-gray-200 lg:hidden" />
 
                         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
                             <form action="#" method="GET" className="grid flex-1 grid-cols-1">
@@ -287,7 +287,7 @@ export default function Example() {
                                     name="search"
                                     placeholder="Search"
                                     aria-label="Search"
-                                    className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
+                                    className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6"
                                 />
                                 <MagnifyingGlassIcon
                                     aria-hidden="true"
@@ -295,13 +295,13 @@ export default function Example() {
                                 />
                             </form>
                             <div className="flex items-center gap-x-4 lg:gap-x-6">
-                                <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:hover:text-white">
+                                <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                                     <span className="sr-only">View notifications</span>
                                     <BellIcon aria-hidden="true" className="size-6" />
                                 </button>
 
                                 {/* Separator */}
-                                <div aria-hidden="true" className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:lg:bg-white/10" />
+                                <div aria-hidden="true" className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
 
                                 {/* Profile dropdown */}
                                 <Menu as="div" className="relative">
@@ -311,24 +311,24 @@ export default function Example() {
                                         <img
                                             alt=""
                                             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                            className="size-8 rounded-full bg-gray-50 outline -outline-offset-1 outline-black/5 dark:bg-gray-800 dark:outline-white/10"
+                                            className="size-8 rounded-full bg-gray-50 outline -outline-offset-1 outline-black/5"
                                         />
                                         <span className="hidden lg:flex lg:items-center">
-                      <span aria-hidden="true" className="ml-4 text-sm/6 font-semibold text-gray-900 dark:text-white">
+                      <span aria-hidden="true" className="ml-4 text-sm/6 font-semibold text-gray-900">
                         Tom Cook
                       </span>
-                      <ChevronDownIcon aria-hidden="true" className="ml-2 size-5 text-gray-400 dark:text-gray-500" />
+                      <ChevronDownIcon aria-hidden="true" className="ml-2 size-5 text-gray-400" />
                     </span>
                                     </MenuButton>
                                     <MenuItems
                                         transition
-                                        className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg outline-1 outline-gray-900/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-gray-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10"
+                                        className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg outline-1 outline-gray-900/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                                     >
                                         {userNavigation.map((item) => (
                                             <MenuItem key={item.name}>
                                                 <a
                                                     href={item.href}
-                                                    className="block px-3 py-1 text-sm/6 text-gray-900 data-focus:bg-gray-50 data-focus:outline-hidden dark:text-white dark:data-focus:bg-white/5"
+                                                    className="block px-3 py-1 text-sm/6 text-gray-900 data-focus:bg-gray-50 data-focus:outline-hidden"
                                                 >
                                                     {item.name}
                                                 </a>
