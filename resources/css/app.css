@@ -1,3 +1,154 @@
+/* Google Fonts - Baloo Bhai 2 & Rajdhani */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@500;800&family=Rajdhani:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================
+   Base Typography & Global Styles
+   ============================================ */
+@layer base {
+    /* Headings - Baloo Bhai */
+    h1 {
+        @apply text-4xl md:text-5xl lg:text-6xl font-extrabold font-display text-gray-900 tracking-tight;
+    }
+
+    h2 {
+        @apply text-3xl md:text-4xl lg:text-5xl font-extrabold font-display text-gray-900 tracking-tight;
+    }
+
+    h3 {
+        @apply text-2xl md:text-3xl font-extrabold font-display text-gray-900;
+    }
+
+    h4 {
+        @apply text-xl md:text-2xl font-medium font-display text-gray-900;
+    }
+
+    h5 {
+        @apply text-lg md:text-xl font-medium font-display text-gray-900;
+    }
+
+    /* Body text - Rajdhani */
+    body {
+        @apply font-sans;
+    }
+
+    p {
+        @apply text-base text-gray-700 leading-relaxed font-sans;
+    }
+
+    /* Links */
+    a {
+        @apply transition-colors duration-200;
+    }
+}
+
+/* ============================================
+   Reusable Component Classes
+   ============================================ */
+@layer components {
+    /* Buttons - Baloo Bhai */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-button px-6 py-3 text-base font-medium font-display shadow-sm transition-all duration-200;
+    }
+
+    .btn-primary {
+        @apply btn bg-brand-400 text-white hover:bg-brand-500 active:bg-brand-600;
+    }
+
+    .btn-secondary {
+        @apply btn bg-white border-2 border-brand-400 text-brand-400 hover:bg-brand-50 active:bg-brand-100;
+    }
+
+    .btn-outline {
+        @apply btn bg-transparent border-2 border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100;
+    }
+
+    /* Cards */
+    .card {
+        @apply rounded-card border border-gray-200 bg-white shadow-sm;
+    }
+
+    .card-hover {
+        @apply card transition-shadow duration-200 hover:shadow-md;
+    }
+
+    .card-pink {
+        @apply rounded-card border border-brand-200 bg-brand-50;
+    }
+
+    /* Sections */
+    .section {
+        @apply py-section;
+    }
+
+    .section-sm {
+        @apply py-section-sm;
+    }
+
+    /* Form inputs */
+    .input {
+        @apply w-full rounded-button border-gray-300 text-gray-900 shadow-sm focus:border-brand-400 focus:ring-brand-400;
+    }
+
+    .label {
+        @apply block text-sm font-medium text-gray-700 mb-2;
+    }
+
+    /* Icon containers */
+    .icon-container {
+        @apply flex justify-center items-center;
+    }
+
+    .icon-brand {
+        @apply text-brand-400;
+    }
+}
+
+/* ============================================
+   Custom Animations
+   ============================================ */
+@layer utilities {
+    @keyframes fade-in-up {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes bounce-soft {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fade-in-up 0.6s ease-out forwards;
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.8s ease-out forwards;
+    }
+
+    .animate-bounce-soft {
+        animation: bounce-soft 2s ease-in-out infinite;
+    }
+}

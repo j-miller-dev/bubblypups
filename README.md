@@ -176,3 +176,287 @@ For a complete architecture overview, how-to guides, and best practices, see:
 - docs/PROJECT_GUIDE.md — Project Guide (Architecture, How‑To, Best Practices)
 - PROJECT_TODO.md — Roadmap and next steps
 - TRANSITION_REPORT.md — Initial transition notes
+
+
+# Customer Authentication Setup (Fortify + Sanctum)
+
+This guide walks you through enabling customer login and registration for Bubbly Pups using Laravel Fortify (auth features) and Sanctum (API tokens). When finished, customers can register or sign in and then book an appointment.
+
+Audience: Laravel + Inertia (React) project maintainers. Time: ~30–45 minutes.
+
+
+## 0) Prerequisites
+- PHP 8.2+
+- Node 18+
+- Composer and NPM installed
+- A working database configured in .env
+- Optional: Twilio and Social providers if you want phone OTP or Google/Facebook/Apple sign-in
+
+Packages already included in composer.json:
+- laravel/fortify
+- laravel/sanctum
+- laravel/socialite (optional, for social login)
+
+
+## 1) Install dependencies and prepare environment
+1) Copy .env if you don’t have one yet:
+   cp .env.example .env
+
+2) Set your app URL and database:
+   - APP_URL=https://bubbly-pups.test (or your local domain)
+   - FRONTEND_URL=http://localhost:5173 (or your Vite/SPA URL)
+   - DB_* (host, database, username, password)
+
+3) Configure session and CORS (important for SPA + tokens):
+   - SESSION_DRIVER=cookie
+   - SESSION_DOMAIN=.bubbly-pups.test (leading dot if you use subdomains; otherwise leave blank)
+   - SANCTUM_STATEFUL_DOMAINS=localhost,localhost:5173,bubbly-pups.test
+   - FRONTEND_URL=http://localhost:5173
+
+4) Install and build:
+   composer install
+   npm install
+   php artisan key:generate
+
+5) Run migrations (includes users/owners/bookings + extra auth fields):
+   php artisan migrate
+
+
+## 2) Verify config/auth and config/fortify
+Already present in this repo:
+- config/auth.php includes an api guard using sanctum.
+- config/fortify.php enables registration, password reset, email verification, profile/password update, and 2FA. You can tailor features as needed by editing the features array.
+
+For a pure token-based SPA customer flow, we’ll use custom API endpoints (below) that issue Sanctum Personal Access Tokens.
+
+
+## 3) Add API routes for customer auth
+The controllers already exist under App\Http\Controllers\API. Wire them up by editing routes/api.php to include the following routes. If you previously removed auth routes (fresh start), re-add them now.
+
+Add to routes/api.php:
+
+```php
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\PhoneAuthController;
+use App\Http\Controllers\API\SocialAuthController;
+
+// Public
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+// Optional: phone OTP auth
+Route::post('/phone/send-otp', [PhoneAuthController::class, 'sendOTP']);
+Route::post('/phone/verify-otp', [PhoneAuthController::class, 'verifyOTP']);
+
+// Optional: social login
+Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect']);
+Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback']);
+
+// Protected (requires Bearer token)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+```
+
+Notes:
+- These endpoints create/return a Sanctum personal access token and user payload in the shape { token, user }.
+- The controllers also ensure a matching Owner profile exists and is linked to the User (owners.user_id).
+
+
+## 4) Sanctum and CORS/session configuration details
+For local dev with Vite or another domain, make sure:
+- In config/cors.php, your frontend origin is allowed (e.g., http://localhost:5173) and supports Authorization headers.
+- In .env: set SANCTUM_STATEFUL_DOMAINS and SESSION_DOMAIN appropriately.
+- If you serve the SPA from the same domain as Laravel, you can simplify CORS/stateful setup.
+
+Typical config/cors.php adjustments:
+- Add your frontend origin to paths and allowed_origins.
+- Ensure supports_credentials => true if using cookies. For pure Bearer token usage via localStorage, credentials are not required.
+
+This project’s API examples use Bearer tokens in headers, so you can keep cookies/session out of the SPA and only use auth:sanctum middleware for API protection.
+
+
+## 5) Frontend integration (Inertia React)
+Two pages already exist: resources/js/Pages/Booking/Register.tsx and .../Booking/Returning.tsx.
+To enable auth, implement a small AuthService and call it from these pages.
+
+Create or update services/AuthService.ts:
+
+```ts
+export type AuthUser = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+export type AuthResponse = {
+  token: string;
+  user: AuthUser;
+};
+
+const API_BASE = '/api';
+
+export async function register(name: string, email: string, password: string, password_confirmation: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password, password_confirmation }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+}
+
+export async function login(email: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+}
+
+export function saveToken(token: string) {
+  localStorage.setItem('bp_token', token);
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem('bp_token');
+}
+
+export async function currentUser(): Promise<AuthUser | null> {
+  const token = getToken();
+  if (!token) return null;
+  const res = await fetch(`${API_BASE}/user`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function logout(): Promise<void> {
+  const token = getToken();
+  if (!token) return;
+  await fetch(`${API_BASE}/logout`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  localStorage.removeItem('bp_token');
+}
+```
+
+Update Booking/Register.tsx submit handler to call register API and save token:
+
+```ts
+import * as Auth from '@/services/AuthService';
+// other imports and component code...
+const onSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  try {
+    setLoading(true);
+    const r = await Auth.register(owner.name, owner.email, passwords.password, passwords.password_confirmation);
+    Auth.saveToken(r.token);
+    // Save dog + owner details locally for the booking step
+    localStorage.setItem('bp_pre_reg', JSON.stringify({ owner, dog }));
+    router.visit('/booking/appointment');
+  } catch (err: any) {
+    setError(err?.message || 'Registration failed.');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+Update Booking/Returning.tsx submit handler to call login API and save token:
+
+```ts
+import * as Auth from '@/services/AuthService';
+// other imports and component code...
+const onSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  try {
+    setLoading(true);
+    const r = await Auth.login(form.email, form.password);
+    Auth.saveToken(r.token);
+    router.visit('/booking/appointment');
+  } catch (err: any) {
+    setError(err?.message || 'Login failed.');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+Use token when calling protected API endpoints:
+
+```ts
+const token = Auth.getToken();
+fetch('/api/some-protected', {
+  headers: { Authorization: `Bearer ${token}` },
+});
+```
+
+Logout from any page:
+
+```ts
+import { logout } from '@/services/AuthService';
+await logout();
+```
+
+
+## 6) Optional: Phone OTP (Twilio)
+Environment variables:
+- TWILIO_SID=...
+- TWILIO_TOKEN=...
+- TWILIO_PHONE=+1...
+
+Endpoints (already provided):
+- POST /api/phone/send-otp { phone }
+- POST /api/phone/verify-otp { phone, otp } → returns { token, user }
+
+Frontend flow:
+- Create a simple form to request/send OTP, then verify and store the token like in email/password flow.
+
+
+## 7) Optional: Social login (Google/Facebook/Apple)
+- Configure credentials per provider and add callback URLs pointing to /api/auth/{provider}/callback.
+- The callback redirects to FRONTEND_URL + /auth/callback?token=...
+- On the frontend, read token from the query string and save it.
+
+
+## 8) Booking after login/registration
+The BookingController already upserts an Owner from contact details and links dogs/bookings. After enabling auth, you can additionally fetch /api/user and show the customer’s name/email when scheduling.
+
+If you want to require auth before booking, place the booking store route behind auth:sanctum middleware and send the Bearer token in requests.
+
+
+## 9) Verifying the setup
+- php artisan serve (or your local web server)
+- npm run dev
+- In Postman or curl:
+  - POST /api/register with name/email/password/password_confirmation → receive { token, user }
+  - GET /api/user with Authorization: Bearer &lt;token&gt; → returns user
+  - POST /api/logout with Authorization: Bearer &lt;token&gt; → 200
+- In the browser, use the Register/Returning pages to register/login and proceed to /booking/appointment.
+
+
+## 10) Troubleshooting
+- 401 Unauthorized on /api/user: Ensure Authorization: Bearer &lt;token&gt; header is sent and the token hasn’t been revoked. Confirm auth:sanctum on the route group.
+- CORS errors: Add your frontend origin to config/cors.php and set SANCTUM_STATEFUL_DOMAINS and SESSION_DOMAIN in .env.
+- Duplicate email or phone: users.email is unique; users.phone is unique in the added migration. Use a fresh test account if needed.
+- Social login redirect mismatch: Ensure provider console callback URLs match your /api/auth/{provider}/callback URLs, and FRONTEND_URL is correct.
+
+
+## 11) What this repo already has
+- Controllers: API/AuthController, API/PhoneAuthController, API/SocialAuthController
+- Models: User (with HasApiTokens) and Owner (linked via owners.user_id)
+- Migrations: users base + auth fields; owners + owners.user_id; bookings with scheduled_at and time
+
+You mainly need to (a) re-enable the API routes above, (b) set environment variables, (c) wire the frontend calls using the provided AuthService snippet.
+
+End of guide.

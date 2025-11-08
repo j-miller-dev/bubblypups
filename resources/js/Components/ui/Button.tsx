@@ -5,21 +5,21 @@ import { Link } from './Link'
 const variants = {
   primary: clsx(
     'inline-flex items-center justify-center px-4 py-[calc(--spacing(2)-1px)]',
-    'rounded-full border border-transparent bg-pink-400 shadow-md',
-    'text-base font-bold whitespace-nowrap text-white',
-    'data-disabled:bg-gray-950 data-disabled:opacity-40 data-hover:bg-white data-hover:text-pink-400 transition-all duration-300',
+    'rounded-full border border-transparent bg-brand-400 shadow-md',
+    'text-base font-extrabold font-display whitespace-nowrap text-white',
+    'data-disabled:bg-gray-950 data-disabled:opacity-40 data-hover:bg-white data-hover:text-brand-400 transition-all duration-300',
   ),
   secondary: clsx(
     'relative inline-flex items-center justify-center px-4 py-[calc(--spacing(2)-1px)]',
-    'rounded-full border border-transparent bg-white/15 shadow-md ring-1 ring-[#D15052]/15',
+    'rounded-full border border-transparent bg-white/15 shadow-md ring-1 ring-brand-200/15',
     'after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_0_2px_1px_#ffffff4d]',
-    'text-base font-medium whitespace-nowrap text-gray-950',
+    'text-base font-medium font-display whitespace-nowrap text-gray-950',
     'data-disabled:bg-white/15 data-disabled:opacity-40 data-hover:bg-white/20',
   ),
   outline: clsx(
     'inline-flex items-center justify-center px-2 py-[calc(--spacing(1.5)-1px)]',
     'rounded-lg border border-transparent shadow-sm ring-1 ring-black/10',
-    'text-sm font-medium whitespace-nowrap text-gray-950',
+    'text-sm font-medium font-display whitespace-nowrap text-gray-950',
     'data-disabled:bg-transparent data-disabled:opacity-40 data-hover:bg-gray-50',
   ),
 }

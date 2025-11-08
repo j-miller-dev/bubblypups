@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import MainLayout from "@/Layouts/MainLayout";
+import MainLayout from "@/Layouts/MainLayout.tsx";
 import { Container } from "@/Components/layout";
 import { Gradient } from "@/Components/graphics";
 import { Button, Link } from "@/Components/ui";
@@ -34,7 +34,7 @@ export default function Login() {
                     <Container className="relative py-24 sm:py-32">
                         <div className="mx-auto max-w-md">
                             <h1 className="text-center text-4xl font-medium tracking-tighter text-pretty text-gray-950">
-                                Log in to Radiant
+                                Log in to BubblyPups Admin
                             </h1>
                             <p className="mt-4 text-center text-lg text-gray-600">
                                 Welcome back! Please enter your credentials to

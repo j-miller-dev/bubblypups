@@ -13,8 +13,10 @@ class Booking extends Model
 
     protected $fillable = [
         'owner_id',
-        'dog_id', 
+        'dog_id',
+        'service',
         'scheduled_at',
+        'time',
         'duration_minutes',
         'total_amount',
         'status',

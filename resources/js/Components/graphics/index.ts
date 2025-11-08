@@ -1,5 +1,6 @@
 // Graphics Components - Visual elements and animations
 export { Bubbles } from './Bubbles'
+export { MobileNavBubbles } from './MobileNavBubbles'
 export { Logo } from './Logo'
 export { Gradient } from './Gradient'
 export { AnimatedNumber } from './AnimatedNumber'

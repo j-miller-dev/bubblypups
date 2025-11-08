@@ -18,18 +18,33 @@ export default function Register() {
     weight: '',
     notes: '',
   })
+  const [passwords, setPasswords] = useState({
+    password: '',
+    password_confirmation: '',
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Optionally stash basic data for prefilling later
+    setError(null)
+
+    // No authentication - simply stash the customer and dog details
     try {
+      setLoading(true)
       const payload = { owner, dog }
       localStorage.setItem('bp_pre_reg', JSON.stringify(payload))
-    } catch (_) {}
+    } catch (err: any) {
+      setLoading(false)
+      setError('Failed to save your info locally. Please try again.')
+      return
+    }
+
+    setLoading(false)
     router.visit('/booking/appointment')
   }
 
-  const isValid = owner.name && (owner.email || owner.phone) && dog.name
+  const isValid = !!(owner.name && dog.name)
 
   return (
     <MainLayout title="Register | Bubbly Pups">
@@ -63,6 +78,19 @@ export default function Register() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Address (optional)</label>
                   <input className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={owner.address} onChange={(e) => setOwner({ ...owner, address: e.target.value })}/>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Create password</label>
+                    <input type="password" className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={passwords.password} onChange={(e) => setPasswords({ ...passwords, password: e.target.value })} required/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                    <input type="password" className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={passwords.password_confirmation} onChange={(e) => setPasswords({ ...passwords, password_confirmation: e.target.value })} required/>
+                  </div>
+                </div>
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
               </div>
 
               <div className="space-y-4">

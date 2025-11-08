@@ -4,7 +4,7 @@ Legend: [✓] done • [*] in progress • [ ] planned • [!] needs decision
 
 This document is the authoritative TODO/readme for what exists, what’s missing, and what to do next. Each item references relevant code where helpful.
 
-— Last updated: 2025‑08‑26
+— Last updated: 2025‑09‑22
 
 1. Foundations
 - [✓] Stack in place: Laravel 11 + Inertia (React 19 + TypeScript), Vite 7, Tailwind v4. See docs/PROJECT_GUIDE.md.  
@@ -37,6 +37,9 @@ This document is the authoritative TODO/readme for what exists, what’s missing
 - [ ] Availability integration: use Availability model/seeded hours to disable unavailable slots on the form.  
 - [ ] Existing customer prefill: from localStorage to initial form state; optionally load from backend by email/phone later.  
 - [ ] Validation UX: date-in-future, timeslot validity enforced client-side now; consider server-side guards.
+- [ ] Re-enable API auth endpoints in routes/api.php per README (register, login, user, logout; optional phone/social).
+- [ ] Implement services/AuthService.ts as per README and wire Booking/Register.tsx and Booking/Returning.tsx to call it and store token.
+- [ ] After auth is wired, optionally require auth for booking POST and send Bearer token; otherwise keep public for MVP.
 
 4. Admin Dashboard
 - [✓] Shell + nav: Admin layout with sidebar/topbar.  
@@ -52,14 +55,13 @@ This document is the authoritative TODO/readme for what exists, what’s missing
 
 5. Data Layer and Schema Alignment
 - [✓] Migrations present: owners, dogs, bookings, contacts, services, booking_services, availability.  
-- [!] IMPORTANT: Booking model vs migration mismatch  
-  - Model app/Models/Booking.php expects: scheduled_at, duration_minutes, total_amount, location, services pivot.  
-  - Migration database/migrations/2025_08_14_000020_create_bookings_table.php creates: service, date, time, status, notes.  
-  - Controller + tests use service, date, time, status.  
-  - Action: choose one schema and align all of: migration, model, controller, tests, UI.  
-    - Option A (simpler/MVP): keep service/date/time on bookings; remove pivot for now. Update Booking model fillable/casts/relations accordingly.  
-    - Option B (richer): move to scheduled_at (datetime), duration, total_amount, and relate services via booking_services; update controller/tests/UI.  
-  - [ ] Implement chosen option and add a follow-up migration if needed.  
+- [*] Booking schema alignment  
+  - Current: Migration uses scheduled_at (datetime) and a legacy time string; controller uses scheduled_at+time; model still includes duration_minutes, total_amount, location, and services pivot not yet used.  
+  - Decision: Option B‑lite adopted: use scheduled_at (+ time for compatibility) without services pivot for now.  
+  - Actions:  
+    - [ ] Either remove unused fields/relations from Booking model or add migrations to support them fully (duration_minutes, total_amount, location, booking_services).  
+    - [ ] Update tests to reflect scheduled_at (+ time) and remove any references to a separate date field.  
+    - [ ] Ensure UI displays from scheduled_at and time consistently.  
 - [*] Seeders: ServiceSeeder and AvailabilitySeeder exist.  
   - [ ] Add Owner/Dog/Booking seeders for richer dev data; ensure Booking schema decision is reflected.  
 - [ ] Indices: consider indexes on owners.email/phone, dogs.owner_id+name, bookings.date/status for query perf.

@@ -12,9 +12,9 @@ return new class extends Migration {
             $table->foreignId('owner_id')->constrained('owners')->cascadeOnDelete();
             $table->foreignId('dog_id')->constrained('dogs')->cascadeOnDelete();
             $table->string('service');
-            $table->date('date')->nullable();
-            $table->string('time')->nullable();
-            $table->string('status')->default('pending');
+            $table->dateTime('scheduled_at');  // replace date + time with this
+            $table->enum('status',
+                ['pending', 'confirmed', 'completed'])->default('pending');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

@@ -7,14 +7,37 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ably/ably-php": "^1.1",
+        "aws/aws-php-sns-message-validator": "^1.10",
+        "aws/aws-sdk-php": "^3.356",
+        "doctrine/cache": "^2.2",
         "inertiajs/inertia-laravel": "^2.0",
+        "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1",
+        "laravel/socialite": "^5.23",
+        "laravel/tinker": "^2.10",
+        "league/flysystem-aws-s3-v3": "^3.29",
+        "league/flysystem-ftp": "^3.29",
+        "league/flysystem-path-prefixing": "^3.28",
+        "league/flysystem-read-only": "^3.28",
+        "league/flysystem-sftp-v3": "^3.30",
+        "pda/pheanstalk": "^7.1",
+        "php-http/discovery": "^1.20",
+        "predis/predis": "^3.2",
+        "pusher/pusher-php-server": "^7.2",
+        "resend/resend-php": "^0.20.0",
+        "symfony/cache": "^7.3",
+        "symfony/filesystem": "^7.3",
+        "symfony/http-client": "^7.3",
+        "symfony/mailgun-mailer": "^7.3",
+        "symfony/postmark-mailer": "^7.3",
+        "symfony/psr-http-message-bridge": "^7.3",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel/boost": "^1.1",
         "laravel/breeze": "^2.3",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
@@ -22,7 +45,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-laravel": "^3.2"
+        "pestphp/pest-plugin-laravel": "^3.2",
+        "psy/psysh": "^0.12.10"
     },
     "autoload": {
         "psr-4": {

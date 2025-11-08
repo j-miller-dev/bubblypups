@@ -1,2 +1,2 @@
-import Login from '../Login';
+import Login from "../Dashboard/Login.tsx";
 export default Login;

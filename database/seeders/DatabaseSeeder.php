@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             AvailabilitySeeder::class,
             OwnerSeeder::class,
             DogSeeder::class,
-            // BookingSeeder::class, // Will add this after completing models
+            BookingSeeder::class,
         ]);
     }
 }

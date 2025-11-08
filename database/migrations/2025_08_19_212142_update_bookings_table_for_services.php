@@ -12,16 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            // Remove the old service column
-            $table->dropColumn('service');
-            
-            // Add new fields for enhanced booking system
-            $table->datetime('scheduled_at')->nullable()->after('dog_id');
-            $table->integer('duration_minutes')->nullable()->after('scheduled_at');
-            $table->decimal('total_amount', 10, 2)->default(0)->after('duration_minutes');
-            $table->enum('status', ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])->default('pending')->change();
-            $table->text('internal_notes')->nullable()->after('notes');
-            $table->string('location')->nullable()->after('internal_notes'); // For mobile grooming
+            // Keep existing 'service' column for now to ensure compatibility with current app
+            // Ensure 'scheduled_at' exists
+            if (!Schema::hasColumn('bookings', 'scheduled_at')) {
+                $table->dateTime('scheduled_at')->nullable();
+            }
+            // Add optional fields if not present
+            if (!Schema::hasColumn('bookings', 'duration_minutes')) {
+                $table->integer('duration_minutes')->nullable();
+            }
+            if (!Schema::hasColumn('bookings', 'total_amount')) {
+                $table->decimal('total_amount', 10, 2)->default(0);
+            }
+            if (!Schema::hasColumn('bookings', 'internal_notes')) {
+                $table->text('internal_notes')->nullable();
+            }
+            if (!Schema::hasColumn('bookings', 'location')) {
+                $table->string('location')->nullable();
+            }
+            // Avoid changing enum in existing databases for portability
         });
     }
 

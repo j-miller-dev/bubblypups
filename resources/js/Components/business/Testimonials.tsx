@@ -1,252 +1,73 @@
-import * as Headless from '@headlessui/react'
-import { ArrowLongRightIcon } from '@heroicons/react/20/solid'
-import { clsx } from 'clsx'
-import {
-  MotionValue,
-  motion,
-  useMotionValueEvent,
-  useScroll,
-  useSpring,
-  type HTMLMotionProps,
-} from 'framer-motion'
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import useMeasure, { type RectReadOnly } from 'react-use-measure'
-import { Container } from '../layout/Container'
-import { Link } from '../ui/Link'
-import { Heading, Subheading } from '../ui/Text'
-import { SectionHeading } from "@/Components/graphics";
+import { CheckCircleIcon } from "@heroicons/react/20/solid";
 
-// Dog grooming testimonials
-const testimonials = [
-  {
-    img: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=600&fit=crop&crop=face',
-    name: 'Sarah Mitchell',
-    title: 'Buddy (Golden Retriever) • Sunbury',
-    quote:
-      'Amazing service! Buddy has never looked so good. The team was so gentle and professional. Highly recommend for any dog owner in Sunbury!',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=face',
-    name: 'James Thompson',
-    title: 'Luna (Border Collie) • Diggers Rest',
-    quote:
-      'Luna was so nervous about grooming, but the team made her feel completely at ease. The results were fantastic - she looks like a show dog!',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face',
-    name: 'Emily Rodriguez',
-    title: 'Max (French Bulldog) • Sunbury',
-    quote:
-      'Incredible attention to detail! Max\'s nails were perfectly trimmed and his coat is so shiny. The mobile service is so convenient too.',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&crop=face',
-    name: 'Michael Chen',
-    title: 'Bella (Labrador) • Fraser Rise',
-    quote:
-      'Bella has been going for 6 months now and loves it every time. Professional, caring, and reasonably priced. Couldn\'t ask for better!',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop&crop=face',
-    name: 'Jessica Parker',
-    title: 'Charlie (Poodle) • Sunbury',
-    quote: 'Charlie\'s coat has never looked better! The team knows exactly how to handle different breeds. Five stars all the way!',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop&crop=face',
-    name: 'David Wilson',
-    title: 'Ruby (Beagle) • Sunbury',
-    quote:
-      'Ruby used to hate bath time, but now she gets excited when she sees the grooming van! The transformation is amazing every single time.',
-  },
-]
-
-function TestimonialCard({
-  name,
-  title,
-  img,
-  children,
-  bounds,
-  scrollX,
-  ...props
-}: {
-  img: string
-  name: string
-  title: string
-  children: React.ReactNode
-  bounds: RectReadOnly
-  scrollX: MotionValue<number>
-} & HTMLMotionProps<'div'>) {
-  let ref = useRef<HTMLDivElement | null>(null)
-
-  let computeOpacity = useCallback(() => {
-    let element = ref.current
-    if (!element || bounds.width === 0) return 1
-
-    let rect = element.getBoundingClientRect()
-
-    if (rect.left < bounds.left) {
-      let diff = bounds.left - rect.left
-      let percent = diff / rect.width
-      return Math.max(0.5, 1 - percent)
-    } else if (rect.right > bounds.right) {
-      let diff = rect.right - bounds.right
-      let percent = diff / rect.width
-      return Math.max(0.5, 1 - percent)
-    } else {
-      return 1
-    }
-  }, [ref, bounds.width, bounds.left, bounds.right])
-
-  let opacity = useSpring(computeOpacity(), {
-    stiffness: 154,
-    damping: 23,
-  })
-
-  useLayoutEffect(() => {
-    opacity.set(computeOpacity())
-  }, [computeOpacity, opacity])
-
-  useMotionValueEvent(scrollX, 'change', () => {
-    opacity.set(computeOpacity())
-  })
-
-  return (
-    <motion.div
-      ref={ref}
-      style={{ opacity }}
-      {...props}
-      className="relative flex aspect-[9/16] w-72 shrink-0 snap-start scroll-ml-[var(--scroll-padding)] flex-col justify-end overflow-hidden rounded-3xl sm:aspect-[3/4] sm:w-96"
-    >
-      <img
-        alt=""
-        src={img}
-        className="absolute inset-x-0 top-0 aspect-square w-full object-cover"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black from-[calc(7/16*100%)] ring-1 ring-gray-950/10 ring-inset sm:from-[25%]"
-      />
-      <figure className="relative p-10">
-        <blockquote>
-          <p className="relative text-xl leading-7 text-white">
-            <span aria-hidden="true" className="absolute -translate-x-full">
-              "
-            </span>
-            {children}
-            <span aria-hidden="true" className="absolute">
-              "
-            </span>
-          </p>
-        </blockquote>
-        <figcaption className="mt-6 border-t border-white/20 pt-6">
-          <p className="text-sm leading-6 font-medium text-white">{name}</p>
-          <p className="text-sm leading-6 font-medium">
-            <span className="bg-gradient-to-r from-[#fff1be] from-[28%] via-[#ee87cb] via-[70%] to-[#b060ff] bg-clip-text text-transparent">
-              {title}
-            </span>
-          </p>
-        </figcaption>
-      </figure>
-    </motion.div>
-  )
-}
-
-function CallToAction() {
-  return (
-    <div>
-      <p className="max-w-sm text-sm/6 text-gray-600">
-        Join hundreds of happy pet owners in Sunbury and surrounding areas. Book your dog's grooming session today.
-      </p>
-      <div className="mt-2">
-        <Link
-          href="/booking"
-          className="inline-flex items-center gap-2 text-sm leading-6 font-medium text-pink-600"
-        >
-          Book Now
-          <ArrowLongRightIcon className="h-5 w-5" />
-        </Link>
-      </div>
-    </div>
-  )
-}
+const benefits = [
+    "All breeds, all sizes",
+    "Trims, cuts and dematting",
+    "Puppy pampers",
+    "Free bandana for each pup",
+    "10 years experience :)",
+    "Servicing Sunbury and wider region",
+];
 
 export function Testimonials() {
-  let scrollRef = useRef<HTMLDivElement | null>(null)
-  let { scrollX } = useScroll({ container: scrollRef })
-  let [setReferenceWindowRef, bounds] = useMeasure()
-  let [activeIndex, setActiveIndex] = useState(0)
-
-  useMotionValueEvent(scrollX, 'change', (x) => {
-    if (scrollRef.current && scrollRef.current.children[0]) {
-      setActiveIndex(Math.floor(x / scrollRef.current.children[0].clientWidth))
-    }
-  })
-
-  function scrollTo(index: number) {
-    if (scrollRef.current && scrollRef.current.children[0]) {
-      let gap = 32
-      let width = (scrollRef.current.children[0] as HTMLElement).offsetWidth
-      scrollRef.current.scrollTo({ left: (width + gap) * index })
-    }
-  }
-
-  return (
-    <div className="overflow-hidden py-32">
-      <Container>
-        <div ref={setReferenceWindowRef}>
-            <SectionHeading
-                subtitle="The word around town"
-                title="What the Sunbury locals are saying..."
-                theme="light"
-            />
+    return (
+        <div className="overflow-hidden bg-white py-24 sm:py-32">
+            <div className="relative isolate">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="mx-auto flex max-w-2xl flex-col gap-16 bg-white/75 px-6 py-16 shadow-lg ring-1 ring-gray-900/5 sm:rounded-3xl sm:p-8 lg:mx-0 lg:max-w-none lg:flex-row lg:items-center lg:py-20 xl:gap-x-20 xl:px-20">
+                        <img
+                            alt=""
+                            src="https://images.unsplash.com/photo-1519338381761-c7523edc1f46?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"
+                            className="h-96 w-full flex-none rounded-2xl object-cover lg:aspect-square lg:h-auto lg:max-w-sm"
+                        />
+                        <div className="w-full flex-auto">
+                            <h2 className="text-4xl font-semibold tracking-tight text-pretty text-gray-950 sm:text-5xl">
+                                Join our team
+                            </h2>
+                            <p className="mt-6 text-lg/8 text-pretty text-gray-600">
+                                Lorem ipsum dolor sit amet consect adipisicing
+                                elit. Possimus magnam voluptatum cupiditate
+                                veritatis in accusamus quisquam.
+                            </p>
+                            <ul
+                                role="list"
+                                className="mt-10 grid grid-cols-1 gap-x-8 gap-y-3 text-base/7 text-gray-950 sm:grid-cols-2"
+                            >
+                                {benefits.map((benefit) => (
+                                    <li key={benefit} className="flex gap-x-3">
+                                        <CheckCircleIcon
+                                            aria-hidden="true"
+                                            className="h-7 w-5 flex-none text-indigo-500"
+                                        />
+                                        {benefit}
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="mt-10 flex">
+                                <a
+                                    href="#"
+                                    className="text-sm/6 font-semibold text-indigo-600 hover:text-indigo-300"
+                                >
+                                    See our job postings
+                                    <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl"
+                >
+                    <div
+                        style={{
+                            clipPath:
+                                "polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)",
+                        }}
+                        className="aspect-1318/752 w-329.5 flex-none bg-linear-to-r from-[#9fd6fc] to-[#8680fd] opacity-50"
+                    />
+                </div>
+            </div>
         </div>
-      </Container>
-      <div
-        ref={scrollRef}
-        className={clsx([
-          'mt-16 flex gap-8',
-          'px-6 lg:px-8',
-          '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-          'snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth',
-        ])}
-      >
-        {testimonials.map(({ img, name, title, quote }, testimonialIndex) => (
-          <TestimonialCard
-            key={testimonialIndex}
-            name={name}
-            title={title}
-            img={img}
-            bounds={bounds}
-            scrollX={scrollX}
-            onClick={() => scrollTo(testimonialIndex)}
-          >
-            {quote}
-          </TestimonialCard>
-        ))}
-        <div className="w-96 shrink-0 sm:w-[54rem]" />
-      </div>
-      <Container className="mt-16">
-        <div className="flex justify-between">
-          <CallToAction />
-          <div className="hidden sm:flex sm:gap-2">
-            {testimonials.map(({ name }, testimonialIndex) => (
-              <Headless.Button
-                key={testimonialIndex}
-                onClick={() => scrollTo(testimonialIndex)}
-                data-active={
-                  activeIndex === testimonialIndex ? true : undefined
-                }
-                aria-label={`Scroll to testimonial from ${name}`}
-                className={clsx(
-                  'h-2.5 w-2.5 rounded-full border border-transparent bg-gray-300 transition',
-                  'data-[active=true]:bg-gray-400 hover:bg-gray-400 focus:outline-offset-4',
-                )}
-              />
-            ))}
-          </div>
-        </div>
-      </Container>
-    </div>
-  )
+    );
 }

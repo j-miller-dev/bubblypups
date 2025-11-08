@@ -19,7 +19,7 @@ export const CallNowButton: React.FC<CallNowButtonProps> = ({
             className={`
         fixed bottom-6 right-6 z-50
         flex items-center gap-2
-        bg-pink-500 hover:bg-pink-600
+        bg-brand-500 hover:bg-brand-600
         text-white font-medium
         py-3 px-5 rounded-full
         shadow-lg hover:shadow-xl
