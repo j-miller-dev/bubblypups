@@ -1,16 +1,17 @@
 <?php
 
-use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Home');
-});
+})->name('home');
 
-// Booking routes
+// Contact form
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// Frontend booking pages (no backend yet - you'll add routes as you build)
 Route::get('/booking', function () {
     return Inertia::render('Booking/Start');
 })->name('booking');
@@ -27,16 +28,18 @@ Route::get('/booking/appointment', function () {
     return Inertia::render('Booking');
 })->name('booking.appointment');
 
-// Dashboard routes (temporarily public while auth is removed)
+// Frontend dashboard pages (no backend yet - you'll add routes as you build)
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard/Overview');
 })->name('dashboard');
 
-Route::get('/dashboard/dogs', [DashboardController::class, 'dogs'])
-    ->name('dashboard.dogs');
+Route::get('/dashboard/dogs', function () {
+    return Inertia::render('Dashboard/Dogs');
+})->name('dashboard.dogs');
 
-Route::get('/dashboard/bookings', [BookingController::class, 'index'])
-    ->name('dashboard.bookings');
+Route::get('/dashboard/bookings', function () {
+    return Inertia::render('Dashboard/Bookings');
+})->name('dashboard.bookings');
 
 Route::get('/dashboard/availability', function () {
     return Inertia::render('Dashboard/Availability');
@@ -45,11 +48,3 @@ Route::get('/dashboard/availability', function () {
 Route::get('/dashboard/calendar', function () {
     return Inertia::render('Dashboard/Calendar');
 })->name('dashboard.calendar');
-
-// Profile routes removed while auth is reset
-
-// Booking persistence endpoint (MVP)
-Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-
-// Auth routes removed (Fortify/Breeze)
