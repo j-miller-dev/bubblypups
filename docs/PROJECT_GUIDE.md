@@ -50,7 +50,7 @@ Troubleshooting (white page when npm run dev is on):
     - Contact.tsx — Public contact form
     - Booking.tsx — Appointment multi-step (service → dog → schedule → contact → confirmation)
     - Booking/Start.tsx — Triage: returning vs new
-    - Booking/Register.tsx — New customer quick registration (prefill only)
+    - Booking/CustomerRegister.tsx — New customer quick registration (prefill only)
     - Booking/Returning.tsx — Returning customer quick login (prefill only)
     - Dashboard/
       - Overview.tsx
@@ -78,7 +78,7 @@ Define routes in routes/web.php and return Inertia pages by name. The name maps 
 - Booking flow (triage → appointment):
   - /booking → Booking/Start
   - /booking/returning → Booking/Returning
-  - /booking/register → Booking/Register
+  - /booking/register → Booking/CustomerRegister
   - /booking/appointment → Booking (full multi‑step form)
 - Dashboard nested pages:
   - /dashboard → Dashboard/Overview
@@ -209,7 +209,7 @@ How to add a new dashboard section
 - Fixed welcome.blade.php to load app.tsx
 - Cleaned up Home page for brand (pastel hero with centered large logo; About Me; Services; Facebook feed; Testimonials)
 - Navbar uses brand landscape logo from public images
-- Booking triage flow (Start/Register/Returning) before the main Booking form
+- Booking triage flow (Start/CustomerRegister/Returning) before the main Booking form
 - Booking page gradient overlay removed for clarity
 - Dashboard shell (AdminLayout) and nested routes: Overview, Bookings, Dogs
 - Data layer: migrations + models for owners/dogs/bookings/testimonials/contacts

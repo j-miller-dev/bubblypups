@@ -29,7 +29,7 @@ This document is the authoritative TODO/readme for what exists, what’s missing
 3. Booking (Customer Flow)
 - [✓] Triage pages:  
   - /booking → Booking/Start.tsx  
-  - /booking/register → Booking/Register.tsx  
+  - /booking/register → Booking/CustomerRegister.tsx  
   - /booking/returning → Booking/Returning.tsx  
 - [✓] Appointment form: resources/js/Pages/Booking.tsx (multi-step: service → dog → schedule → contact → confirm).  
 - [✓] Persistence MVP: POST /bookings → BookingController@store, upserts Owner, first-or-creates Dog, creates Booking, logs confirmation.  
@@ -38,7 +38,7 @@ This document is the authoritative TODO/readme for what exists, what’s missing
 - [ ] Existing customer prefill: from localStorage to initial form state; optionally load from backend by email/phone later.  
 - [ ] Validation UX: date-in-future, timeslot validity enforced client-side now; consider server-side guards.
 - [ ] Re-enable API auth endpoints in routes/api.php per README (register, login, user, logout; optional phone/social).
-- [ ] Implement services/AuthService.ts as per README and wire Booking/Register.tsx and Booking/Returning.tsx to call it and store token.
+- [ ] Implement services/AuthService.ts as per README and wire Booking/CustomerRegister.tsx and Booking/Returning.tsx to call it and store token.
 - [ ] After auth is wired, optionally require auth for booking POST and send Bearer token; otherwise keep public for MVP.
 
 4. Admin Dashboard

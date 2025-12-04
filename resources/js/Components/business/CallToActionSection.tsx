@@ -11,7 +11,7 @@ export default function CallToActionSection() {
                 </h2>
                 <div className="mt-10 flex items-center justify-center gap-6 lg:mt-0 lg:shrink-0">
                     <a
-                        href="/booking"
+                        href="/booking/start"
                         className="btn-primary w-full sm:w-auto"
                     >
                         <CalendarIcon className="h-5 w-5" />

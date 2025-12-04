@@ -55,7 +55,7 @@ export default function Start() {
                 <Container>
                     <div className="mx-auto max-w-xl text-center">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Link href="/booking/returning" className="block">
+                            <Link href="/customer/login" className="block">
                                 <div className="h-full rounded-xl border border-gray-200 bg-gray-50 p-6 text-center hover:shadow-sm transition">
                                     <div className="flex justify-center mb-4">
                                         <UserCheck className="w-12 h-12 text-brand-400" />
@@ -73,7 +73,7 @@ export default function Start() {
                                 </div>
                             </Link>
 
-                            <Link href="/booking/register" className="block">
+                            <Link href="/register" className="block">
                                 <div className="h-full rounded-xl border border-gray-200 bg-gray-50 p-6 text-center hover:shadow-sm transition">
                                     <div className="flex justify-center mb-4">
                                         <UserPlus className="w-12 h-12 text-brand-400" />

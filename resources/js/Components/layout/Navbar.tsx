@@ -14,7 +14,7 @@ import { MobileNavBubbles } from "../graphics/MobileNavBubbles";
 
 const links = [
     { href: "/pricing", label: "Pricing" },
-    { href: "/booking", label: "Book Now" },
+    { href: "/booking/start", label: "Book Now" },
     { href: "/company", label: "Company" },
     { href: "/blog", label: "Blog" },
     { href: "/dashboard", label: "Dashboard" },

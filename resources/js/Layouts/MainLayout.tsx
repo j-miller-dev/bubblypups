@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import { Navbar, Footer } from '@/Components/layout';
+import Toast from '@/Components/ui/Toast';
 
 
 interface MainLayoutProps {
@@ -20,6 +21,7 @@ export default function MainLayout({
         <title>{title}</title>
         <meta name="description" content={description} />
       </Head>
+      <Toast />
       <div className="flex min-h-screen flex-col overflow-hidden">
         <Navbar />
         <main className="flex-grow">{children}</main>

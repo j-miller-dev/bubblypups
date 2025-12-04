@@ -5,7 +5,9 @@ import { Bubbles } from "@/Components/graphics";
 import CallToActionSection from "@/Components/business/CallToActionSection.tsx";
 import { CalendarIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import FAQSection from "@/Components/FAQSection.tsx";
-import Gallery from "@/Components/Gallery.jsx";
+import Gallery from "@/Components/Gallery";
+import { Link } from "@inertiajs/react";
+
 
 function Hero() {
     return (
@@ -22,13 +24,13 @@ function Hero() {
                     </div>
 
                     <div className="mt-12 flex flex-col items-center gap-6 sm:flex-row sm:justify-center animate-fade-in-up delay-300">
-                        <a
-                            href="/booking"
+                        <Link
+                            href="/booking/start"
                             className="btn-primary w-full sm:w-auto"
                         >
                             <CalendarIcon className="h-5 w-5" />
                             Book Now
-                        </a>
+                        </Link>
                         <a
                             href="tel:+1234567890"
                             className="btn-primary w-full sm:w-auto"

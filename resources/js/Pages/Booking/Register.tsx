@@ -4,7 +4,7 @@ import { Container } from '@/Components/layout'
 import { Button } from '@/Components/ui'
 import { Head, router } from '@inertiajs/react'
 
-export default function Register() {
+export default function CustomerRegister() {
   const [owner, setOwner] = useState({
     name: '',
     email: '',
@@ -47,7 +47,7 @@ export default function Register() {
   const isValid = !!(owner.name && dog.name)
 
   return (
-    <MainLayout title="Register | Bubbly Pups">
+    <MainLayout title="CustomerRegister | Bubbly Pups">
       <Head>
         <title>New Customer Registration | Bubbly Pups</title>
       </Head>

@@ -280,7 +280,7 @@ This project’s API examples use Bearer tokens in headers, so you can keep cook
 
 
 ## 5) Frontend integration (Inertia React)
-Two pages already exist: resources/js/Pages/Booking/Register.tsx and .../Booking/Returning.tsx.
+Two pages already exist: resources/js/Pages/Booking/CustomerRegister.tsx and .../Booking/Returning.tsx.
 To enable auth, implement a small AuthService and call it from these pages.
 
 Create or update services/AuthService.ts:
@@ -348,7 +348,7 @@ export async function logout(): Promise<void> {
 }
 ```
 
-Update Booking/Register.tsx submit handler to call register API and save token:
+Update Booking/CustomerRegister.tsx submit handler to call register API and save token:
 
 ```ts
 import * as Auth from '@/services/AuthService';
@@ -442,7 +442,7 @@ If you want to require auth before booking, place the booking store route behind
   - POST /api/register with name/email/password/password_confirmation → receive { token, user }
   - GET /api/user with Authorization: Bearer &lt;token&gt; → returns user
   - POST /api/logout with Authorization: Bearer &lt;token&gt; → 200
-- In the browser, use the Register/Returning pages to register/login and proceed to /booking/appointment.
+- In the browser, use the CustomerRegister/Returning pages to register/login and proceed to /booking/appointment.
 
 
 ## 10) Troubleshooting

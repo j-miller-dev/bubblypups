@@ -193,7 +193,7 @@ export default function UpcomingBookingsCal({
                                     ),
                                 )
                             }
-                            className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-white"
+                            className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
                         >
                             <span className="sr-only">Previous month</span>
                             <ChevronLeftIcon
@@ -218,7 +218,7 @@ export default function UpcomingBookingsCal({
                                     ),
                                 )
                             }
-                            className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-white"
+                            className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
                         >
                             <span className="sr-only">Next month</span>
                             <ChevronRightIcon
@@ -227,7 +227,7 @@ export default function UpcomingBookingsCal({
                             />
                         </button>
                     </div>
-                    <div className="mt-6 grid grid-cols-7 text-xs/6 text-gray-500 dark:text-gray-400">
+                    <div className="mt-6 grid grid-cols-7 text-xs/6 text-gray-500">
                         <div>M</div>
                         <div>T</div>
                         <div>W</div>
@@ -236,7 +236,7 @@ export default function UpcomingBookingsCal({
                         <div>S</div>
                         <div>S</div>
                     </div>
-                    <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200 dark:bg-white/15 dark:shadow-none dark:ring-white/15">
+                    <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
                         {days.map((day) => (
                             <button
                                 key={day.date}
@@ -269,11 +269,11 @@ export default function UpcomingBookingsCal({
                                 data-is-past={
                                     day.date < todayStr ? "" : undefined
                                 }
-                                className="group py-1.5 not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 first:rounded-tl-lg last:rounded-br-lg hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 data-is-selected:font-semibold data-is-selected:text-white data-is-today:font-semibold data-is-today:not-data-is-selected:text-indigo-600 data-is-today:hover:bg-indigo-50 data-is-today:hover:ring-1 data-is-today:hover:ring-indigo-300 not-data-is-selected:data-is-past:text-gray-400 nth-36:rounded-bl-lg nth-7:rounded-tr-lg dark:not-data-is-current-month:bg-gray-900/75 dark:not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-500 dark:hover:bg-gray-900/25 dark:data-is-current-month:bg-gray-900/90 dark:not-data-is-selected:data-is-current-month:not-data-is-today:text-white dark:data-is-current-month:hover:bg-gray-900/50 dark:data-is-selected:text-gray-900 dark:not-data-is-selected:data-is-past:text-gray-500 dark:data-is-today:not-data-is-selected:text-indigo-400 dark:data-is-today:hover:bg-gray-900/40 dark:data-is-today:hover:ring-1 dark:data-is-today:hover:ring-indigo-500"
+                                className="group py-1.5 not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 first:rounded-tl-lg last:rounded-br-lg hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 data-is-selected:font-semibold data-is-selected:text-white data-is-today:font-semibold data-is-today:not-data-is-selected:text-indigo-600 data-is-today:hover:bg-indigo-50 data-is-today:hover:ring-1 data-is-today:hover:ring-indigo-300 not-data-is-selected:data-is-past:text-gray-400 nth-36:rounded-bl-lg nth-7:rounded-tr-lg"
                             >
                                 <time
                                     dateTime={day.date}
-                                    className="mx-auto flex size-7 items-center justify-center rounded-full in-data-is-selected:bg-indigo-600 in-data-is-selected:text-white dark:in-data-is-selected:bg-indigo-500"
+                                    className="mx-auto flex size-7 items-center justify-center rounded-full in-data-is-selected:bg-indigo-600 in-data-is-selected:text-white"
                                 >
                                     {day.date
                                         .split("-")
@@ -285,24 +285,24 @@ export default function UpcomingBookingsCal({
                     </div>
                     <button
                         type="button"
-                        className="mt-8 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
+                        className="mt-8 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
                         Add event
                     </button>
                 </div>
-                <ol className="mt-4 divide-y divide-gray-100 text-sm/6 lg:col-span-7 xl:col-span-8 dark:divide-white/10">
+                <ol className="mt-4 divide-y divide-gray-100 text-sm/6 lg:col-span-7 xl:col-span-8">
                     {isLoading && (
-                        <li className="py-6 text-gray-500 dark:text-gray-400">
+                        <li className="py-6 text-gray-500">
                             Loading bookings…
                         </li>
                     )}
                     {!isLoading && loadError && (
-                        <li className="py-6 text-red-600 dark:text-red-400">
+                        <li className="py-6 text-red-600">
                             {loadError}
                         </li>
                     )}
                     {!isLoading && !loadError && bookings.length === 0 && (
-                        <li className="py-6 text-gray-600 dark:text-gray-300">
+                        <li className="py-6 text-gray-600">
                             No bookings today
                         </li>
                     )}
@@ -317,14 +317,14 @@ export default function UpcomingBookingsCal({
                                     <img
                                         alt=""
                                         src={meeting.imageUrl}
-                                        className="size-14 flex-none rounded-full dark:outline dark:-outline-offset-1 dark:outline-white/10"
+                                        className="size-14 flex-none rounded-full"
                                     />
                                 )}
                                 <div className="flex-auto">
-                                    <h3 className="pr-10 font-semibold text-gray-900 xl:pr-0 dark:text-white">
+                                    <h3 className="pr-10 font-semibold text-gray-900 xl:pr-0">
                                         {meeting.name}
                                     </h3>
-                                    <dl className="mt-2 flex flex-col text-gray-500 xl:flex-row dark:text-gray-400">
+                                    <dl className="mt-2 flex flex-col text-gray-500 xl:flex-row">
                                         <div className="flex items-start gap-x-3">
                                             <dt className="mt-0.5">
                                                 <span className="sr-only">
@@ -332,7 +332,7 @@ export default function UpcomingBookingsCal({
                                                 </span>
                                                 <CalendarIcon
                                                     aria-hidden="true"
-                                                    className="size-5 text-gray-400 dark:text-gray-500"
+                                                    className="size-5 text-gray-400"
                                                 />
                                             </dt>
                                             <dd>
@@ -358,14 +358,14 @@ export default function UpcomingBookingsCal({
                                             </dd>
                                         </div>
                                         {meeting.location && (
-                                            <div className="mt-2 flex items-start gap-x-3 xl:mt-0 xl:ml-3.5 xl:border-l xl:border-gray-400/50 xl:pl-3.5 dark:xl:border-gray-500/50">
+                                            <div className="mt-2 flex items-start gap-x-3 xl:mt-0 xl:ml-3.5 xl:border-l xl:border-gray-400/50 xl:pl-3.5">
                                                 <dt className="mt-0.5">
                                                     <span className="sr-only">
                                                         Location
                                                     </span>
                                                     <MapPinIcon
                                                         aria-hidden="true"
-                                                        className="size-5 text-gray-400 dark:text-gray-500"
+                                                        className="size-5 text-gray-400"
                                                     />
                                                 </dt>
                                                 <dd>{meeting.location}</dd>
@@ -377,7 +377,7 @@ export default function UpcomingBookingsCal({
                                     as="div"
                                     className="absolute top-6 right-0 xl:relative xl:top-auto xl:right-auto xl:self-center"
                                 >
-                                    <MenuButton className="relative flex items-center rounded-full text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white">
+                                    <MenuButton className="relative flex items-center rounded-full text-gray-500 hover:text-gray-600">
                                         <span className="absolute -inset-2" />
                                         <span className="sr-only">
                                             Open options
@@ -390,13 +390,13 @@ export default function UpcomingBookingsCal({
 
                                     <MenuItems
                                         transition
-                                        className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg outline-1 outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-gray-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10"
+                                        className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg outline-1 outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                                     >
                                         <div className="py-1">
                                             <MenuItem>
                                                 <a
                                                     href="#"
-                                                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden dark:text-gray-300 dark:data-focus:bg-white/5 dark:data-focus:text-white"
+                                                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
                                                 >
                                                     Edit
                                                 </a>
@@ -404,7 +404,7 @@ export default function UpcomingBookingsCal({
                                             <MenuItem>
                                                 <a
                                                     href="#"
-                                                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden dark:text-gray-300 dark:data-focus:bg-white/5 dark:data-focus:text-white"
+                                                    className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
                                                 >
                                                     Cancel
                                                 </a>
