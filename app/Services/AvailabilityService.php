@@ -21,7 +21,7 @@ class AvailabilityService
 
     protected int $slotDuration = 60; // minutes
 
-    public function getAvailableSlots(string $date): array
+    public function getAvailableSlots(string $date, ?int $excludeAppointmentId = null): array
     {
         $day = Carbon::parse($date);
 
@@ -38,7 +38,7 @@ class AvailabilityService
         $slotsAfterBlocked = $this->removeBlockedSlots($allSlots, $day);
 
         // Remove booked appointments
-        $availableSlots = $this->removeBookedSlots($slotsAfterBlocked, $day);
+        $availableSlots = $this->removeBookedSlots($slotsAfterBlocked, $day, $excludeAppointmentId);
 
         return $availableSlots;
     }
@@ -82,11 +82,12 @@ class AvailabilityService
         });
     }
 
-    protected function removeBookedSlots(array $slots, Carbon $day): array
+    protected function removeBookedSlots(array $slots, Carbon $day, ?int $excludeAppointmentId = null): array
     {
         $bookedSlots = Appointment::query()
-            ->where('appointment_date', $day->toDateString())
-            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereDate('appointment_date', $day->toDateString())
+            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->when($excludeAppointmentId, fn ($query, $id) => $query->where('id', '!=', $id))
             ->pluck('appointment_time')
             ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
             ->toArray();

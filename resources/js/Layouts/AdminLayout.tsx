@@ -55,7 +55,7 @@ export default function AdminLayout({
 
     const userNavigation = [
         { name: "Your profile", href: "#" },
-        { name: "Sign out", href: "#" },
+        { name: "Sign out", href: "../Pages/Home.tsx" },
     ];
 
     const isCurrent = (href: string) => url.startsWith(href);

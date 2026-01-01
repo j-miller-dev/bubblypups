@@ -28,7 +28,6 @@ class CustomerRegisterController extends Controller
             'phone' => $request->phone,
             'password' => $request->password, // Auto-hashed by cast
         ]);
-
         // Create their first dog
         $dog = Dog::create([
             'customer_id' => $customer->id,

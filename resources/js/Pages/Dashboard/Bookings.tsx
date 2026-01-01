@@ -1,89 +1,270 @@
 import AdminLayout from "@/Layouts/AdminLayout";
+import { router } from "@inertiajs/react";
+import {
+    CheckCircleIcon,
+    XMarkIcon,
+    CalendarIcon,
+    PhoneIcon,
+} from "@heroicons/react/24/outline";
+import Toast from "@/Components/ui/Toast";
+import { useState } from "react";
+import RescheduleModal from "@/Components/RescheduleModal";
 
-const sampleBookings = [
-    {
-        id: 1,
-        dog: "Max",
-        breed: "Golden Retriever",
-        owner: "John Smith",
-        date: "2025-08-15",
-        time: "10:00 AM",
-        status: "Confirmed",
-    },
-    {
-        id: 2,
-        dog: "Bella",
-        breed: "Poodle",
-        owner: "Sarah Johnson",
-        date: "2025-08-16",
-        time: "2:30 PM",
-        status: "Pending",
-    },
-];
+interface Booking {
+    id: number;
+    dog: string;
+    breed: string;
+    owner: string;
+    date: string;
+    time: string;
+    status:
+        | "pending"
+        | "confirmed"
+        | "cancelled"
+        | "completed"
+        | "waiting_on_client";
+}
 
-export default function Bookings() {
+interface BookingsProps {
+    appointments: Booking[];
+}
+
+export default function Bookings({ appointments }: BookingsProps) {
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] =
+        useState<Booking | null>(null);
+    const pendingBookings = appointments.filter((b) => b.status === "pending");
+    const confirmedBookings = appointments.filter(
+        (b) => b.status === "confirmed",
+    );
+    const waitingOnClient = appointments.filter(
+        (b: Booking) => b.status === "waiting_on_client",
+    );
+
+    const handleConfirm = (id: number) => {
+        if (confirm("Confirm this appointment?")) {
+            router.post(`/admin/appointments/${id}/confirm`);
+        }
+    };
+
+    const handleCancel = (id: number) => {
+        if (confirm("Are you sure you want to cancel this appointment?")) {
+            router.delete(`/admin/appointments/${id}`);
+        }
+    };
+
+    const handleReschedule = (appointment: Booking) => {
+        setSelectedAppointment(appointment);
+        setIsRescheduleModalOpen(true);
+    };
+
+    const handleContact = (id: number) => {
+        // TODO: Implement contact modal or redirect to contact page
+        alert("Contact functionality coming soon!");
+    };
+
     return (
         <AdminLayout>
+            <Toast />
             <h1 className="text-2xl font-semibold text-gray-900 mb-4">
                 Bookings
             </h1>
-            <h2>To Confirm:</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+                To Confirm ({pendingBookings.length})
+            </h2>
             <div className="bg-white shadow border border-gray-200 rounded-md">
-                <ul className="divide-y divide-gray-200">
-                    {sampleBookings.map((b) => (
-                        <li key={b.id} className="px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium text-gray-900">
-                                        {b.dog}{" "}
-                                        <span className="text-sm text-gray-500">
-                                            ({b.breed})
-                                        </span>
+                {pendingBookings.length === 0 ? (
+                    <p className="px-6 py-4 text-gray-500">
+                        No pending bookings
+                    </p>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {pendingBookings.map((b) => (
+                            <li key={b.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="font-medium text-gray-900">
+                                            {b.dog}{" "}
+                                            <span className="text-sm text-gray-500">
+                                                ({b.breed})
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Owner: {b.owner}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Appointment: {b.date} at {b.time}
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-gray-600">
-                                        Owner: {b.owner}
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                        Appointment: {b.date} at {b.time}
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleConfirm(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        >
+                                            <CheckCircleIcon className="h-4 w-4" />
+                                            Confirm
+                                        </button>
+                                        <button
+                                            onClick={() => handleReschedule(b)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <CalendarIcon className="h-4 w-4" />
+                                            Reschedule
+                                        </button>
+                                        <button
+                                            onClick={() => handleCancel(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            <XMarkIcon className="h-4 w-4" />
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => handleContact(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <PhoneIcon className="h-4 w-4" />
+                                            Contact
+                                        </button>
                                     </div>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {b.status}
-                                </span>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
 
-            <h2>Confirmed</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+                Waiting on client approval ({waitingOnClient.length})
+            </h2>
             <div className="bg-white shadow border border-gray-200 rounded-md">
-                <ul className="divide-y divide-gray-200">
-                    {sampleBookings.map((b) => (
-                        <li key={b.id} className="px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium text-gray-900">
-                                        {b.dog}{" "}
-                                        <span className="text-sm text-gray-500">
-                                            ({b.breed})
-                                        </span>
+                {waitingOnClient.length === 0 ? (
+                    <p className="px-6 py-4 text-gray-500">
+                        No booking proposals waiting from clients
+                    </p>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {waitingOnClient.map((b) => (
+                            <li key={b.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="font-medium text-gray-900">
+                                            {b.dog}{" "}
+                                            <span className="text-sm text-gray-500">
+                                                ({b.breed})
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Owner: {b.owner}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Appointment: {b.date} at {b.time}
+                                        </div>
+                                        <div className="text-sm text-yellow-600 font-medium mt-1">
+                                            ⏳ Awaiting client confirmation
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-gray-600">
-                                        Owner: {b.owner}
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                        Appointment: {b.date} at {b.time}
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleConfirm(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        >
+                                            <CheckCircleIcon className="h-4 w-4" />
+                                            Confirm
+                                        </button>
+                                        <button
+                                            onClick={() => handleReschedule(b)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <CalendarIcon className="h-4 w-4" />
+                                            Reschedule
+                                        </button>
+                                        <button
+                                            onClick={() => handleCancel(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            <XMarkIcon className="h-4 w-4" />
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => handleContact(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <PhoneIcon className="h-4 w-4" />
+                                            Contact
+                                        </button>
                                     </div>
                                 </div>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {b.status}
-                                </span>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            <h2 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+                Confirmed ({confirmedBookings.length})
+            </h2>
+            <div className="bg-white shadow border border-gray-200 rounded-md">
+                {confirmedBookings.length === 0 ? (
+                    <p className="px-6 py-4 text-gray-500">
+                        No confirmed bookings
+                    </p>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {confirmedBookings.map((b) => (
+                            <li key={b.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="font-medium text-gray-900">
+                                            {b.dog}{" "}
+                                            <span className="text-sm text-gray-500">
+                                                ({b.breed})
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Owner: {b.owner}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Appointment: {b.date} at {b.time}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleReschedule(b)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <CalendarIcon className="h-4 w-4" />
+                                            Reschedule
+                                        </button>
+                                        <button
+                                            onClick={() => handleCancel(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            <XMarkIcon className="h-4 w-4" />
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => handleContact(b.id)}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <PhoneIcon className="h-4 w-4" />
+                                            Contact
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+            <RescheduleModal
+                appointment={selectedAppointment}
+                isOpen={isRescheduleModalOpen}
+                onClose={() => {
+                    setIsRescheduleModalOpen(false);
+                    setSelectedAppointment(null);
+                }}
+            />
         </AdminLayout>
     );
 }

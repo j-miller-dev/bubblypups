@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\BlockedTimeController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\CustomerRegisterController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\Customer\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -38,14 +38,46 @@ Route::get('/pricing', function () {
     return Inertia::render('Pricing');
 })->name('pricing');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Dashboard Pages
+    Route::get('/dashboard/bookings', function () {
+        $appointments = \App\Models\Appointment::with(['dog.customer'])
+            ->upcoming()
+            ->get()
+            ->map(function ($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'dog' => $appointment->dog?->name ?? 'Unknown',
+                    'breed' => $appointment->dog?->breed ?? 'Unknown',
+                    'owner' => $appointment->dog?->customer?->name ?? 'Unknown',
+                    'date' => $appointment->appointment_date->format('Y-m-d'),
+                    'time' => $appointment->appointment_time->format('h:i A'),
+                    'status' => $appointment->status,
+                ];
+            });
+
+        return Inertia::render('Dashboard/Bookings', [
+            'appointments' => $appointments,
+        ]);
+    })->name('dashboard.bookings');
+
+    Route::get('/dashboard/dogs', function () {
+        return Inertia::render('Dashboard/Dogs');
+    })->name('dashboard.dogs');
+
+    Route::get('/dashboard/calendar', function () {
+        return Inertia::render('Dashboard/Calendar');
+    })->name('dashboard.calendar');
+
+    Route::get('/dashboard/availability', function () {
+        return Inertia::render('Dashboard/Availability');
+    })->name('dashboard.availability');
 });
 
 // Customer Authentication
@@ -57,7 +89,6 @@ Route::post('/customer/logout', [CustomerLoginController::class, 'destroy'])->na
 
 // Customer Routes (Protected)
 Route::middleware(['auth:customer'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard');
     Route::get('/booking/create', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/available-slots', [BookingController::class, 'availableSlots'])->name('booking.available-slots');
@@ -65,9 +96,22 @@ Route::middleware(['auth:customer'])->group(function () {
 
 // Admin Routes (Protected)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::post('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::delete('/appointments/{appointment}', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+    // Reschedule Endpoint
+    Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
+    // Available slots API for modal
+    Route::get('/appointments/available-slots', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'exclude_appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
+        ]);
+
+        $availabilityService = app(\App\Services\AvailabilityService::class);
+        $slots = $availabilityService->getAvailableSlots($request->date, $request->input('exclude_appointment_id'));
+
+        return response()->json(['slots' => $slots]);
+    })->name('admin.appointments.available-slots');
 
     Route::get('/blocked-times', [BlockedTimeController::class, 'index'])->name('blocked-times.index');
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');

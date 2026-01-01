@@ -1,11 +1,11 @@
-import '../css/app.css';
-import './bootstrap';
+import "../css/app.css";
+import "./bootstrap";
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp } from "@inertiajs/react";
 
-import { createRoot } from 'react-dom/client';
+import { createRoot } from "react-dom/client";
 
-const appName = import.meta.env.VITE_APP_NAME || 'jmdev Laravel project';
+const appName = import.meta.env.VITE_APP_NAME || "bubblypups dog grooming";
 
 // 1. Hard refresh your browser (Ctrl+Shift+R)
 // 2. Clear all cookies for 127.0.0.1
@@ -16,7 +16,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'jmdev Laravel project';
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: async (name) => {
-        const pages = import.meta.glob('./Pages/**/*.{jsx,tsx}');
+        const pages = import.meta.glob("./Pages/**/*.{jsx,tsx}");
 
         // Try .tsx first, then .jsx
         const tsxPath = `./Pages/${name}.tsx`;
@@ -36,6 +36,6 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#4B5563',
+        color: "#4B5563",
     },
 });

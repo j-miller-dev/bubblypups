@@ -17,7 +17,11 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'password' => bcrypt('password'),
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
     }
 }

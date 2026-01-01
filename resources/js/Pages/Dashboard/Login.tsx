@@ -11,8 +11,8 @@ export default function Login() {
     const [rememberMe, setRememberMe] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
-        email: "",
-        password: "",
+        email: "issa@bubblypups.com.au",
+        password: "password123",
         remember: false,
     });
 
@@ -25,8 +25,8 @@ export default function Login() {
 
     return (
         <MainLayout
-            title="Login - Radiant"
-            description="Log in to your Radiant account"
+            title="Login - Admin Dashboard"
+            description="Log in to your bubblypups account!"
         >
             <div className="overflow-hidden">
                 <div className="relative">
