@@ -22,10 +22,7 @@ class DatabaseSeeder extends Seeder
         // Seed all business data
         $this->call([
             ServiceSeeder::class,
-            AvailabilitySeeder::class,
-            OwnerSeeder::class,
-            DogSeeder::class,
-            BookingSeeder::class,
+            TestDataSeeder::class,
         ]);
     }
 }

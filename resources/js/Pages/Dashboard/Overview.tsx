@@ -2,8 +2,15 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import UpcomingBookingsCal from "@/Pages/Dashboard/Components/UpcomingBookingsCal.tsx";
 import AppointmentCardComponent from "@/Components/ui/AppointmentCardComponent";
 import Calendar from "@/Pages/Dashboard/Components/Calendar";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 
-export default function Overview() {
+interface OverviewProps {
+    appointments: any[];
+}
+
+export default function Overview({ appointments }: OverviewProps) {
+    const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
     const today = new Date();
     const y = today.getFullYear();
     const m = String(today.getMonth() + 1).padStart(2, "0");
@@ -48,10 +55,21 @@ export default function Overview() {
     return (
         <AdminLayout>
             <div className="space-y-6">
-                <h2>Upcoming Bookings</h2>
-                {/* <Calendar /> */}
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-semibold text-gray-900">
+                        Upcoming Bookings
+                    </h2>
+                    <button
+                        onClick={() => setIsQuickBookingOpen(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                    >
+                        <PlusIcon className="h-5 w-5" />
+                        New Booking
+                    </button>
+                </div>
                 <UpcomingBookingsCal
                     currentDate={todayString}
+                    appointments={appointments}
                     loadBookings={loadBookings}
                 />
             </div>

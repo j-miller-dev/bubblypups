@@ -6,6 +6,7 @@ import {
     CalendarIcon,
     PhoneIcon,
 } from "@heroicons/react/24/outline";
+import ContactModal from "@/Components/ContactModal";
 import Toast from "@/Components/ui/Toast";
 import { useState } from "react";
 import RescheduleModal from "@/Components/RescheduleModal";
@@ -15,6 +16,12 @@ interface Booking {
     dog: string;
     breed: string;
     owner: string;
+    photo_url: string | null;
+    email: string | null;
+    phone: string | null;
+    service: string;
+    service_emoji: string;
+    price: number;
     date: string;
     time: string;
     status:
@@ -33,6 +40,8 @@ export default function Bookings({ appointments }: BookingsProps) {
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
     const [selectedAppointment, setSelectedAppointment] =
         useState<Booking | null>(null);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [selectedContact, setSelectedContact] = useState<Booking | null>(null);
     const pendingBookings = appointments.filter((b) => b.status === "pending");
     const confirmedBookings = appointments.filter(
         (b) => b.status === "confirmed",
@@ -58,9 +67,9 @@ export default function Bookings({ appointments }: BookingsProps) {
         setIsRescheduleModalOpen(true);
     };
 
-    const handleContact = (id: number) => {
-        // TODO: Implement contact modal or redirect to contact page
-        alert("Contact functionality coming soon!");
+    const handleContact = (appointment: Booking) => {
+        setSelectedContact(appointment);
+        setIsContactModalOpen(true);
     };
 
     return (
@@ -81,8 +90,15 @@ export default function Bookings({ appointments }: BookingsProps) {
                     <ul className="divide-y divide-gray-200">
                         {pendingBookings.map((b) => (
                             <li key={b.id} className="px-6 py-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
+                                <div className="flex items-start gap-4">
+                                    {b.photo_url && (
+                                        <img
+                                            src={b.photo_url}
+                                            alt={b.dog}
+                                            className="h-14 w-14 rounded-full flex-shrink-0 object-cover"
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0">
                                         <div className="font-medium text-gray-900">
                                             {b.dog}{" "}
                                             <span className="text-sm text-gray-500">
@@ -93,35 +109,38 @@ export default function Bookings({ appointments }: BookingsProps) {
                                             Owner: {b.owner}
                                         </div>
                                         <div className="text-sm text-gray-600">
+                                            Service: {b.service_emoji} {b.service} - ${b.price}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
                                             Appointment: {b.date} at {b.time}
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="grid grid-cols-2 gap-2 flex-shrink-0">
                                         <button
                                             onClick={() => handleConfirm(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                                         >
                                             <CheckCircleIcon className="h-4 w-4" />
                                             Confirm
                                         </button>
                                         <button
                                             onClick={() => handleReschedule(b)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <CalendarIcon className="h-4 w-4" />
                                             Reschedule
                                         </button>
                                         <button
                                             onClick={() => handleCancel(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                                         >
                                             <XMarkIcon className="h-4 w-4" />
                                             Cancel
                                         </button>
                                         <button
-                                            onClick={() => handleContact(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            onClick={() => handleContact(b)}
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <PhoneIcon className="h-4 w-4" />
                                             Contact
@@ -146,8 +165,15 @@ export default function Bookings({ appointments }: BookingsProps) {
                     <ul className="divide-y divide-gray-200">
                         {waitingOnClient.map((b) => (
                             <li key={b.id} className="px-6 py-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
+                                <div className="flex items-start gap-4">
+                                    {b.photo_url && (
+                                        <img
+                                            src={b.photo_url}
+                                            alt={b.dog}
+                                            className="h-14 w-14 rounded-full flex-shrink-0 object-cover"
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0">
                                         <div className="font-medium text-gray-900">
                                             {b.dog}{" "}
                                             <span className="text-sm text-gray-500">
@@ -158,37 +184,40 @@ export default function Bookings({ appointments }: BookingsProps) {
                                             Owner: {b.owner}
                                         </div>
                                         <div className="text-sm text-gray-600">
+                                            Service: {b.service_emoji} {b.service} - ${b.price}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
                                             Appointment: {b.date} at {b.time}
                                         </div>
                                         <div className="text-sm text-yellow-600 font-medium mt-1">
                                             ⏳ Awaiting client confirmation
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="grid grid-cols-2 gap-2 flex-shrink-0">
                                         <button
                                             onClick={() => handleConfirm(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                                         >
                                             <CheckCircleIcon className="h-4 w-4" />
                                             Confirm
                                         </button>
                                         <button
                                             onClick={() => handleReschedule(b)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <CalendarIcon className="h-4 w-4" />
                                             Reschedule
                                         </button>
                                         <button
                                             onClick={() => handleCancel(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                                         >
                                             <XMarkIcon className="h-4 w-4" />
                                             Cancel
                                         </button>
                                         <button
-                                            onClick={() => handleContact(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            onClick={() => handleContact(b)}
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <PhoneIcon className="h-4 w-4" />
                                             Contact
@@ -213,8 +242,15 @@ export default function Bookings({ appointments }: BookingsProps) {
                     <ul className="divide-y divide-gray-200">
                         {confirmedBookings.map((b) => (
                             <li key={b.id} className="px-6 py-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
+                                <div className="flex items-start gap-4">
+                                    {b.photo_url && (
+                                        <img
+                                            src={b.photo_url}
+                                            alt={b.dog}
+                                            className="h-14 w-14 rounded-full flex-shrink-0 object-cover"
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0">
                                         <div className="font-medium text-gray-900">
                                             {b.dog}{" "}
                                             <span className="text-sm text-gray-500">
@@ -225,27 +261,30 @@ export default function Bookings({ appointments }: BookingsProps) {
                                             Owner: {b.owner}
                                         </div>
                                         <div className="text-sm text-gray-600">
+                                            Service: {b.service_emoji} {b.service} - ${b.price}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
                                             Appointment: {b.date} at {b.time}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="grid grid-cols-2 gap-2 flex-shrink-0">
                                         <button
                                             onClick={() => handleReschedule(b)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <CalendarIcon className="h-4 w-4" />
                                             Reschedule
                                         </button>
                                         <button
                                             onClick={() => handleCancel(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                                         >
                                             <XMarkIcon className="h-4 w-4" />
                                             Cancel
                                         </button>
                                         <button
-                                            onClick={() => handleContact(b.id)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            onClick={() => handleContact(b)}
+                                            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 col-span-2"
                                         >
                                             <PhoneIcon className="h-4 w-4" />
                                             Contact
@@ -264,6 +303,16 @@ export default function Bookings({ appointments }: BookingsProps) {
                     setIsRescheduleModalOpen(false);
                     setSelectedAppointment(null);
                 }}
+            />
+            <ContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => {
+                    setIsContactModalOpen(false);
+                    setSelectedContact(null);
+                }}
+                customerName={selectedContact?.owner ?? ""}
+                email={selectedContact?.email ?? null}
+                phone={selectedContact?.phone ?? null}
             />
         </AdminLayout>
     );

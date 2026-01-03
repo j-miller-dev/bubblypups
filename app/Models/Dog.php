@@ -44,6 +44,7 @@ class Dog extends Model
         'customer_id',
         'name',
         'breed',
+        'photo_url',
         'size',
         'special_notes',
     ];

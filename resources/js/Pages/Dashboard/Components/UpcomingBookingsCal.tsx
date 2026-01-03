@@ -22,6 +22,7 @@ interface BookingItem {
 
 interface UpcomingBookingsCalProps {
     currentDate: string; // initial selected date in YYYY-MM-DD
+    appointments?: any[];
     onSelectDate?: (date: string) => void; // optional callback when a date is selected
     loadBookings?: (date: string) => Promise<BookingItem[]>; // optional async loader
 }
@@ -35,6 +36,7 @@ function formatDate(d: Date) {
 
 export default function UpcomingBookingsCal({
     currentDate,
+    appointments = [], // ADD default
     onSelectDate,
     loadBookings,
 }: UpcomingBookingsCalProps) {
@@ -44,6 +46,7 @@ export default function UpcomingBookingsCal({
             isToday?: boolean;
             isCurrentMonth?: boolean;
             isSelected?: boolean;
+            isSunday?: boolean;
         }[]
     >([]);
     const [viewDate, setViewDate] = useState<Date>(() => {
@@ -58,6 +61,15 @@ export default function UpcomingBookingsCal({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loadError, setLoadError] = useState<string | null>(null);
     const todayStr = formatDate(new Date());
+    const appointmentCounts = appointments.reduce(
+        (acc: Record<string, number>, apt: any) => {
+            const date = apt.date; // assuming date is in YYYY-MM-DD format
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+        },
+        {},
+    );
+
     const selectedLabel = (() => {
         try {
             // Ensure local parsing without UTC shift
@@ -103,6 +115,7 @@ export default function UpcomingBookingsCal({
             isToday?: boolean;
             isCurrentMonth?: boolean;
             isSelected?: boolean;
+            isSunday?: boolean;
         }[] = [];
 
         // Leading days from previous month
@@ -114,6 +127,7 @@ export default function UpcomingBookingsCal({
                 isCurrentMonth: false,
                 isToday: dateStr === todayStr,
                 isSelected: dateStr === selectedDate,
+                isSunday: d.getDay() === 0,
             });
         }
 
@@ -126,6 +140,7 @@ export default function UpcomingBookingsCal({
                 isCurrentMonth: true,
                 isToday: dateStr === todayStr,
                 isSelected: dateStr === selectedDate,
+                isSunday: d.getDay() === 0,
             });
         }
 
@@ -140,39 +155,29 @@ export default function UpcomingBookingsCal({
                 isCurrentMonth: false,
                 isToday: dateStr === todayStr,
                 isSelected: dateStr === selectedDate,
+                isSunday: d.getDay() === 0,
             });
         }
 
         setDays(grid);
     }, [viewDate, selectedDate, todayStr]);
 
-    // Load bookings when selectedDate changes
     useEffect(() => {
-        let ignore = false;
-        async function run() {
-            if (!loadBookings) {
-                setBookings([]);
-                setIsLoading(false);
-                setLoadError(null);
-                return;
-            }
-            try {
-                setIsLoading(true);
-                setLoadError(null);
-                const result = await loadBookings(selectedDate);
-                if (!ignore) setBookings(result ?? []);
-            } catch (e: any) {
-                if (!ignore)
-                    setLoadError(e?.message ?? "Failed to load bookings");
-            } finally {
-                if (!ignore) setIsLoading(false);
-            }
-        }
-        run();
-        return () => {
-            ignore = true;
-        };
-    }, [selectedDate, loadBookings]);
+        const filtered = appointments
+            .filter((apt) => apt.date === selectedDate)
+            .map((apt) => ({
+                id: apt.id,
+                name: `${apt.dog} (${apt.owner})`,
+                datetime: apt.datetime,
+                date: apt.date,
+                time: apt.time,
+                imageUrl: apt.photo_url,
+                location: `${apt.service_emoji} ${apt.service}`,
+            }));
+        setBookings(filtered);
+        setIsLoading(false);
+        setLoadError(null);
+    }, [selectedDate, appointments]);
 
     return (
         <div>
@@ -237,51 +242,72 @@ export default function UpcomingBookingsCal({
                         <div>S</div>
                     </div>
                     <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
-                        {days.map((day) => (
-                            <button
-                                key={day.date}
-                                type="button"
-                                title={
-                                    day.date === todayStr ? "Today" : undefined
-                                }
-                                onClick={() => {
-                                    setSelectedDate(day.date);
-                                    if (!day.isCurrentMonth) {
-                                        const [yy, mm] = day.date
-                                            .slice(0, 7)
-                                            .split("-")
-                                            .map((v) => parseInt(v, 10));
-                                        setViewDate(
-                                            new Date(yy, (mm ?? 1) - 1, 1),
-                                        );
+                        {days.map((day) => {
+                            const dayNumber = (
+                                day.date.split("-")[2] || ""
+                            ).replace(/^0/, "");
+                            const isPast = day.date < todayStr;
+                            const isToday = day.date === todayStr;
+                            const isSunday = day.isSunday;
+                            const isSelected = day.isSelected;
+
+                            return (
+                                <button
+                                    key={day.date}
+                                    type="button"
+                                    title={
+                                        isToday
+                                            ? "Today"
+                                            : isSunday
+                                              ? "Closed"
+                                              : undefined
                                     }
-                                    onSelectDate?.(day.date);
-                                }}
-                                data-is-today={
-                                    day.date === todayStr ? "" : undefined
-                                }
-                                data-is-selected={
-                                    day.isSelected ? "" : undefined
-                                }
-                                data-is-current-month={
-                                    day.isCurrentMonth ? "" : undefined
-                                }
-                                data-is-past={
-                                    day.date < todayStr ? "" : undefined
-                                }
-                                className="group py-1.5 not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 first:rounded-tl-lg last:rounded-br-lg hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 data-is-selected:font-semibold data-is-selected:text-white data-is-today:font-semibold data-is-today:not-data-is-selected:text-indigo-600 data-is-today:hover:bg-indigo-50 data-is-today:hover:ring-1 data-is-today:hover:ring-indigo-300 not-data-is-selected:data-is-past:text-gray-400 nth-36:rounded-bl-lg nth-7:rounded-tr-lg"
-                            >
-                                <time
-                                    dateTime={day.date}
-                                    className="mx-auto flex size-7 items-center justify-center rounded-full in-data-is-selected:bg-indigo-600 in-data-is-selected:text-white"
+                                    onClick={() => {
+                                        if (isSunday || isPast) return;
+                                        setSelectedDate(day.date);
+                                        if (!day.isCurrentMonth) {
+                                            const [yy, mm] = day.date
+                                                .slice(0, 7)
+                                                .split("-")
+                                                .map((v) => parseInt(v, 10));
+                                            setViewDate(
+                                                new Date(yy, (mm ?? 1) - 1, 1),
+                                            );
+                                        }
+                                        onSelectDate?.(day.date);
+                                    }}
+                                    disabled={isSunday || isPast}
+                                    className={`
+                                        group relative py-1.5 focus:z-10
+                                        first:rounded-tl-lg last:rounded-br-lg
+                                        nth-36:rounded-bl-lg nth-7:rounded-tr-lg
+                                        ${!day.isCurrentMonth ? "bg-gray-50 text-gray-400" : "bg-white"}
+                                        ${isPast && !isToday ? "text-gray-300 opacity-50 cursor-not-allowed" : ""}
+                                        ${isSunday ? "bg-red-50 text-red-300 cursor-not-allowed" : ""}
+                                        ${isToday ? "ring-2 ring-inset ring-indigo-600 font-bold text-indigo-600 bg-indigo-50" : ""}
+                                        ${isSelected && !isToday ? "font-semibold" : ""}
+                                        ${!isPast && !isSunday ? "hover:bg-gray-100" : ""}
+                                    `}
                                 >
-                                    {day.date
-                                        .split("-")
-                                        .pop()
-                                        .replace(/^0/, "")}
-                                </time>
-                            </button>
-                        ))}
+                                    <time
+                                        dateTime={day.date}
+                                        className={`
+                                            mx-auto flex size-7 items-center justify-center rounded-full relative
+                                            ${isSelected && !isToday ? "bg-indigo-600 text-white" : ""}
+                                        `}
+                                    >
+                                        {dayNumber}
+                                        {(appointmentCounts[day.date] ?? 0) >
+                                            0 &&
+                                            !isSunday && (
+                                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white font-semibold">
+                                                    {appointmentCounts[day.date]}
+                                                </span>
+                                            )}
+                                    </time>
+                                </button>
+                            );
+                        })}
                     </div>
                     <button
                         type="button"
@@ -297,9 +323,7 @@ export default function UpcomingBookingsCal({
                         </li>
                     )}
                     {!isLoading && loadError && (
-                        <li className="py-6 text-red-600">
-                            {loadError}
-                        </li>
+                        <li className="py-6 text-red-600">{loadError}</li>
                     )}
                     {!isLoading && !loadError && bookings.length === 0 && (
                         <li className="py-6 text-gray-600">

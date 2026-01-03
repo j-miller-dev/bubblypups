@@ -19,7 +19,7 @@ class AvailabilityService
         'sunday' => null, // Closed
     ];
 
-    protected int $slotDuration = 60; // minutes
+    protected int $slotDuration = 30; // minutes
 
     public function getAvailableSlots(string $date, ?int $excludeAppointmentId = null): array
     {

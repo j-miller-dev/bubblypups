@@ -23,6 +23,7 @@ class DogFactory extends Factory
             'customer_id' => \App\Models\Customer::factory(),
             'name' => fake()->randomElement($dogNames),
             'breed' => fake()->randomElement($breeds),
+            'photo_url' => 'https://placedog.net/200/200?id='.fake()->numberBetween(1, 100),
             'size' => fake()->randomElement(['small', 'medium', 'large']),
             'special_notes' => fake()->optional(0.3)->sentence(),
         ];

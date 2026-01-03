@@ -18,6 +18,7 @@ class TestDataSeeder extends Seeder
 
         // Create appointments for the next 30 days
         $dogs = Dog::all();
+        $services = \App\Models\Service::all();
         $times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
         $usedSlots = [];
 
@@ -65,12 +66,15 @@ class TestDataSeeder extends Seeder
                 $confirmedAt = now()->subDays(rand(1, 7));
             }
 
+            $service = $services->random();
+
             Appointment::create([
                 'dog_id' => $dog->id,
                 'customer_id' => $dog->customer_id,
+                'service_id' => $service->id,
                 'appointment_date' => $date,
                 'appointment_time' => $time,
-                'duration' => 60,
+                'duration' => $service->duration_minutes,
                 'status' => $status,
                 'notes' => fake()->optional(0.3)->sentence(),
                 'confirmed_at' => $confirmedAt,

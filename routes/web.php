@@ -47,15 +47,24 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard Pages
     Route::get('/dashboard/bookings', function () {
-        $appointments = \App\Models\Appointment::with(['dog.customer'])
+        $appointments = \App\Models\Appointment::with(['dog.customer', 'service'])
             ->upcoming()
             ->get()
             ->map(function ($appointment) {
+                $service = $appointment->service;
+                $dogSize = $appointment->dog?->size ?? 'medium';
+
                 return [
                     'id' => $appointment->id,
                     'dog' => $appointment->dog?->name ?? 'Unknown',
                     'breed' => $appointment->dog?->breed ?? 'Unknown',
                     'owner' => $appointment->dog?->customer?->name ?? 'Unknown',
+                    'photo_url' => $appointment->dog?->photo_url,
+                    'phone' => $appointment->dog?->customer?->phone ?? null,
+                    'email' => $appointment->dog?->customer?->email ?? null,
+                    'service' => $service?->name ?? 'No service',
+                    'service_emoji' => $service?->emoji ?? '',
+                    'price' => $service ? $service->getPriceForSize($dogSize) : 0,
                     'date' => $appointment->appointment_date->format('Y-m-d'),
                     'time' => $appointment->appointment_time->format('h:i A'),
                     'status' => $appointment->status,
