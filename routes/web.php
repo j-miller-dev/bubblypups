@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\BlockedTimeController;
+use App\Http\Controllers\Admin\BusinessHoursController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\CustomerRegisterController;
@@ -84,9 +85,7 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Dashboard/Calendar');
     })->name('dashboard.calendar');
 
-    Route::get('/dashboard/availability', function () {
-        return Inertia::render('Dashboard/Availability');
-    })->name('dashboard.availability');
+    Route::get('/dashboard/availability', [BusinessHoursController::class, 'index'])->name('dashboard.availability');
 });
 
 // Customer Authentication
@@ -119,12 +118,34 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         $availabilityService = app(\App\Services\AvailabilityService::class);
         $slots = $availabilityService->getAvailableSlots($request->date, $request->input('exclude_appointment_id'));
 
-        return response()->json(['slots' => $slots]);
+        // Get existing appointments for the day to show schedule context
+        $existingAppointments = \App\Models\Appointment::query()
+            ->with(['dog', 'dog.customer', 'service'])
+            ->whereDate('appointment_date', $request->date)
+            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->when($request->input('exclude_appointment_id'), fn ($query, $id) => $query->where('id', '!=', $id))
+            ->orderBy('appointment_time')
+            ->get()
+            ->map(fn ($apt) => [
+                'time' => $apt->appointment_time->format('H:i'),
+                'dog_name' => $apt->dog->name,
+                'service' => $apt->service->name ?? 'N/A',
+                'duration' => $apt->duration,
+                'status' => $apt->status,
+            ]);
+
+        return response()->json([
+            'slots' => $slots,
+            'existing_appointments' => $existingAppointments,
+        ]);
     })->name('admin.appointments.available-slots');
 
     Route::get('/blocked-times', [BlockedTimeController::class, 'index'])->name('blocked-times.index');
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');
     Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy'])->name('blocked-times.destroy');
+
+    // Business hours management
+    Route::patch('/business-hours/{businessHours}', [BusinessHoursController::class, 'update'])->name('business-hours.update');
 });
 
 require __DIR__.'/auth.php';

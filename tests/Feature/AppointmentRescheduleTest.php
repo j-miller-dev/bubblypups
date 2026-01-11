@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Appointment;
+use App\Models\BusinessHours;
 use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\User;
@@ -9,6 +10,15 @@ beforeEach(function () {
     // Create an authenticated admin user
     $this->user = User::factory()->create();
     $this->actingAs($this->user);
+
+    // Create business hours for testing (Thursday is when 2026-01-15 falls)
+    BusinessHours::create([
+        'day_of_week' => 'thursday',
+        'is_open' => true,
+        'open_time' => '09:00',
+        'close_time' => '17:00',
+        'slot_duration' => 30,
+    ]);
 });
 
 test('available slots endpoint excludes appointment being rescheduled', function () {

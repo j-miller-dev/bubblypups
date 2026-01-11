@@ -27,6 +27,19 @@ class AppointmentController extends Controller
 
     public function reschedule(RescheduleAppointmentRequest $request, Appointment $appointment)
     {
+        // Check if the new time conflicts with blocked times
+        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date.' '.$request->appointment_time);
+
+        $isBlocked = \App\Models\BlockedTime::query()
+            ->where('start_datetime', '<=', $appointmentDateTime)
+            ->where('end_datetime', '>=', $appointmentDateTime)
+            ->exists();
+
+        if ($isBlocked) {
+            return back()->withErrors([
+                'appointment_time' => 'This time slot is blocked and unavailable.',
+            ]);
+        }
 
         $appointment->appointment_date = $request->appointment_date;
         $appointment->appointment_time = $request->appointment_time;

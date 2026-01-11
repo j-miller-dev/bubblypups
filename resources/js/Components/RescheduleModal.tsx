@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm, router } from "@inertiajs/react";
+import { useForm, router, usePage } from "@inertiajs/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import {
     Dialog,
@@ -16,6 +16,10 @@ interface Appointment {
     dog: string;
     owner: string;
     breed?: string;
+    photo_url?: string | null;
+    service?: string;
+    service_emoji?: string;
+    price?: number;
 }
 
 interface RescheduleModalProps {
@@ -48,6 +52,15 @@ export default function RescheduleModal({
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [existingAppointments, setExistingAppointments] = useState<
+        {
+            time: string;
+            dog_name: string;
+            service: string;
+            duration: number;
+            status: string;
+        }[]
+    >([]);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [viewDate, setViewDate] = useState<Date>(new Date());
     const [days, setDays] = useState<
@@ -60,6 +73,9 @@ export default function RescheduleModal({
     >([]);
 
     const todayStr = formatDate(new Date());
+
+    // Get errors from Inertia
+    const { errors } = usePage().props as any;
 
     // Inertia form for submitting reschedule
     const { data, setData, patch, processing, reset } = useForm({
@@ -161,11 +177,13 @@ export default function RescheduleModal({
                 const result = await response.json();
                 if (!ignore) {
                     setAvailableSlots(result.slots || []);
+                    setExistingAppointments(result.existing_appointments || []);
                 }
             } catch (error) {
                 console.error("Failed to fetch available slots:", error);
                 if (!ignore) {
                     setAvailableSlots([]);
+                    setExistingAppointments([]);
                 }
             } finally {
                 if (!ignore) {
@@ -208,19 +226,23 @@ export default function RescheduleModal({
     // Submit handlers
     const handleSubmit = (status: "confirmed" | "waiting_on_client") => {
         // Use router.patch directly with manual data instead of form's patch method
-        router.patch(`/admin/appointments/${appointment?.id}/reschedule`, {
-            appointment_date: data.appointment_date,
-            appointment_time: data.appointment_time,
-            status: status,  // Use the parameter directly
-            notes: data.notes,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                onClose();
-                reset();
-                router.reload({ only: ["appointments"] });
+        router.patch(
+            `/admin/appointments/${appointment?.id}/reschedule`,
+            {
+                appointment_date: data.appointment_date,
+                appointment_time: data.appointment_time,
+                status: status, // Use the parameter directly
+                notes: data.notes,
             },
-        });
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onClose();
+                    reset();
+                    router.reload({ only: ["appointments"] });
+                },
+            },
+        );
     };
 
     if (!appointment) {
@@ -232,31 +254,116 @@ export default function RescheduleModal({
             <DialogTitle>Reschedule Appointment</DialogTitle>
 
             <DialogBody>
-                {/* Current Appointment Details */}
-                <div className="bg-gray-100 rounded-lg p-4 mb-6">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                        Current Appointment
-                    </h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                        <p>
-                            <span className="font-medium">Dog:</span>{" "}
+                {/* Dog/Owner Info and Service Card */}
+                <div className="flex justify-center mb-8 p-4">
+                    {/* Dog and Owner Info */}
+                    <div className="flex flex-col p-4">
+                        <h3 className="text-xl font-semibold text-gray-900">
                             {appointment.dog}
-                            {appointment.breed && ` (${appointment.breed})`}
-                        </p>
-                        <p>
-                            <span className="font-medium">Owner:</span>{" "}
-                            {appointment.owner}
-                        </p>
-                        <p>
-                            <span className="font-medium">Date:</span>{" "}
-                            {appointment.date}
-                        </p>
-                        <p>
-                            <span className="font-medium">Time:</span>{" "}
-                            {appointment.time}
+                            {appointment.breed && (
+                                <span className="text-lg text-gray-500 ml-2">
+                                    ({appointment.breed})
+                                </span>
+                            )}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                            Owner: {appointment.owner}
                         </p>
                     </div>
+
+                    {/* Service Card */}
+                    {appointment.service && (
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
+                            <p className="text-xs text-gray-500 font-medium mb-1">
+                                Requested Service
+                            </p>
+                            <p className="text-sm font-semibold text-gray-900">
+                                {appointment.service_emoji && (
+                                    <span className="mr-2">
+                                        {appointment.service_emoji}
+                                    </span>
+                                )}
+                                {appointment.service}
+                            </p>
+                            {appointment.price !== undefined && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                    ${appointment.price}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
+
+                {/* Current and New Appointment Times with Dog Image */}
+                <div className="flex justify-center items-center gap-8 mb-8">
+                    <div className="flex-1 max-w-xs bg-gray-100 rounded-lg p-5 text-center">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
+                            Current Appointment
+                        </h3>
+                        <div className="text-sm text-gray-600 space-y-2">
+                            <p>
+                                <span className="font-medium">Date:</span>{" "}
+                                {appointment.date}
+                            </p>
+                            <p>
+                                <span className="font-medium">Time:</span>{" "}
+                                {appointment.time}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-3">
+                        {appointment.photo_url ? (
+                            <img
+                                src={appointment.photo_url}
+                                alt={appointment.dog}
+                                className="h-16 w-16 rounded-full object-cover border-2 border-indigo-200"
+                            />
+                        ) : (
+                            <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-2xl font-semibold border-2 border-gray-300">
+                                {appointment.dog.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <svg
+                            className="h-6 w-6 text-indigo-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"
+                            />
+                        </svg>
+                    </div>
+
+                    <div className="flex-1 max-w-xs bg-gray-100 rounded-lg p-5 text-center">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
+                            New Appointment
+                        </h3>
+                        <div className="text-sm text-gray-600 space-y-2">
+                            <p>
+                                <span className="font-medium">Date:</span>{" "}
+                                {selectedDate || "—"}
+                            </p>
+                            <p>
+                                <span className="font-medium">Time:</span>{" "}
+                                {selectedTime || "—"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Error Message */}
+                {errors.appointment_time && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-800">
+                            ⚠️ {errors.appointment_time}
+                        </p>
+                    </div>
+                )}
 
                 {/* Calendar and Time Slots Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -366,7 +473,7 @@ export default function RescheduleModal({
                         </div>
                     </div>
 
-                    {/* Time Slots */}
+                    {/* Time Slots and Schedule */}
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 mb-3">
                             Select New Time
@@ -392,28 +499,73 @@ export default function RescheduleModal({
                                 </p>
                             )}
 
-                        {selectedDate &&
-                            !isLoadingSlots &&
-                            availableSlots.length > 0 && (
-                                <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
-                                    {availableSlots.map((slot) => (
-                                        <button
-                                            key={slot}
-                                            type="button"
-                                            onClick={() =>
-                                                handleTimeSelect(slot)
-                                            }
-                                            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-                                                selectedTime === slot
-                                                    ? "bg-indigo-600 text-white border-indigo-600 font-semibold"
-                                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            {slot}
-                                        </button>
-                                    ))}
+                        {selectedDate && !isLoadingSlots && (
+                            <div className="space-y-4">
+                                {/* Available Time Slots */}
+                                {availableSlots.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                                        {availableSlots.map((slot) => (
+                                            <button
+                                                key={slot}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleTimeSelect(slot)
+                                                }
+                                                className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                                                    selectedTime === slot
+                                                        ? "bg-indigo-600 text-white border-indigo-600 font-semibold"
+                                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {slot}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Existing Appointments Schedule */}
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <h4 className="text-xs font-semibold text-blue-900 mb-2">
+                                        Day's Schedule
+                                    </h4>
+                                    {existingAppointments.length > 0 ? (
+                                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                                            {existingAppointments.map(
+                                                (apt, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="flex items-center justify-between text-xs bg-white rounded px-2 py-1.5"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium text-gray-900">
+                                                                {apt.time}
+                                                            </span>
+                                                            <span className="text-gray-600">
+                                                                {apt.dog_name}{" "}
+                                                                <span className="text-gray-500">
+                                                                    [
+                                                                    {
+                                                                        apt.service
+                                                                    }
+                                                                    ]
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-gray-500">
+                                                            {apt.duration}min
+                                                        </span>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-600 italic">
+                                            No other appointments on this day
+                                        </p>
+                                    )}
                                 </div>
-                            )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
