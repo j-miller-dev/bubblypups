@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class AddDogToDatabaseTest extends TestCase
 {
-    public function testBasic()
+    public function test_basic()
     {
         $response = $this->get('/');
 

@@ -58,6 +58,7 @@ class Appointment extends Model
         'duration',
         'notes',
         'confirmed_at',
+        'reminder_sent_at',
     ];
 
     public function casts(): array
@@ -68,6 +69,7 @@ class Appointment extends Model
             'appointment_time' => 'datetime:H:i',
             'duration' => 'integer',
             'confirmed_at' => 'datetime',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 

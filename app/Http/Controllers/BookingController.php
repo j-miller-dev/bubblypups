@@ -56,6 +56,21 @@ class BookingController extends Controller
             'notes' => $request->notes,
         ]);
 
+        // Load relationships for notification
+        $appointment->load(['dog.customer']);
+
+        // Notify all admin users of new booking
+        try {
+            \App\Models\User::all()->each(function ($admin) use ($appointment) {
+                $admin->notify(new \App\Notifications\NewBookingNotification($appointment));
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send new booking notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()->route('home')
             ->with('success', 'Appointment requested! We\'ll confirm via email/text soon.');
     }

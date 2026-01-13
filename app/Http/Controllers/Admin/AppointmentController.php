@@ -15,6 +15,21 @@ class AppointmentController extends Controller
         $appointment->confirmed_at = now();
         $appointment->save();
 
+        // Load relationships for notification
+        $appointment->load(['dog.customer']);
+
+        // Notify customer of notification
+        try {
+            $appointment->dog->customer->notify(
+                new \App\Notifications\AppointmentConfirmedNotification($appointment)
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to send confirmation notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return back()->with('success', 'Appointment confirmed successfully!');
     }
 
@@ -41,6 +56,10 @@ class AppointmentController extends Controller
             ]);
         }
 
+        // Capture previous date/time BEFORE saving (for notification)
+        $previousDate = $appointment->appointment_date;
+        $previousTime = $appointment->appointment_time;
+
         $appointment->appointment_date = $request->appointment_date;
         $appointment->appointment_time = $request->appointment_time;
         $appointment->status = $request->status;
@@ -56,6 +75,25 @@ class AppointmentController extends Controller
         }
 
         $appointment->save();
+
+        // Load relationships for notification
+        $appointment->load(['dog.customer']);
+
+        // Notify customer of reschedule
+        try {
+            $appointment->dog->customer->notify(
+                new \App\Notifications\AppointmentRescheduledNotification(
+                    $appointment,
+                    $previousDate,
+                    $previousTime
+                )
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to send reschedule notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $message = $request->status === 'waiting_on_client'
             ? 'Appointment rescheduled. Awaiting client confirmation.'

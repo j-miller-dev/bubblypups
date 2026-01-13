@@ -21,10 +21,10 @@ class ServiceSeeder extends Seeder
                 'duration_minutes' => 120,
                 'pricing_tiers' => [
                     'small' => 55.00,  // Under 10kg
-                    'medium' => 65.00, // 10-25kg  
+                    'medium' => 65.00, // 10-25kg
                     'large' => 85.00,  // 25-40kg
-                    'extra_large' => 105.00 // Over 40kg
-                ]
+                    'extra_large' => 105.00, // Over 40kg
+                ],
             ],
             [
                 'name' => 'Cut and clipping',
@@ -36,8 +36,8 @@ class ServiceSeeder extends Seeder
                     'small' => 30.00,
                     'medium' => 35.00,
                     'large' => 45.00,
-                    'extra_large' => 55.00
-                ]
+                    'extra_large' => 55.00,
+                ],
             ],
             [
                 'name' => 'Deep wash',
@@ -49,8 +49,8 @@ class ServiceSeeder extends Seeder
                     'small' => 25.00,
                     'medium' => 28.00,
                     'large' => 35.00,
-                    'extra_large' => 42.00
-                ]
+                    'extra_large' => 42.00,
+                ],
             ],
             [
                 'name' => 'Teeth and nails',
@@ -62,8 +62,8 @@ class ServiceSeeder extends Seeder
                     'small' => 20.00,
                     'medium' => 22.00,
                     'large' => 25.00,
-                    'extra_large' => 28.00
-                ]
+                    'extra_large' => 28.00,
+                ],
             ],
             [
                 'name' => 'Nail trim only',
@@ -75,8 +75,8 @@ class ServiceSeeder extends Seeder
                     'small' => 12.00,
                     'medium' => 15.00,
                     'large' => 18.00,
-                    'extra_large' => 20.00
-                ]
+                    'extra_large' => 20.00,
+                ],
             ],
             [
                 'name' => 'De-shedding treatment',
@@ -88,9 +88,9 @@ class ServiceSeeder extends Seeder
                     'small' => 35.00,
                     'medium' => 40.00,
                     'large' => 50.00,
-                    'extra_large' => 60.00
-                ]
-            ]
+                    'extra_large' => 60.00,
+                ],
+            ],
         ];
 
         foreach ($services as $service) {
