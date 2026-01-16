@@ -35,12 +35,12 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Reminder: '.$this->appointment->dog->name.'\'s Grooming Appointment Tomorrow!')
+        return (new MailMessage())
+            ->subject('Reminder: ' . $this->appointment->dog->name . '\'s Grooming Appointment Tomorrow!')
             ->markdown('notifications.appointment-reminder', [
                 'appointment' => $this->appointment,
                 'customer' => $notifiable,
-                'dashboardUrl' => route('dashboard.bookings'),
+                'dashboardUrl' => route('my.appointments'),
             ]);
     }
 

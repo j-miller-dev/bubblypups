@@ -32,12 +32,12 @@ class AppointmentConfirmedNotification extends Notification implements ShouldQue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Appointment Confirmed for '.$this->appointment->dog->name.'!')
+        return (new MailMessage())
+            ->subject('Appointment Confirmed for ' . $this->appointment->dog->name . '!')
             ->markdown('notifications.appointment-confirmed', [
                 'appointment' => $this->appointment,
                 'customer' => $notifiable,
-                'dashboardUrl' => route('dashboard.bookings'),
+                'dashboardUrl' => route('my.appointments'),
             ]);
     }
 }

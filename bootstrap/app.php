@@ -6,9 +6,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -18,6 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(App\Http\Middleware\HandleInertiaRequests::class);
+
+        // Configure customer guard redirects
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->routeIs('my.*')) {
+                return route('customer.login.form');
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

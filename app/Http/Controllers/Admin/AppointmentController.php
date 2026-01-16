@@ -40,10 +40,30 @@ class AppointmentController extends Controller
         return back()->with('success', 'Appointment cancelled successfully!');
     }
 
+    public function confirmFromEmail(Appointment $appointment): RedirectResponse
+    {
+        // Only allow confirmation if status is waiting_on_client
+        if ($appointment->status !== 'waiting_on_client') {
+            return redirect()->route('home')->with('error', 'This appointment has already been confirmed or cannot be confirmed.');
+
+        }
+
+        $appointment->status = 'confirmed';
+        $appointment->confirmed_at = now();
+        $appointment->save();
+
+        return redirect()
+            ->route('home')
+            ->with('success', 'Thank you! Your appointment has been confirmed for '
+            . $appointment->appointment_date->format('F j, Y')
+                . ' at ' . $appointment->appointment_time->format('g:i A') . '.');
+    }
+
+
     public function reschedule(RescheduleAppointmentRequest $request, Appointment $appointment)
     {
         // Check if the new time conflicts with blocked times
-        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date.' '.$request->appointment_time);
+        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date . ' ' . $request->appointment_time);
 
         $isBlocked = \App\Models\BlockedTime::query()
             ->where('start_datetime', '<=', $appointmentDateTime)

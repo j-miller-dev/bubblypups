@@ -24,6 +24,7 @@ class StoreAppointmentRequest extends FormRequest
     {
         return [
             'dog_id' => ['required', 'exists:dogs,id'],
+            'service_id' => ['required', 'exists:services,id'],
             'appointment_date' => ['required', 'date', 'after_or_equal:today'],
             'appointment_time' => ['required', 'date_format:H:i'],
             'notes' => ['nullable', 'string', 'max:500'],

@@ -37,17 +37,24 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->appointment->status === 'waiting_on_client'
-        ? 'Please Confirm New Appointment Time For '.$this->appointment->dog->name
-        : 'Appointment Rescheduled for '.$this->appointment->dog->name;
+        ? 'Please Confirm New Appointment Time For ' . $this->appointment->dog->name
+        : 'Appointment Rescheduled for ' . $this->appointment->dog->name;
 
-        return (new MailMessage)
+        $confirmUrl = \Illuminate\Support\Facades\URL::signedRoute(
+            'appointments.confirm-from-email',
+            ['appointment' => $this->appointment->id],
+            now()->addDays(7) // Link expires in 7 days
+        );
+
+        return (new MailMessage())
             ->subject($subject)
             ->markdown('notifications.appointment-rescheduled', [
                 'appointment' => $this->appointment,
                 'customer' => $notifiable,
                 'previousDate' => $this->previousDate,
                 'previousTime' => $this->previousTime,
-                'dashboardUrl' => route('dashboard.bookings'),
+                'dashboardUrl' => route('my.appointments'),
+                'confirmUrl' => $confirmUrl,
             ]);
     }
 

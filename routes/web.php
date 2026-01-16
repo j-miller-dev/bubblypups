@@ -10,6 +10,10 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Customer\CustomerAppointmentController;
+use App\Http\Controllers\Customer\CustomerDashboardController;
+use App\Http\Controllers\Customer\CustomerDogController;
+use App\Http\Controllers\Customer\CustomerProfileController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -88,6 +92,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/availability', [BusinessHoursController::class, 'index'])->name('dashboard.availability');
 });
 
+// Public appointment confirmation via email (signed URL)
+Route::get('/appointments/{appointment}/confirm-reschedule', [
+    AppointmentController::class, 'confirmFromEmail',
+])
+    ->name('appointments.confirm-from-email')
+    ->middleware('signed');
+
 // Customer Authentication
 Route::get('/register', [CustomerRegisterController::class, 'create'])->name('customer.register.form');
 Route::post('/register', [CustomerRegisterController::class, 'store'])->name('customer.register');
@@ -100,6 +111,35 @@ Route::middleware(['auth:customer'])->group(function () {
     Route::get('/booking/create', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/available-slots', [BookingController::class, 'availableSlots'])->name('booking.available-slots');
+});
+
+// Customer Dashboard Routes (Protected)
+Route::middleware(['auth:customer'])->prefix('my')->name('my.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [CustomerDashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Appointments
+    Route::get('/appointments', [CustomerAppointmentController::class, 'index'])
+        ->name('appointments');
+    Route::get('/appointments/{appointment}', [CustomerAppointmentController::class, 'show'])
+        ->name('appointments.show');
+    Route::post('/appointments/{appointment}/cancel', [CustomerAppointmentController::class, 'cancel'])
+        ->name('appointments.cancel');
+    // Dogs
+    Route::get('/dogs', [CustomerDogController::class, 'index'])
+        ->name('dogs');
+    Route::get('/dogs/{dog}', [CustomerDogController::class, 'show'])          ->name('dogs.show');
+    Route::post('/dogs', [CustomerDogController::class, 'store'])
+        ->name('dogs.store');
+    Route::patch('/dogs/{dog}', [CustomerDogController::class, 'update'])
+        ->name('dogs.update');
+
+    // Profile
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])
+        ->name('profile.edit');
+    Route::patch('/profile', [CustomerProfileController::class, 'update'])
+        ->name('profile.update');
 });
 
 // Admin Routes (Protected)
@@ -123,10 +163,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->with(['dog', 'dog.customer', 'service'])
             ->whereDate('appointment_date', $request->date)
             ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
-            ->when($request->input('exclude_appointment_id'), fn ($query, $id) => $query->where('id', '!=', $id))
+            ->when($request->input('exclude_appointment_id'), fn($query, $id) => $query->where('id', '!=', $id))
             ->orderBy('appointment_time')
             ->get()
-            ->map(fn ($apt) => [
+            ->map(fn($apt) => [
                 'time' => $apt->appointment_time->format('H:i'),
                 'dog_name' => $apt->dog->name,
                 'service' => $apt->service->name ?? 'N/A',
@@ -148,4 +188,4 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::patch('/business-hours/{businessHours}', [BusinessHoursController::class, 'update'])->name('business-hours.update');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
