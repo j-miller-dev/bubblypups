@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'info' => $request->session()->get('info'),
             ],
+            'breeds' => config('breeds'),
         ];
     }
 }

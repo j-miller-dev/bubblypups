@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import DogCard from "@/Components/Customer/DogCard";
+import BreedSelector from "@/Components/ui/BreedSelector";
 import { HeartIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@inertiajs/react";
 
@@ -155,32 +156,15 @@ export default function Dogs({ customer, dogs }: DogsProps) {
                                         </div>
 
                                         {/* Breed */}
-                                        <div>
-                                            <label
-                                                htmlFor="breed"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Breed *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="breed"
-                                                value={data.breed}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "breed",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                                required
-                                            />
-                                            {errors.breed && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.breed}
-                                                </p>
-                                            )}
-                                        </div>
+                                        <BreedSelector
+                                            value={data.breed}
+                                            onChange={(breed) =>
+                                                setData("breed", breed)
+                                            }
+                                            error={errors.breed}
+                                            label="Breed"
+                                            required
+                                        />
 
                                         {/* Size */}
                                         <div>

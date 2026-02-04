@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import MainLayout from '@/Layouts/MainLayout'
 import { Container } from '@/Components/layout'
 import { Button } from '@/Components/ui'
+import BreedSelector from '@/Components/ui/BreedSelector'
 import { Head, router } from '@inertiajs/react'
 
 export default function CustomerRegister() {
@@ -100,10 +101,11 @@ export default function CustomerRegister() {
                   <input className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={dog.name} onChange={(e) => setDog({ ...dog, name: e.target.value })} required/>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
-                    <input className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={dog.breed} onChange={(e) => setDog({ ...dog, breed: e.target.value })}/>
-                  </div>
+                  <BreedSelector
+                    value={dog.breed}
+                    onChange={(breed) => setDog({ ...dog, breed })}
+                    label="Breed"
+                  />
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
                     <input className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value={dog.age} onChange={(e) => setDog({ ...dog, age: e.target.value })}/>

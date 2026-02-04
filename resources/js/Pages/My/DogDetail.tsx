@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import AppointmentCard from "@/Components/Customer/AppointmentCard";
+import DogPhotoUpload from "@/Components/Customer/DogPhotoUpload";
+import BreedSelector from "@/Components/ui/BreedSelector";
 import { Link, useForm } from "@inertiajs/react";
 import { HeartIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -106,21 +108,8 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
                     <div className="overflow-hidden rounded-lg bg-white shadow">
                         <div className="px-6 py-5">
                             <div className="flex flex-col items-center text-center">
-                                {/* Dog Photo */}
-                                {dog.photo_url ? (
-                                    <img
-                                        src={dog.photo_url}
-                                        alt={dog.name}
-                                        className="size-32 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex size-32 items-center justify-center rounded-full bg-primary-100">
-                                        <HeartIcon
-                                            className="size-16 text-primary-600"
-                                            aria-hidden
-                                        />
-                                    </div>
-                                )}
+                                {/* Dog Photo Upload */}
+                                <DogPhotoUpload dog={dog} size="lg" />
 
                                 {/* Dog Name & Size */}
                                 <h1 className="mt-4 text-2xl font-bold text-gray-900">
@@ -281,32 +270,15 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
                                         </div>
 
                                         {/* Breed */}
-                                        <div>
-                                            <label
-                                                htmlFor="breed"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Breed *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="breed"
-                                                value={data.breed}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "breed",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                                required
-                                            />
-                                            {errors.breed && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.breed}
-                                                </p>
-                                            )}
-                                        </div>
+                                        <BreedSelector
+                                            value={data.breed}
+                                            onChange={(breed) =>
+                                                setData("breed", breed)
+                                            }
+                                            error={errors.breed}
+                                            label="Breed"
+                                            required
+                                        />
 
                                         {/* Size */}
                                         <div>

@@ -4,6 +4,7 @@ import AppointmentCardComponent from "@/Components/ui/AppointmentCardComponent";
 import Calendar from "@/Pages/Dashboard/Components/Calendar";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { Link } from "@inertiajs/react";
 
 interface OverviewProps {
     appointments: any[];
@@ -59,13 +60,13 @@ export default function Overview({ appointments }: OverviewProps) {
                     <h2 className="text-2xl font-semibold text-gray-900">
                         Upcoming Bookings
                     </h2>
-                    <button
-                        onClick={() => setIsQuickBookingOpen(true)}
+                    <Link
+                        href={route("admin.bookings.create")}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
                     >
                         <PlusIcon className="h-5 w-5" />
                         New Booking
-                    </button>
+                    </Link>
                 </div>
                 <UpcomingBookingsCal
                     currentDate={todayString}

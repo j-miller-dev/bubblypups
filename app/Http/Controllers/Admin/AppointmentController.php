@@ -3,12 +3,85 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAppointmentRequest;
 use App\Http\Requests\RescheduleAppointmentRequest;
 use App\Models\Appointment;
+use App\Models\Customer;
+use App\Models\Dog;
+use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AppointmentController extends Controller
 {
+    public function store(StoreAppointmentRequest $request): RedirectResponse
+    {
+        // Determine dog_id and customer_id: use existing or create new customer+dog
+        if ($request->filled('dog_id')) {
+            $dog = Dog::with('customer')->findOrFail($request->dog_id);
+            $dogId = $dog->id;
+            $customerId = $dog->customer_id;
+        } else {
+            // Create new customer with auto-generated password
+            $customer = Customer::create([
+                'name' => $request->input('new_customer.name'),
+                'email' => $request->input('new_customer.email'),
+                'phone' => $request->input('new_customer.phone'),
+                'password' => Hash::make(Str::random(16)),
+            ]);
+
+            // Create new dog for this customer
+            $dog = Dog::create([
+                'customer_id' => $customer->id,
+                'name' => $request->input('new_dog.name'),
+                'breed' => $request->input('new_dog.breed'),
+                'size' => $request->input('new_dog.size'),
+                'special_notes' => $request->input('new_dog.special_notes'),
+            ]);
+
+            $dogId = $dog->id;
+            $customerId = $customer->id;
+        }
+
+        // Get service to determine duration
+        $service = Service::findOrFail($request->service_id);
+
+        // Create appointment
+        $appointment = Appointment::create([
+            'dog_id' => $dogId,
+            'customer_id' => $customerId,
+            'service_id' => $request->service_id,
+            'appointment_date' => $request->appointment_date,
+            'appointment_time' => $request->appointment_time,
+            'duration' => $service->duration_minutes,
+            'status' => $request->status,
+            'notes' => $request->notes,
+            'confirmed_at' => $request->status === 'confirmed' ? now() : null,
+        ]);
+
+        // Load relationships for notification
+        $appointment->load(['dog.customer']);
+
+        // Send notification based on status
+        try {
+            if ($request->status === 'confirmed') {
+                $appointment->dog->customer->notify(
+                    new \App\Notifications\AppointmentConfirmedNotification($appointment)
+                );
+            }
+            // Note: For 'waiting_on_client' status on new appointments,
+            // we could send a confirmation request email in the future
+        } catch (\Exception $e) {
+            \Log::error('Failed to send appointment notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return back()->with('success', 'Appointment created successfully!');
+    }
+
     public function confirm(Appointment $appointment): RedirectResponse
     {
         $appointment->status = 'confirmed';
@@ -55,15 +128,14 @@ class AppointmentController extends Controller
         return redirect()
             ->route('home')
             ->with('success', 'Thank you! Your appointment has been confirmed for '
-            . $appointment->appointment_date->format('F j, Y')
-                . ' at ' . $appointment->appointment_time->format('g:i A') . '.');
+            .$appointment->appointment_date->format('F j, Y')
+                .' at '.$appointment->appointment_time->format('g:i A').'.');
     }
-
 
     public function reschedule(RescheduleAppointmentRequest $request, Appointment $appointment)
     {
         // Check if the new time conflicts with blocked times
-        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date . ' ' . $request->appointment_time);
+        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date.' '.$request->appointment_time);
 
         $isBlocked = \App\Models\BlockedTime::query()
             ->where('start_datetime', '<=', $appointmentDateTime)

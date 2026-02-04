@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
+import BreedSelector from '@/Components/ui/BreedSelector';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -147,18 +148,13 @@ export default function CustomerRegister() {
                     </div>
 
                     <div className="mt-4">
-                        <InputLabel htmlFor="dog_breed" value="Breed" />
-
-                        <TextInput
-                            id="dog_breed"
-                            name="dog_breed"
+                        <BreedSelector
                             value={data.dog_breed}
-                            className="mt-1 block w-full"
-                            onChange={(e) => setData('dog_breed', e.target.value)}
+                            onChange={(breed) => setData('dog_breed', breed)}
+                            error={errors.dog_breed}
+                            label="Breed"
                             required
                         />
-
-                        <InputError message={errors.dog_breed} className="mt-2" />
                     </div>
 
                     <div className="mt-4">

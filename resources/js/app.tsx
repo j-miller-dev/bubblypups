@@ -8,12 +8,11 @@ import { createRoot } from "react-dom/client";
 const appName = import.meta.env.VITE_APP_NAME || "bubblypups dog grooming";
 
 // Handle CSRF token expiration (419 errors) globally
-router.on('error', (event) => {
-    // Inertia passes the response in event.detail
-    if (event.detail?.response?.status === 419) {
-        if (confirm('Your session has expired. Would you like to reload the page?')) {
-            window.location.reload();
-        }
+// Use 'invalid' event for 4xx responses in Inertia v2
+router.on('invalid', (event) => {
+    if (event.detail.response.status === 419) {
+        event.preventDefault();
+        window.location.reload();
     }
 });
 

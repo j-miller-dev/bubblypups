@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Customer\UpdateDogPhotoRequest;
 use App\Models\Dog;
+use App\Services\DogPhotoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
-  * Manages dog profiles for authenticated customers.
-  *
-  * This controller provides CRUD operations for customer-owned dogs, including listing
-  * all dogs, viewing individual dog details with appointment history, creating new dog
-  * profiles, and updating existing dog information. Authorization checks ensure customers
-  * can only manage their own dogs.
-  */
-
+ * Manages dog profiles for authenticated customers.
+ *
+ * This controller provides CRUD operations for customer-owned dogs, including listing
+ * all dogs, viewing individual dog details with appointment history, creating new dog
+ * profiles, and updating existing dog information. Authorization checks ensure customers
+ * can only manage their own dogs.
+ */
 class CustomerDogController extends Controller
 {
     public function index()
@@ -72,5 +73,23 @@ class CustomerDogController extends Controller
         $dog->update($validated);
 
         return back()->with('success', 'Dog updated successfully!');
+    }
+
+    public function updatePhoto(UpdateDogPhotoRequest $request, Dog $dog, DogPhotoService $photoService): \Illuminate\Http\RedirectResponse
+    {
+        $photoService->uploadPhoto($dog, $request->validated('photo'));
+
+        return back()->with('success', 'Photo updated successfully!');
+    }
+
+    public function deletePhoto(Dog $dog, DogPhotoService $photoService): \Illuminate\Http\RedirectResponse
+    {
+        if ($dog->customer_id !== auth('customer')->id()) {
+            abort(403);
+        }
+
+        $photoService->deletePhoto($dog);
+
+        return back()->with('success', 'Photo removed successfully!');
     }
 }
