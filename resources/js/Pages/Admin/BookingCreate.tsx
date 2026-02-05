@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/Components/ui/Button";
 import BreedSelector from "@/Components/ui/BreedSelector";
+import Toast from "@/Components/ui/Toast";
 
 interface Service {
     id: number;
@@ -42,25 +43,26 @@ function formatDate(d: Date): string {
 
 export default function BookingCreate({ services }: Props) {
     // Form state
-    const { data, setData, processing, errors, reset, setError, clearErrors } = useForm({
-        dog_id: null as number | null,
-        new_customer: {
-            name: "",
-            email: "",
-            phone: "",
-        },
-        new_dog: {
-            name: "",
-            breed: "",
-            size: "medium" as "small" | "medium" | "large",
-            special_notes: "",
-        },
-        service_id: null as number | null,
-        appointment_date: "",
-        appointment_time: "",
-        status: "confirmed" as "confirmed" | "waiting_on_client",
-        notes: "",
-    });
+    const { data, setData, processing, errors, reset, setError, clearErrors } =
+        useForm({
+            dog_id: null as number | null,
+            new_customer: {
+                name: "",
+                email: "",
+                phone: "",
+            },
+            new_dog: {
+                name: "",
+                breed: "",
+                size: "medium" as "small" | "medium" | "large",
+                special_notes: "",
+            },
+            service_id: null as number | null,
+            appointment_date: "",
+            appointment_time: "",
+            status: "confirmed" as "confirmed" | "waiting_on_client",
+            notes: "",
+        });
 
     // Dog search state
     const [searchQuery, setSearchQuery] = useState("");
@@ -302,6 +304,7 @@ export default function BookingCreate({ services }: Props) {
 
     return (
         <AdminLayout>
+            <Toast />
             <Head title="Create Booking" />
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -387,7 +390,9 @@ export default function BookingCreate({ services }: Props) {
 
                             <div className="flex items-center gap-2">
                                 <div className="h-px flex-1 bg-gray-200" />
-                                <span className="text-sm text-gray-500">or</span>
+                                <span className="text-sm text-gray-500">
+                                    or
+                                </span>
                                 <div className="h-px flex-1 bg-gray-200" />
                             </div>
 
@@ -540,7 +545,9 @@ export default function BookingCreate({ services }: Props) {
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         >
                                             <option value="small">Small</option>
-                                            <option value="medium">Medium</option>
+                                            <option value="medium">
+                                                Medium
+                                            </option>
                                             <option value="large">Large</option>
                                         </select>
                                         {errors["new_dog.size"] && (
@@ -559,7 +566,8 @@ export default function BookingCreate({ services }: Props) {
                                             onChange={(e) =>
                                                 setData("new_dog", {
                                                     ...data.new_dog,
-                                                    special_notes: e.target.value,
+                                                    special_notes:
+                                                        e.target.value,
                                                 })
                                             }
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
