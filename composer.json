@@ -27,6 +27,7 @@
         "predis/predis": "^3.2",
         "pusher/pusher-php-server": "^7.2",
         "resend/resend-php": "^0.20.0",
+        "sentry/sentry-laravel": "^4.20",
         "symfony/cache": "^7.3",
         "symfony/filesystem": "^7.3",
         "symfony/http-client": "^7.3",
