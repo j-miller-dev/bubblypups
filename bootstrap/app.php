@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Configure customer guard redirects
         $middleware->redirectGuestsTo(function ($request) {
-            if ($request->routeIs('my.*')) {
+            if ($request->routeIs('my.*') || $request->routeIs('booking.*')) {
                 return route('customer.login.form');
             }
             return route('login');
