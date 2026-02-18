@@ -145,8 +145,8 @@ class AppointmentController extends Controller
         }
 
         // Capture previous date/time BEFORE saving (for notification)
-        $previousDate = $appointment->appointment_date;
-        $previousTime = $appointment->appointment_time;
+        $previousDate = $appointment->appointment_date->toDateString();
+        $previousTime = $appointment->appointment_time->format('H:i');
 
         $appointment->appointment_date = $request->appointment_date;
         $appointment->appointment_time = $request->appointment_time;
