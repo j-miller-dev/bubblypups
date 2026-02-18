@@ -35,6 +35,7 @@ class SeedProductionAppointments extends Command
         $services = Service::all();
         if ($services->isEmpty()) {
             $this->error('No services found. Please seed services first.');
+
             return 1;
         }
 
@@ -60,12 +61,12 @@ class SeedProductionAppointments extends Command
     private function createCustomer(): Customer
     {
         $name = $this->customerNames[array_rand($this->customerNames)];
-        $email = strtolower(str_replace(' ', '.', $name)) . rand(100, 999) . '@example.com';
+        $email = strtolower(str_replace(' ', '.', $name)).rand(100, 999).'@example.com';
 
         return Customer::create([
             'name' => $name,
             'email' => $email,
-            'phone' => '04' . rand(10000000, 99999999),
+            'phone' => '04'.rand(10000000, 99999999),
             'password' => Hash::make('password'),
         ]);
     }
@@ -81,20 +82,37 @@ class SeedProductionAppointments extends Command
         ]);
     }
 
-    private function createAppointment(Dog $dog, Service $service): Appointment
+    private function createAppointment(Dog $dog, Service $service): ?Appointment
     {
-        $date = Carbon::now()->addDays(rand(1, 30));
-        $status = $this->statuses[array_rand($this->statuses)];
+        $maxAttempts = 50;
+        $attempts = 0;
 
-        return Appointment::create([
-            'customer_id' => $dog->customer_id,
-            'dog_id' => $dog->id,
-            'service_id' => $service->id,
-            'appointment_date' => $date->toDateString(),
-            'appointment_time' => $this->times[array_rand($this->times)],
-            'duration' => $service->duration_minutes,
-            'status' => $status,
-            'confirmed_at' => $status === 'confirmed' ? now() : null,
-        ]);
+        while ($attempts < $maxAttempts) {
+            $date = Carbon::now()->addDays(rand(1, 30))->toDateString();
+            $time = $this->times[array_rand($this->times)];
+
+            $exists = Appointment::where('appointment_date', $date)
+                ->where('appointment_time', $time)
+                ->exists();
+
+            if (! $exists) {
+                $status = $this->statuses[array_rand($this->statuses)];
+
+                return Appointment::create([
+                    'customer_id' => $dog->customer_id,
+                    'dog_id' => $dog->id,
+                    'service_id' => $service->id,
+                    'appointment_date' => $date,
+                    'appointment_time' => $time,
+                    'duration' => $service->duration_minutes,
+                    'status' => $status,
+                    'confirmed_at' => $status === 'confirmed' ? now() : null,
+                ]);
+            }
+
+            $attempts++;
+        }
+
+        return null;
     }
 }

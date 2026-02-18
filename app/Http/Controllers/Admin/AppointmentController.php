@@ -61,17 +61,13 @@ class AppointmentController extends Controller
         ]);
 
         // Load relationships for notification
-        $appointment->load(['dog.customer']);
+        $appointment->load(['dog.customer', 'service']);
 
-        // Send notification based on status
+        // Send booking confirmation to customer
         try {
-            if ($request->status === 'confirmed') {
-                $appointment->dog->customer->notify(
-                    new \App\Notifications\AppointmentConfirmedNotification($appointment)
-                );
-            }
-            // Note: For 'waiting_on_client' status on new appointments,
-            // we could send a confirmation request email in the future
+            $appointment->dog->customer->notify(
+                new \App\Notifications\AppointmentCreatedNotification($appointment)
+            );
         } catch (\Exception $e) {
             \Log::error('Failed to send appointment notification', [
                 'appointment_id' => $appointment->id,
