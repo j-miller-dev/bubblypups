@@ -2,32 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreContactRequest;
+use App\Models\Contact;
+use App\Models\User;
+use App\Notifications\NewContactNotification;
 use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreContactRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'message' => ['required', 'string'],
-        ]);
+        $data = $request->validated();
 
-        DB::table('contacts')->insert([
-            'name' => $data['name'],
-            'email' => $data['email'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'message' => $data['message'],
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $contact = Contact::create($data);
 
         Log::info('[Bubbly Pups] Contact form received', $data);
 
-        return response()->json(['ok' => true]);
+        try {
+            User::all()->each(fn ($admin) => $admin->notify(new NewContactNotification($contact)));
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact notification', ['error' => $e->getMessage()]);
+        }
+
+        return redirect()->route('contact');
     }
 }

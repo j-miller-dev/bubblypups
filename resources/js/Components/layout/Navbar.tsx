@@ -13,12 +13,12 @@ import { PlusGrid, PlusGridItem, PlusGridRow } from "./PlusGrid";
 import { MobileNavBubbles } from "../graphics/MobileNavBubbles";
 
 const links = [
-    { href: "/pricing", label: "Pricing" },
+    { href: "/about", label: "About" },
     { href: "/booking/start", label: "Book Now" },
-    { href: "/company", label: "Company" },
     { href: "/blog", label: "Blog" },
-    { href: "/dashboard", label: "Dashboard" },
+    { href: "/services", label: "Services" },
     { href: "/login", label: "Login" },
+    { href: "/contact", label: "Contact" },
 ];
 
 function DesktopNav() {

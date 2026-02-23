@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\CustomerRegisterController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Customer\CustomerAppointmentController;
 use App\Http\Controllers\Customer\CustomerDashboardController;
 use App\Http\Controllers\Customer\CustomerDogController;
@@ -35,6 +36,8 @@ Route::get('/blog', function () {
 Route::get('/contact', function () {
     return Inertia::render('Contact');
 })->name('contact');
+
+Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::get('/company', function () {
     return Inertia::render('Company');
