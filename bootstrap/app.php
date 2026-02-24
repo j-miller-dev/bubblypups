@@ -17,8 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        $middleware->web(App\Http\Middleware\HandleInertiaRequests::class);
-
         // Configure customer guard redirects
         $middleware->redirectGuestsTo(function ($request) {
             if ($request->routeIs('my.*') || $request->routeIs('booking.*')) {

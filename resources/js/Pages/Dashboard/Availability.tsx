@@ -259,9 +259,16 @@ export default function Availability({
                 )}
                 {/* SECTION 3: Blocked Times List */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        🚫 Blocked Times
-                    </h2>
+                    <>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            🚫 Blocked Times
+                        </h2>
+                        <p className="text-sm text-gray-600 mb-4">
+                            These are the blocked times that you have locked in.
+                            Customers or yourself won't be able to make bookings
+                            during these times.
+                        </p>
+                    </>
 
                     {blockedTimes.length === 0 ? (
                         <p className="text-gray-500 text-sm italic">
@@ -278,24 +285,24 @@ export default function Availability({
                                         <div className="font-medium text-gray-900">
                                             {new Date(
                                                 blocked.start_datetime,
-                                            ).toLocaleString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                                hour: 'numeric',
-                                                minute: '2-digit',
-                                                hour12: true
+                                            ).toLocaleString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true,
                                             })}
                                             {" - "}
                                             {new Date(
                                                 blocked.end_datetime,
-                                            ).toLocaleString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                                hour: 'numeric',
-                                                minute: '2-digit',
-                                                hour12: true
+                                            ).toLocaleString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                                hour: "numeric",
+                                                minute: "2-digit",
+                                                hour12: true,
                                             })}
                                         </div>
                                         {blocked.reason && (

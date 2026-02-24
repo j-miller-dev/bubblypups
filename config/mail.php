@@ -115,4 +115,13 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'owner_email' => env('MAIL_OWNER_EMAIL'),
+
+    'markdown' => [
+        'theme' => 'bubbly',
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];

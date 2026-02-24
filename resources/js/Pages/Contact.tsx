@@ -42,7 +42,7 @@ export default function Contact() {
                             </div>
                         )}
 
-                        <form onSubmit={onSubmit} className="space-y-4">
+                        <form onSubmit={onSubmit} className="space-y-5">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Your name
@@ -50,7 +50,9 @@ export default function Contact() {
                                 <input
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     value={data.name}
-                                    onChange={(e) => setData("name", e.target.value)}
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
                                     required
                                 />
                             </div>
@@ -63,7 +65,9 @@ export default function Contact() {
                                         type="email"
                                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         value={data.email}
-                                        onChange={(e) => setData("email", e.target.value)}
+                                        onChange={(e) =>
+                                            setData("email", e.target.value)
+                                        }
                                     />
                                 </div>
                                 <div>
@@ -74,7 +78,9 @@ export default function Contact() {
                                         type="tel"
                                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         value={data.phone}
-                                        onChange={(e) => setData("phone", e.target.value)}
+                                        onChange={(e) =>
+                                            setData("phone", e.target.value)
+                                        }
                                     />
                                 </div>
                             </div>
@@ -86,7 +92,9 @@ export default function Contact() {
                                     rows={5}
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     value={data.message}
-                                    onChange={(e) => setData("message", e.target.value)}
+                                    onChange={(e) =>
+                                        setData("message", e.target.value)
+                                    }
                                     required
                                 />
                             </div>
