@@ -38,7 +38,7 @@ export function Dialog({
             className={clsx(
               className,
               sizes[size],
-              'row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-(--gutter) shadow-lg ring-1 ring-zinc-950/10 [--gutter:--spacing(8)] sm:mb-auto sm:rounded-2xl forced-colors:outline',
+              'row-start-2 w-full min-w-0 rounded-t-3xl bg-white p-6 sm:p-8 shadow-lg ring-1 ring-zinc-950/10 sm:mb-auto sm:rounded-2xl forced-colors:outline',
               'transition duration-100 will-change-transform data-closed:translate-y-12 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in sm:data-closed:translate-y-0 sm:data-closed:data-enter:scale-95'
             )}
           >
@@ -79,7 +79,7 @@ export function DialogActions({ className, ...props }: React.ComponentPropsWitho
       {...props}
       className={clsx(
         className,
-        'mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto'
+        'mt-8 flex flex-col-reverse items-center justify-end gap-3 [&>*]:w-full sm:flex-row sm:[&>*]:w-auto'
       )}
     />
   )

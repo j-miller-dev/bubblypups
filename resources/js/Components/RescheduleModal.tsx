@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useForm, router, usePage } from "@inertiajs/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ArrowRightIcon, ClockIcon } from "@heroicons/react/24/outline";
 import {
     Dialog,
     DialogTitle,
     DialogBody,
     DialogActions,
 } from "@/Components/ui/Dialog";
-import { Button } from "@/Components/ui/Button";
 
 interface Appointment {
     id: number;
@@ -28,14 +28,6 @@ interface RescheduleModalProps {
     onClose: () => void;
 }
 
-interface RescheduleFormData {
-    appointment_date: string;
-    appointment_time: string;
-    status: "confirmed" | "waiting_on_client";
-    notes: string;
-}
-
-// Helper function to format date as YYYY-MM-DD
 function formatDate(d: Date): string {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -43,49 +35,50 @@ function formatDate(d: Date): string {
     return `${y}-${m}-${day}`;
 }
 
+function formatDisplayDate(dateStr: string): string {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("en-AU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function formatDisplayTime(timeStr: string): string {
+    if (!timeStr) return "—";
+    const [h, m] = timeStr.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m);
+    return d.toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
 export default function RescheduleModal({
     appointment,
     isOpen,
     onClose,
 }: RescheduleModalProps) {
-    // State for calendar and time selection
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const [existingAppointments, setExistingAppointments] = useState<
-        {
-            time: string;
-            dog_name: string;
-            service: string;
-            duration: number;
-            status: string;
-        }[]
+        { time: string; dog_name: string; service: string; duration: number; status: string }[]
     >([]);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [viewDate, setViewDate] = useState<Date>(new Date());
     const [days, setDays] = useState<
-        {
-            date: string;
-            isToday?: boolean;
-            isCurrentMonth?: boolean;
-            isSelected?: boolean;
-        }[]
+        { date: string; isToday?: boolean; isCurrentMonth?: boolean; isSelected?: boolean }[]
     >([]);
 
     const todayStr = formatDate(new Date());
-
-    // Get errors from Inertia
     const { errors } = usePage().props as any;
 
-    // Inertia form for submitting reschedule
-    const { data, setData, patch, processing, reset } = useForm({
+    const { data, setData, reset } = useForm({
         appointment_date: "",
         appointment_time: "",
         status: "confirmed" as "confirmed" | "waiting_on_client",
         notes: "",
     });
 
-    // Prefill logic when appointment changes
     useEffect(() => {
         if (appointment) {
             setSelectedDate(appointment.date);
@@ -100,61 +93,33 @@ export default function RescheduleModal({
         }
     }, [appointment]);
 
-    // Generate calendar grid (copied from UpcomingBookingsCal.tsx lines 89-146)
+    // Build calendar grid
     useEffect(() => {
         const y = viewDate.getFullYear();
-        const m = viewDate.getMonth(); // 0-based
-
-        const firstOfMonth = new Date(y, m, 1);
-        const firstDay = firstOfMonth.getDay(); // 0=Sun..6=Sat
-        const mondayFirstOffset = (firstDay + 6) % 7; // 0 for Monday, 6 for Sunday
-
+        const m = viewDate.getMonth();
+        const firstDay = new Date(y, m, 1).getDay();
+        const mondayOffset = (firstDay + 6) % 7;
         const daysInPrevMonth = new Date(y, m, 0).getDate();
         const daysInThisMonth = new Date(y, m + 1, 0).getDate();
 
-        const grid: {
-            date: string;
-            isToday?: boolean;
-            isCurrentMonth?: boolean;
-            isSelected?: boolean;
-        }[] = [];
+        const grid: { date: string; isToday?: boolean; isCurrentMonth?: boolean; isSelected?: boolean }[] = [];
 
-        // Leading days from previous month
-        for (let i = mondayFirstOffset; i > 0; i--) {
+        for (let i = mondayOffset; i > 0; i--) {
             const d = new Date(y, m - 1, daysInPrevMonth - i + 1);
             const dateStr = formatDate(d);
-            grid.push({
-                date: dateStr,
-                isCurrentMonth: false,
-                isToday: dateStr === todayStr,
-                isSelected: dateStr === selectedDate,
-            });
+            grid.push({ date: dateStr, isCurrentMonth: false, isToday: dateStr === todayStr, isSelected: dateStr === selectedDate });
         }
-
-        // Current month days
         for (let day = 1; day <= daysInThisMonth; day++) {
             const d = new Date(y, m, day);
             const dateStr = formatDate(d);
-            grid.push({
-                date: dateStr,
-                isCurrentMonth: true,
-                isToday: dateStr === todayStr,
-                isSelected: dateStr === selectedDate,
-            });
+            grid.push({ date: dateStr, isCurrentMonth: true, isToday: dateStr === todayStr, isSelected: dateStr === selectedDate });
         }
-
-        // Trailing days from next month to complete weeks (multiple of 7)
         const remainder = grid.length % 7;
         const trailing = remainder === 0 ? 0 : 7 - remainder;
         for (let i = 1; i <= trailing; i++) {
             const d = new Date(y, m + 1, i);
             const dateStr = formatDate(d);
-            grid.push({
-                date: dateStr,
-                isCurrentMonth: false,
-                isToday: dateStr === todayStr,
-                isSelected: dateStr === selectedDate,
-            });
+            grid.push({ date: dateStr, isCurrentMonth: false, isToday: dateStr === todayStr, isSelected: dateStr === selectedDate });
         }
 
         setDays(grid);
@@ -162,78 +127,52 @@ export default function RescheduleModal({
 
     // Fetch available slots when date changes
     useEffect(() => {
-        if (!selectedDate || !appointment) {
-            return;
-        }
-
+        if (!selectedDate || !appointment) return;
         let ignore = false;
 
-        const fetchAvailableSlots = async () => {
+        const fetchSlots = async () => {
             setIsLoadingSlots(true);
             try {
-                const response = await fetch(
+                const res = await fetch(
                     `/admin/appointments/available-slots?date=${selectedDate}&exclude_appointment_id=${appointment.id}`,
                 );
-                const result = await response.json();
+                const result = await res.json();
                 if (!ignore) {
                     setAvailableSlots(result.slots || []);
                     setExistingAppointments(result.existing_appointments || []);
                 }
-            } catch (error) {
-                console.error("Failed to fetch available slots:", error);
-                if (!ignore) {
-                    setAvailableSlots([]);
-                    setExistingAppointments([]);
-                }
+            } catch {
+                if (!ignore) { setAvailableSlots([]); setExistingAppointments([]); }
             } finally {
-                if (!ignore) {
-                    setIsLoadingSlots(false);
-                }
+                if (!ignore) setIsLoadingSlots(false);
             }
         };
 
-        fetchAvailableSlots();
-
-        return () => {
-            ignore = true;
-        };
+        fetchSlots();
+        return () => { ignore = true; };
     }, [selectedDate, appointment?.id]);
 
-    // Handle date selection from calendar
     const handleDateSelect = (date: string, isCurrentMonth: boolean) => {
         setSelectedDate(date);
-        setSelectedTime(""); // Reset time when date changes
-        setAvailableSlots([]); // Clear old slots immediately
+        setSelectedTime("");
+        setAvailableSlots([]);
         setData("appointment_date", date);
         setData("appointment_time", "");
-
-        // Update view if clicking on a day from previous/next month
         if (!isCurrentMonth) {
-            const [yy, mm] = date
-                .slice(0, 7)
-                .split("-")
-                .map((v) => parseInt(v, 10));
+            const [yy, mm] = date.slice(0, 7).split("-").map(Number);
             setViewDate(new Date(yy, (mm ?? 1) - 1, 1));
         }
     };
 
-    // Handle time slot selection
     const handleTimeSelect = (time: string) => {
         setSelectedTime(time);
         setData("appointment_time", time);
     };
 
-    // Submit handlers
     const handleSubmit = (status: "confirmed" | "waiting_on_client") => {
-        // Use router.patch directly with manual data instead of form's patch method
         router.patch(
             `/admin/appointments/${appointment?.id}/reschedule`,
-            {
-                appointment_date: data.appointment_date,
-                appointment_time: data.appointment_time,
-                status: status, // Use the parameter directly
-                notes: data.notes,
-            },
+            { appointment_date: data.appointment_date, appointment_time: data.appointment_time, status, notes: data.notes },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -245,367 +184,296 @@ export default function RescheduleModal({
         );
     };
 
-    if (!appointment) {
-        return null;
-    }
+    const canSubmit = !!selectedDate && !!selectedTime;
+
+    if (!appointment) return null;
 
     return (
         <Dialog open={isOpen} onClose={onClose} size="3xl">
             <DialogTitle>Reschedule Appointment</DialogTitle>
 
             <DialogBody>
-                {/* Dog/Owner Info and Service Card */}
-                <div className="flex justify-center mb-8 p-4">
-                    {/* Dog and Owner Info */}
-                    <div className="flex flex-col p-4">
-                        <h3 className="text-xl font-semibold text-gray-900">
-                            {appointment.dog}
-                            {appointment.breed && (
-                                <span className="text-lg text-gray-500 ml-2">
-                                    ({appointment.breed})
-                                </span>
-                            )}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                            Owner: {appointment.owner}
-                        </p>
-                    </div>
-
-                    {/* Service Card */}
-                    {appointment.service && (
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
-                            <p className="text-xs text-gray-500 font-medium mb-1">
-                                Requested Service
-                            </p>
-                            <p className="text-sm font-semibold text-gray-900">
-                                {appointment.service_emoji && (
-                                    <span className="mr-2">
-                                        {appointment.service_emoji}
+                {/* Dog info + service pill */}
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-gray-100 bg-gray-50 p-4 mb-6">
+                    <div className="flex items-center gap-3">
+                        {appointment.photo_url ? (
+                            <img
+                                src={appointment.photo_url}
+                                alt={appointment.dog}
+                                className="size-12 rounded-full object-cover ring-2 ring-brand-200 shrink-0"
+                            />
+                        ) : (
+                            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-100 ring-2 ring-brand-200 text-xl">
+                                🐶
+                            </div>
+                        )}
+                        <div>
+                            <p className="font-display font-extrabold text-gray-900">
+                                {appointment.dog}
+                                {appointment.breed && (
+                                    <span className="ml-2 text-sm font-normal text-gray-500">
+                                        {appointment.breed}
                                     </span>
                                 )}
-                                {appointment.service}
                             </p>
-                            {appointment.price !== undefined && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                    ${appointment.price}
+                            <p className="text-sm text-gray-500">Owner: {appointment.owner}</p>
+                        </div>
+                    </div>
+                    {appointment.service && (
+                        <div className="inline-flex items-center gap-2 rounded-button border border-brand-100 bg-brand-50 px-3 py-2">
+                            {appointment.service_emoji && (
+                                <span>{appointment.service_emoji}</span>
+                            )}
+                            <div>
+                                <p className="text-xs text-gray-500 font-display font-extrabold leading-none mb-0.5">
+                                    Service
                                 </p>
+                                <p className="text-sm font-display font-extrabold text-gray-900">
+                                    {appointment.service}
+                                </p>
+                            </div>
+                            {appointment.price !== undefined && (
+                                <span className="ml-1 font-display font-extrabold text-brand-500 text-sm">
+                                    ${appointment.price}
+                                </span>
                             )}
                         </div>
                     )}
                 </div>
 
-                {/* Current and New Appointment Times with Dog Image */}
-                <div className="flex justify-center items-center gap-8 mb-8">
-                    <div className="flex-1 max-w-xs bg-gray-100 rounded-lg p-5 text-center">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                            Current Appointment
-                        </h3>
-                        <div className="text-sm text-gray-600 space-y-2">
-                            <p>
-                                <span className="font-medium">Date:</span>{" "}
-                                {appointment.date}
-                            </p>
-                            <p>
-                                <span className="font-medium">Time:</span>{" "}
-                                {appointment.time}
-                            </p>
-                        </div>
+                {/* Current → New time banner */}
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="flex-1 rounded-card border border-gray-200 bg-white p-3 text-center">
+                        <p className="text-xs font-display font-extrabold text-gray-400 uppercase tracking-wide mb-1">
+                            Current
+                        </p>
+                        <p className="text-sm font-display font-extrabold text-gray-700">
+                            {formatDisplayDate(appointment.date)}
+                        </p>
+                        <p className="text-sm text-gray-500">{formatDisplayTime(appointment.time)}</p>
                     </div>
-
-                    <div className="flex flex-col items-center gap-3">
-                        {appointment.photo_url ? (
-                            <img
-                                src={appointment.photo_url}
-                                alt={appointment.dog}
-                                className="h-16 w-16 rounded-full object-cover border-2 border-indigo-200"
-                            />
-                        ) : (
-                            <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-2xl font-semibold border-2 border-gray-300">
-                                {appointment.dog.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                        <svg
-                            className="h-6 w-6 text-indigo-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 7l5 5m0 0l-5 5m5-5H6"
-                            />
-                        </svg>
-                    </div>
-
-                    <div className="flex-1 max-w-xs bg-gray-100 rounded-lg p-5 text-center">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">
-                            New Appointment
-                        </h3>
-                        <div className="text-sm text-gray-600 space-y-2">
-                            <p>
-                                <span className="font-medium">Date:</span>{" "}
-                                {selectedDate || "—"}
-                            </p>
-                            <p>
-                                <span className="font-medium">Time:</span>{" "}
-                                {selectedTime || "—"}
-                            </p>
-                        </div>
+                    <ArrowRightIcon className="size-5 text-brand-400 shrink-0" />
+                    <div className={`flex-1 rounded-card border p-3 text-center transition-colors ${
+                        selectedDate && selectedTime
+                            ? "border-brand-200 bg-brand-50"
+                            : "border-gray-200 bg-white"
+                    }`}>
+                        <p className="text-xs font-display font-extrabold text-gray-400 uppercase tracking-wide mb-1">
+                            New
+                        </p>
+                        <p className={`text-sm font-display font-extrabold ${selectedDate ? "text-gray-700" : "text-gray-300"}`}>
+                            {formatDisplayDate(selectedDate)}
+                        </p>
+                        <p className={`text-sm ${selectedTime ? "text-brand-500 font-display font-extrabold" : "text-gray-300"}`}>
+                            {formatDisplayTime(selectedTime)}
+                        </p>
                     </div>
                 </div>
 
-                {/* Error Message */}
+                {/* Error */}
                 {errors.appointment_time && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm text-red-800">
-                            ⚠️ {errors.appointment_time}
-                        </p>
+                    <div className="mb-4 rounded-card border border-red-200 bg-red-50 px-4 py-3">
+                        <p className="text-sm text-red-700">{errors.appointment_time}</p>
                     </div>
                 )}
 
-                {/* Calendar and Time Slots Grid */}
+                {/* Calendar + Time Slots */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Calendar */}
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                            Select New Date
-                        </h3>
+                        <p className="text-xs font-display font-extrabold text-gray-500 uppercase tracking-wide mb-3">
+                            Select Date
+                        </p>
 
-                        {/* Month Navigation */}
-                        <div className="flex items-center text-gray-900 mb-4">
+                        {/* Month nav */}
+                        <div className="flex items-center justify-between mb-3">
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setViewDate(
-                                        new Date(
-                                            viewDate.getFullYear(),
-                                            viewDate.getMonth() - 1,
-                                            1,
-                                        ),
-                                    )
-                                }
-                                className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+                                onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+                                className="rounded-button p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                             >
                                 <span className="sr-only">Previous month</span>
-                                <ChevronLeftIcon
-                                    aria-hidden="true"
-                                    className="size-5"
-                                />
+                                <ChevronLeftIcon className="size-4" />
                             </button>
-                            <div className="flex-auto text-center text-sm font-semibold">
-                                {viewDate.toLocaleString(undefined, {
-                                    month: "long",
-                                    year: "numeric",
-                                })}
-                            </div>
+                            <span className="text-sm font-display font-extrabold text-gray-900">
+                                {viewDate.toLocaleString("en-AU", { month: "long", year: "numeric" })}
+                            </span>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setViewDate(
-                                        new Date(
-                                            viewDate.getFullYear(),
-                                            viewDate.getMonth() + 1,
-                                            1,
-                                        ),
-                                    )
-                                }
-                                className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+                                onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+                                className="rounded-button p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                             >
                                 <span className="sr-only">Next month</span>
-                                <ChevronRightIcon
-                                    aria-hidden="true"
-                                    className="size-5"
-                                />
+                                <ChevronRightIcon className="size-4" />
                             </button>
                         </div>
 
-                        {/* Day Headers */}
-                        <div className="grid grid-cols-7 text-xs/6 text-gray-500 text-center mb-2">
-                            <div>M</div>
-                            <div>T</div>
-                            <div>W</div>
-                            <div>T</div>
-                            <div>F</div>
-                            <div>S</div>
-                            <div>S</div>
+                        {/* Day headers */}
+                        <div className="grid grid-cols-7 text-xs font-display font-extrabold text-gray-400 text-center mb-1">
+                            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                                <div key={i}>{d}</div>
+                            ))}
                         </div>
 
-                        {/* Calendar Grid */}
-                        <div className="isolate grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
+                        {/* Calendar grid */}
+                        <div className="isolate grid grid-cols-7 gap-px rounded-card bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200 overflow-hidden">
                             {days.map((day) => (
                                 <button
                                     key={day.date}
                                     type="button"
                                     disabled={day.date < todayStr}
-                                    onClick={() =>
-                                        handleDateSelect(
-                                            day.date,
-                                            day.isCurrentMonth ?? false,
-                                        )
-                                    }
-                                    data-is-today={
-                                        day.date === todayStr ? "" : undefined
-                                    }
-                                    data-is-selected={
-                                        day.isSelected ? "" : undefined
-                                    }
-                                    data-is-current-month={
-                                        day.isCurrentMonth ? "" : undefined
-                                    }
-                                    data-is-past={
-                                        day.date < todayStr ? "" : undefined
-                                    }
-                                    className="group py-1.5 not-data-is-current-month:bg-gray-50 not-data-is-selected:not-data-is-current-month:not-data-is-today:text-gray-400 first:rounded-tl-lg last:rounded-br-lg hover:bg-gray-100 focus:z-10 data-is-current-month:bg-white not-data-is-selected:data-is-current-month:not-data-is-today:text-gray-900 data-is-current-month:hover:bg-gray-100 data-is-selected:font-semibold data-is-selected:text-white data-is-today:font-semibold data-is-today:not-data-is-selected:text-indigo-600 data-is-today:hover:bg-indigo-50 data-is-today:hover:ring-1 data-is-today:hover:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-50 nth-36:rounded-bl-lg nth-7:rounded-tr-lg"
+                                    onClick={() => handleDateSelect(day.date, day.isCurrentMonth ?? false)}
+                                    className={`py-1.5 text-center transition-colors focus:z-10 disabled:cursor-not-allowed disabled:opacity-40
+                                        ${day.isSelected
+                                            ? "bg-brand-500"
+                                            : day.isCurrentMonth
+                                            ? "bg-white hover:bg-brand-50"
+                                            : "bg-gray-50 hover:bg-gray-100"
+                                        }
+                                        ${day.isToday && !day.isSelected ? "ring-1 ring-inset ring-brand-300" : ""}
+                                    `}
                                 >
                                     <time
                                         dateTime={day.date}
-                                        className="mx-auto flex size-7 items-center justify-center rounded-full in-data-is-selected:bg-indigo-600 in-data-is-selected:text-white"
+                                        className={`mx-auto flex size-7 items-center justify-center rounded-full text-xs font-display font-extrabold
+                                            ${day.isSelected
+                                                ? "text-white"
+                                                : day.isToday
+                                                ? "text-brand-500"
+                                                : day.isCurrentMonth
+                                                ? "text-gray-900"
+                                                : "text-gray-400"
+                                            }
+                                        `}
                                     >
-                                        {day.date
-                                            .split("-")
-                                            .pop()
-                                            ?.replace(/^0/, "")}
+                                        {day.date.split("-").pop()?.replace(/^0/, "")}
                                     </time>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Time Slots and Schedule */}
+                    {/* Time slots */}
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                            Select New Time
-                        </h3>
+                        <p className="text-xs font-display font-extrabold text-gray-500 uppercase tracking-wide mb-3">
+                            Select Time
+                        </p>
 
                         {!selectedDate && (
-                            <p className="text-sm text-gray-500 py-4">
-                                Please select a date first
+                            <p className="text-sm text-gray-400 py-4">
+                                Pick a date first
                             </p>
                         )}
 
                         {selectedDate && isLoadingSlots && (
-                            <p className="text-sm text-gray-500 py-4">
-                                Loading available times...
+                            <div className="space-y-2 py-2">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="h-9 rounded-button bg-gray-100 animate-pulse" />
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedDate && !isLoadingSlots && availableSlots.length === 0 && (
+                            <p className="text-sm text-gray-400 py-4">
+                                No available times for this date
                             </p>
                         )}
 
-                        {selectedDate &&
-                            !isLoadingSlots &&
-                            availableSlots.length === 0 && (
-                                <p className="text-sm text-gray-500 py-4">
-                                    No available times for this date
-                                </p>
-                            )}
+                        {selectedDate && !isLoadingSlots && availableSlots.length > 0 && (
+                            <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                                {availableSlots.map((slot) => (
+                                    <button
+                                        key={slot}
+                                        type="button"
+                                        onClick={() => handleTimeSelect(slot)}
+                                        className={`flex items-center justify-center gap-1.5 rounded-button border px-3 py-2 text-sm font-display font-extrabold transition-colors ${
+                                            selectedTime === slot
+                                                ? "bg-brand-500 text-white border-brand-500"
+                                                : "bg-white text-gray-700 border-gray-200 hover:border-brand-300 hover:bg-brand-50"
+                                        }`}
+                                    >
+                                        <ClockIcon className="size-3.5 shrink-0" />
+                                        {slot}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
+                        {/* Day schedule */}
                         {selectedDate && !isLoadingSlots && (
-                            <div className="space-y-4">
-                                {/* Available Time Slots */}
-                                {availableSlots.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                                        {availableSlots.map((slot) => (
-                                            <button
-                                                key={slot}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleTimeSelect(slot)
-                                                }
-                                                className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-                                                    selectedTime === slot
-                                                        ? "bg-indigo-600 text-white border-indigo-600 font-semibold"
-                                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                                }`}
+                            <div className="mt-4 rounded-card border border-brand-100 bg-brand-50 p-3">
+                                <p className="text-xs font-display font-extrabold text-brand-700 mb-2">
+                                    Day's Schedule
+                                </p>
+                                {existingAppointments.length > 0 ? (
+                                    <div className="space-y-1 max-h-28 overflow-y-auto">
+                                        {existingAppointments.map((apt, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex items-center justify-between gap-2 rounded-button bg-white px-2 py-1.5 text-xs"
                                             >
-                                                {slot}
-                                            </button>
+                                                <span className="font-display font-extrabold text-gray-900 shrink-0">
+                                                    {apt.time}
+                                                </span>
+                                                <span className="text-gray-600 truncate">
+                                                    {apt.dog_name}{" "}
+                                                    <span className="text-gray-400">
+                                                        [{apt.service}]
+                                                    </span>
+                                                </span>
+                                                <span className="text-gray-400 shrink-0">
+                                                    {apt.duration}m
+                                                </span>
+                                            </div>
                                         ))}
                                     </div>
+                                ) : (
+                                    <p className="text-xs text-brand-600 italic">
+                                        No other appointments this day
+                                    </p>
                                 )}
-
-                                {/* Existing Appointments Schedule */}
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                    <h4 className="text-xs font-semibold text-blue-900 mb-2">
-                                        Day's Schedule
-                                    </h4>
-                                    {existingAppointments.length > 0 ? (
-                                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                                            {existingAppointments.map(
-                                                (apt, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="flex items-center justify-between text-xs bg-white rounded px-2 py-1.5"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium text-gray-900">
-                                                                {apt.time}
-                                                            </span>
-                                                            <span className="text-gray-600">
-                                                                {apt.dog_name}{" "}
-                                                                <span className="text-gray-500">
-                                                                    [
-                                                                    {
-                                                                        apt.service
-                                                                    }
-                                                                    ]
-                                                                </span>
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-gray-500">
-                                                            {apt.duration}min
-                                                        </span>
-                                                    </div>
-                                                ),
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-gray-600 italic">
-                                            No other appointments on this day
-                                        </p>
-                                    )}
-                                </div>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Notes */}
-                <div className="mt-6">
-                    <label
-                        htmlFor="notes"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                        Notes (optional)
+                <div className="mt-5">
+                    <label htmlFor="reschedule-notes" className="label">
+                        Notes{" "}
+                        <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     <textarea
-                        id="notes"
-                        rows={3}
+                        id="reschedule-notes"
+                        rows={2}
                         value={data.notes}
                         onChange={(e) => setData("notes", e.target.value)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                        className="input resize-none"
                         placeholder="Add any notes about this reschedule..."
                     />
                 </div>
             </DialogBody>
 
             <DialogActions>
-                <Button onClick={onClose} disabled={processing}>
+                <button type="button" onClick={onClose} className="btn-outline">
                     Cancel
-                </Button>
-                <Button
+                </button>
+                <button
+                    type="button"
                     onClick={() => handleSubmit("waiting_on_client")}
-                    disabled={processing || !selectedDate || !selectedTime}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    disabled={!canSubmit}
+                    className="inline-flex items-center justify-center rounded-button px-4 py-2 text-sm font-display font-extrabold bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                     Send to Client
-                </Button>
-                <Button
+                </button>
+                <button
+                    type="button"
                     onClick={() => handleSubmit("confirmed")}
-                    disabled={processing || !selectedDate || !selectedTime}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={!canSubmit}
+                    className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                     Confirm Now
-                </Button>
+                </button>
             </DialogActions>
         </Dialog>
     );

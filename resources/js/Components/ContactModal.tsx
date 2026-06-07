@@ -4,7 +4,6 @@ import {
     DialogBody,
     DialogActions,
 } from "@/Components/ui/Dialog";
-import { Button } from "@/Components/ui/Button";
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 
 interface ContactModalProps {
@@ -22,87 +21,83 @@ export default function ContactModal({
     email,
     phone,
 }: ContactModalProps) {
-    const handleEmail = () => {
-        if (email) {
-            window.location.href = `mailto:${email}`;
-        }
-    };
-
-    const handleCall = () => {
-        if (phone) {
-            window.location.href = `tel:${phone}`;
-        }
-    };
-
     return (
         <Dialog open={isOpen} onClose={onClose} size="md">
             <DialogTitle>Contact Customer</DialogTitle>
 
             <DialogBody>
-                <div className="space-y-4">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                            {customerName}
-                        </h3>
-                    </div>
+                <div className="space-y-3">
+                    <p className="font-display font-extrabold text-gray-900 text-base">
+                        {customerName}
+                    </p>
 
                     {email && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <EnvelopeIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-700">
+                        <a
+                            href={`mailto:${email}`}
+                            className="flex items-center gap-3 rounded-card border border-brand-100 bg-brand-50 p-3 hover:bg-brand-100 transition-colors group"
+                        >
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-button bg-brand-100 group-hover:bg-brand-200 transition-colors">
+                                <EnvelopeIcon className="size-4 text-brand-500" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-display font-extrabold text-gray-400 uppercase tracking-wide">
                                     Email
                                 </p>
-                                <p className="text-sm text-gray-600 truncate">
+                                <p className="text-sm font-display font-extrabold text-brand-600 truncate">
                                     {email}
                                 </p>
                             </div>
-                        </div>
+                        </a>
                     )}
 
                     {phone && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <PhoneIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-700">
+                        <a
+                            href={`tel:${phone}`}
+                            className="flex items-center gap-3 rounded-card border border-green-100 bg-green-50 p-3 hover:bg-green-100 transition-colors group"
+                        >
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-button bg-green-100 group-hover:bg-green-200 transition-colors">
+                                <PhoneIcon className="size-4 text-green-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-display font-extrabold text-gray-400 uppercase tracking-wide">
                                     Phone
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm font-display font-extrabold text-green-700">
                                     {phone}
                                 </p>
                             </div>
-                        </div>
+                        </a>
                     )}
 
                     {!email && !phone && (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                            No contact information available for this customer.
+                        <p className="py-6 text-center text-sm text-gray-400 font-display font-extrabold">
+                            No contact information available.
                         </p>
                     )}
                 </div>
             </DialogBody>
 
             <DialogActions>
-                <Button onClick={onClose} className="bg-gray-500 hover:bg-gray-600">
+                <button type="button" onClick={onClose} className="btn-outline">
                     Close
-                </Button>
+                </button>
                 {email && (
-                    <Button
-                        onClick={handleEmail}
-                        className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-2"
+                    <a
+                        href={`mailto:${email}`}
+                        className="btn-secondary inline-flex items-center gap-2"
                     >
-                        <EnvelopeIcon className="h-4 w-4" />
+                        <EnvelopeIcon className="size-4" />
                         Send Email
-                    </Button>
+                    </a>
                 )}
                 {phone && (
-                    <Button
-                        onClick={handleCall}
-                        className="bg-green-600 hover:bg-green-700 text-white inline-flex items-center gap-2"
+                    <a
+                        href={`tel:${phone}`}
+                        className="btn-primary inline-flex items-center gap-2"
                     >
-                        <PhoneIcon className="h-4 w-4" />
+                        <PhoneIcon className="size-4" />
                         Call
-                    </Button>
+                    </a>
                 )}
             </DialogActions>
         </Dialog>
