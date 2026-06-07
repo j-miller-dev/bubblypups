@@ -170,8 +170,8 @@ export default function WeekView({
     const formatWeekRange = (): string => {
         const start = weekDays[0];
         const end = weekDays[6];
-        const startMonth = start.toLocaleDateString("en-US", { month: "short" });
-        const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+        const startMonth = start.toLocaleDateString("en-AU", { month: "short" });
+        const endMonth = end.toLocaleDateString("en-AU", { month: "short" });
         const year = end.getFullYear();
 
         if (startMonth === endMonth) {
@@ -283,7 +283,7 @@ export default function WeekView({
                                     <span
                                         className={`mt-1 flex size-8 items-center justify-center font-semibold ${
                                             isSameDay(day, today)
-                                                ? "rounded-full bg-indigo-600 text-white"
+                                                ? "rounded-full bg-brand-500 text-white"
                                                 : "text-gray-900"
                                         }`}
                                     >

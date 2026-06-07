@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Appointment, BlockedTime, BusinessHours } from "@/types";
 import WeekView from "./Components/Calendar/WeekView";
 import DayView from "./Components/Calendar/DayView.tsx";
+import MonthView from "./Components/Calendar/MonthView";
 import AppointmentDetailModal from "@/Components/AppointmentDetailModal";
 import RescheduleModal from "@/Components/RescheduleModal";
 
@@ -81,43 +82,49 @@ export default function Calendar({
         <AdminLayout>
             <Head title="Calendar" />
 
-            <div className="border-b border-gray-200 pb-5 sm:flex sm:items-center sm:justify-between">
-                <h1 className="text-base font-semibold text-gray-900">
-                    Calendar
-                </h1>
-                <div className="mt-3 flex sm:mt-0 sm:ml-4">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                        My{" "}
+                        <span className="text-brand-500">Calendar</span>
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Manage appointments and your schedule.
+                    </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
                     <button
                         type="button"
-                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-xs ${
+                        className={`inline-flex items-center rounded-button px-3 py-2 text-sm font-display font-extrabold transition-colors ${
                             view === ViewEnum.WEEK
-                                ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                                : "bg-white text-gray-900 inset-ring inset-ring-gray-300 hover:bg-gray-50"
+                                ? "bg-brand-500 text-white hover:bg-brand-400"
+                                : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                         }`}
                         onClick={() => setView(ViewEnum.WEEK)}
                     >
-                        Week View
+                        Week
                     </button>
                     <button
                         type="button"
                         onClick={() => setView(ViewEnum.DAY)}
-                        className={`ml-3 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-xs ${
+                        className={`inline-flex items-center rounded-button px-3 py-2 text-sm font-display font-extrabold transition-colors ${
                             view === ViewEnum.DAY
-                                ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                                : "bg-white text-gray-900 inset-ring inset-ring-gray-300 hover:bg-gray-50"
+                                ? "bg-brand-500 text-white hover:bg-brand-400"
+                                : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                         }`}
                     >
-                        Day View
+                        Day
                     </button>
                     <button
                         type="button"
-                        className={`ml-3 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-xs ${
+                        className={`inline-flex items-center rounded-button px-3 py-2 text-sm font-display font-extrabold transition-colors ${
                             view === ViewEnum.MONTH
-                                ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                                : "bg-white text-gray-900 inset-ring inset-ring-gray-300 hover:bg-gray-50"
+                                ? "bg-brand-500 text-white hover:bg-brand-400"
+                                : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                         }`}
                         onClick={() => setView(ViewEnum.MONTH)}
                     >
-                        Month View
+                        Month
                     </button>
                 </div>
             </div>
@@ -143,9 +150,18 @@ export default function Calendar({
                     />
                 )}
                 {view === ViewEnum.MONTH && (
-                    <div className="flex h-96 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-                        <p className="text-gray-500">Month View - Coming Soon</p>
-                    </div>
+                    <MonthView
+                        appointments={appointments}
+                        businessHours={businessHours}
+                        blockedTimes={blockedTimes}
+                        currentDate={currentDate}
+                        onDateChange={setCurrentDate}
+                        onAppointmentClick={handleAppointmentClick}
+                        onSwitchToDayView={(date) => {
+                            setCurrentDate(date);
+                            setView(ViewEnum.DAY);
+                        }}
+                    />
                 )}
             </div>
 

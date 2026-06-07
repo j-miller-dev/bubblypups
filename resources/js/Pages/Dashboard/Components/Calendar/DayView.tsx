@@ -33,13 +33,13 @@ function isSameDay(date1: Date, date2: Date): boolean {
 
 // Get day name
 function getDayName(date: Date): string {
-    return date.toLocaleDateString("en-US", { weekday: "long" });
+    return date.toLocaleDateString("en-AU", { weekday: "long" });
 }
 
 // Format date for display
 function formatDisplayDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("en-AU", {
         month: "long",
         day: "numeric",
         year: "numeric",
