@@ -13,17 +13,17 @@ function Hero() {
     return (
         <section className="relative bg-white">
             <Bubbles />
-            <Container className="flex items-center justify-center py-24">
+            <Container className="flex items-center justify-center py-20 sm:py-28 lg:py-32">
                 <div className="text-center">
                     <div className="mx-auto max-w-2xl">
                         <img
                             src="/images/PNG%20FIles/BubblyPups_Logo(LBG).png"
                             alt="Bubbly Pups Logo"
-                            className="mx-auto w-5/6 max-w-[680px] h-auto animate-fade-in duration-600"
+                            className="mx-auto w-5/6 max-w-[680px] h-auto animate-fade-in"
                         />
                     </div>
 
-                    <div className="mt-12 flex flex-col items-center gap-6 sm:flex-row sm:justify-center animate-fade-in-up delay-300">
+                    <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center animate-fade-in-up [animation-delay:400ms] [animation-fill-mode:both]">
                         <Link
                             href="/booking/start"
                             className="btn-primary w-full sm:w-auto"
@@ -33,7 +33,7 @@ function Hero() {
                         </Link>
                         <a
                             href="tel:+1234567890"
-                            className="btn-primary w-full sm:w-auto"
+                            className="btn-secondary w-full sm:w-auto"
                         >
                             <PhoneIcon className="h-5 w-5" />
                             Call Me

@@ -1,170 +1,349 @@
-import { CheckCircleIcon, CalendarIcon } from "@heroicons/react/20/solid";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ClockIcon, CalendarIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
+import { Link } from "@inertiajs/react";
 
-const benefits = [
-    "All breeds, all sizes",
-    "Trims, cuts and dematting",
-    "Puppy pampers",
-    "Free bandana for each pup",
-    "10 years experience :)",
-    "Servicing Sunbury and wider region",
+type PricingTiers = {
+    small: number;
+    medium: number;
+    large: number;
+    extra_large: number;
+};
+
+type ServiceAccent = "brand" | "purple" | "blue";
+
+type Service = {
+    emoji: string;
+    name: string;
+    description: string;
+    duration_minutes: number;
+    pricing_tiers: PricingTiers;
+    accent: ServiceAccent;
+};
+
+const services: Service[] = [
+    {
+        emoji: "🐕‍🦺",
+        name: "Full Doggy Pamper",
+        description:
+            "Complete spa experience — bath, haircut, nail trimming, ear cleaning, and blow dry. Your pup will leave looking and smelling amazing.",
+        duration_minutes: 120,
+        pricing_tiers: { small: 55, medium: 65, large: 85, extra_large: 105 },
+        accent: "brand",
+    },
+    {
+        emoji: "✂️",
+        name: "Cut & Clipping",
+        description:
+            "Professional grooming and styling tailored to your dog's breed, with a tidy-up of paws, face, and body.",
+        duration_minutes: 60,
+        pricing_tiers: { small: 30, medium: 35, large: 45, extra_large: 55 },
+        accent: "purple",
+    },
+    {
+        emoji: "🛁",
+        name: "Deep Wash",
+        description:
+            "Premium shampoo with deep conditioning, thorough rinse, and professional blow dry for a clean, fresh coat.",
+        duration_minutes: 45,
+        pricing_tiers: { small: 25, medium: 28, large: 35, extra_large: 42 },
+        accent: "blue",
+    },
+    {
+        emoji: "🦷",
+        name: "Teeth & Nails",
+        description:
+            "Essential wellness care with nail trimming and dental cleaning. Keep your pup healthy from snout to paw.",
+        duration_minutes: 30,
+        pricing_tiers: { small: 20, medium: 22, large: 25, extra_large: 28 },
+        accent: "brand",
+    },
+    {
+        emoji: "💅",
+        name: "Nail Trim",
+        description:
+            "Quick and stress-free nail trimming by our experienced groomer. Perfect for pups who just need a little tidy-up.",
+        duration_minutes: 15,
+        pricing_tiers: { small: 12, medium: 15, large: 18, extra_large: 20 },
+        accent: "purple",
+    },
+    {
+        emoji: "🌪️",
+        name: "De-shedding Treatment",
+        description:
+            "Specialised treatment to significantly reduce shedding, with deshedding shampoo, conditioner, and thorough brushing.",
+        duration_minutes: 75,
+        pricing_tiers: { small: 35, medium: 40, large: 50, extra_large: 60 },
+        accent: "blue",
+    },
+];
+
+const accentStyles: Record<
+    ServiceAccent,
+    {
+        strip: string;
+        iconBg: string;
+        price: string;
+        durationBadge: string;
+        sizeCell: string;
+        sizeCellText: string;
+    }
+> = {
+    brand: {
+        strip: "bg-brand-400",
+        iconBg: "bg-brand-50",
+        price: "text-brand-500",
+        durationBadge: "bg-brand-50 text-brand-700 ring-brand-100",
+        sizeCell: "bg-brand-50",
+        sizeCellText: "text-brand-700",
+    },
+    purple: {
+        strip: "bg-purple-400",
+        iconBg: "bg-purple-50",
+        price: "text-purple-600",
+        durationBadge: "bg-purple-50 text-purple-700 ring-purple-100",
+        sizeCell: "bg-purple-50",
+        sizeCellText: "text-purple-700",
+    },
+    blue: {
+        strip: "bg-blue-400",
+        iconBg: "bg-blue-50",
+        price: "text-blue-500",
+        durationBadge: "bg-blue-50 text-blue-700 ring-blue-100",
+        sizeCell: "bg-blue-50",
+        sizeCellText: "text-blue-700",
+    },
+};
+
+const sizeTiers: { key: keyof PricingTiers; label: string }[] = [
+    { key: "small", label: "S" },
+    { key: "medium", label: "M" },
+    { key: "large", label: "L" },
+    { key: "extra_large", label: "XL" },
 ];
 
 const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-        },
+        transition: { staggerChildren: 0.1 },
     },
 };
 
-const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+const cardVariants = {
+    hidden: { opacity: 0, y: 28 },
     visible: {
         opacity: 1,
-        x: 0,
-        transition: {
-            duration: 0.5,
-            ease: "easeOut",
-        },
+        y: 0,
+        transition: { duration: 0.5, ease: "easeOut" as const },
     },
 };
 
-// Create paw trail positions (dog walking down on right side)
-// Animation order: 1st, 3rd, 2nd, 4th (Front left, Back left, Front right, Back right)
-// Rotated 180° to face downward, ending at 50% height
-const pawPositions = [
-    // First step
-    { left: "70%", top: "5%", rotate: 165, delay: 0 },      // 1st - Front left
-    { left: "68%", top: "10%", rotate: 170, delay: 0.15 },  // 3rd - Back left
-    { left: "78%", top: "7%", rotate: 195, delay: 0.3 },    // 2nd - Front right
-    { left: "76%", top: "12%", rotate: 190, delay: 0.45 },  // 4th - Back right
+const headerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.6, ease: "easeOut" as const },
+    },
+};
 
-    // Second step
-    { left: "72%", top: "15%", rotate: 168, delay: 0.6 },   // 1st - Front left
-    { left: "70%", top: "20%", rotate: 172, delay: 0.75 },  // 3rd - Back left
-    { left: "80%", top: "17%", rotate: 192, delay: 0.9 },   // 2nd - Front right
-    { left: "78%", top: "22%", rotate: 188, delay: 1.05 },  // 4th - Back right
+function ServiceCard({ service }: { service: Service }) {
+    const [showPricing, setShowPricing] = useState(false);
+    const styles = accentStyles[service.accent];
 
-    // Third step
-    { left: "71%", top: "25%", rotate: 170, delay: 1.2 },   // 1st - Front left
-    { left: "69%", top: "30%", rotate: 165, delay: 1.35 },  // 3rd - Back left
-    { left: "79%", top: "27%", rotate: 190, delay: 1.5 },   // 2nd - Front right
-    { left: "77%", top: "32%", rotate: 195, delay: 1.65 },  // 4th - Back right
+    return (
+        <motion.div
+            variants={cardVariants}
+            className="flex flex-col bg-white rounded-card border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
+        >
+            {/* Accent strip */}
+            <div className={`h-1 w-full ${styles.strip}`} />
 
-    // Fourth step
-    { left: "73%", top: "35%", rotate: 172, delay: 1.8 },   // 1st - Front left
-    { left: "71%", top: "40%", rotate: 168, delay: 1.95 },  // 3rd - Back left
-    { left: "81%", top: "37%", rotate: 188, delay: 2.1 },   // 2nd - Front right
-    { left: "79%", top: "42%", rotate: 192, delay: 2.25 },  // 4th - Back right
+            <div className="flex flex-col flex-1 p-6">
+                {/* Emoji + Duration row */}
+                <div className="flex items-start justify-between mb-5">
+                    <div
+                        className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center text-2xl`}
+                    >
+                        {service.emoji}
+                    </div>
+                    <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ring-1 ${styles.durationBadge}`}
+                    >
+                        <ClockIcon className="w-3.5 h-3.5" />
+                        {service.duration_minutes} min
+                    </span>
+                </div>
 
-    // Fifth step
-    { left: "72%", top: "45%", rotate: 165, delay: 2.4 },   // 1st - Front left
-    { left: "70%", top: "50%", rotate: 170, delay: 2.55 },  // 3rd - Back left
-    { left: "80%", top: "47%", rotate: 195, delay: 2.7 },   // 2nd - Front right
-    { left: "78%", top: "50%", rotate: 190, delay: 2.85 },  // 4th - Back right
+                {/* Name */}
+                <div className="font-display font-extrabold text-lg text-gray-950 mb-2">
+                    {service.name}
+                </div>
+
+                {/* Description */}
+                <p className="text-sm text-gray-500 leading-relaxed flex-1 mb-5">
+                    {service.description}
+                </p>
+
+                {/* Pricing area */}
+                <div className="border-t border-gray-100 pt-4">
+                    <div className="flex items-end justify-between mb-3">
+                        <div>
+                            <p className="text-[11px] text-gray-400 uppercase tracking-widest font-medium mb-0.5">
+                                From
+                            </p>
+                            <p
+                                className={`text-2xl font-extrabold font-display leading-none ${styles.price}`}
+                            >
+                                ${service.pricing_tiers.small}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowPricing(!showPricing)}
+                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors py-1"
+                        >
+                            By size
+                            <ChevronDownIcon
+                                className={`w-3.5 h-3.5 transition-transform duration-200 ${showPricing ? "rotate-180" : ""}`}
+                            />
+                        </button>
+                    </div>
+
+                    <AnimatePresence initial={false}>
+                        {showPricing && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.22, ease: "easeInOut" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="grid grid-cols-4 gap-1 mb-4">
+                                    {sizeTiers.map(({ key, label }) => (
+                                        <div
+                                            key={key}
+                                            className={`${styles.sizeCell} rounded-lg p-2 text-center`}
+                                        >
+                                            <p className="text-[10px] font-medium text-gray-400 mb-0.5">
+                                                {label}
+                                            </p>
+                                            <p
+                                                className={`text-sm font-bold ${styles.sizeCellText}`}
+                                            >
+                                                ${service.pricing_tiers[key]}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <Link
+                        href="/booking/start"
+                        className="btn-secondary w-full text-sm"
+                    >
+                        Book Now
+                    </Link>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+const highlights = [
+    { emoji: "🐾", label: "All breeds & sizes" },
+    { emoji: "🎀", label: "Free bandana included" },
+    { emoji: "⭐", label: "10 years experience" },
+    { emoji: "📍", label: "Sunbury & surrounds" },
 ];
 
 export function Services() {
     return (
-        <div className="overflow-hidden bg-white py-24 sm:py-32">
-            <div className="relative isolate">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                        className="relative mx-auto flex max-w-2xl flex-col gap-16 bg-purple-50 px-6 py-16 shadow-lg ring-1 ring-purple-200 sm:rounded-3xl sm:p-8 lg:mx-0 lg:max-w-none lg:flex-col lg:items-center lg:py-20 xl:gap-y-16 xl:px-20 overflow-hidden"
-                    >
-                        {/* Animated Paw Trail Background - Dog Walking Down */}
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            {pawPositions.map((position, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    whileInView={{ opacity: 0.5, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{
-                                        delay: position.delay,
-                                        duration: 0.4,
-                                        ease: "easeOut"
-                                    }}
-                                    style={{
-                                        position: "absolute",
-                                        left: position.left,
-                                        top: position.top,
-                                        transform: `rotate(${position.rotate}deg)`,
-                                    }}
-                                    className="w-10 h-10 sm:w-14 sm:h-14"
-                                >
-                                    <img
-                                        src="/images/svg/dogpaw.svg"
-                                        alt=""
-                                        className="w-full h-full"
-                                    />
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <div className="w-full flex-auto text-center max-w-3xl mx-auto relative z-10">
-                            <h2 className="text-4xl font-semibold tracking-tight text-pretty text-gray-950 sm:text-5xl">
-                                Premium Grooming Services
-                            </h2>
-                            <p className="mt-6 text-lg/8 text-pretty text-gray-600">
-                                From fluffy Pomeranians to gentle giants, every pup
-                                deserves to look and feel their best. We provide
-                                professional grooming with a personal touch.
-                            </p>
-                            <motion.ul
-                                role="list"
-                                variants={containerVariants}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true, margin: "-50px" }}
-                                className="mt-10 grid grid-cols-1 gap-x-8 gap-y-4 text-base/7 text-gray-950 sm:grid-cols-2 sm:text-left max-w-2xl mx-auto relative z-10"
-                            >
-                                {benefits.map((benefit) => (
-                                    <motion.li
-                                        key={benefit}
-                                        variants={itemVariants}
-                                        className="flex gap-x-3 items-center justify-center sm:justify-start"
-                                    >
-                                        <CheckCircleIcon
-                                            aria-hidden="true"
-                                            className="h-7 w-7 flex-none text-purple-400"
-                                        />
-                                        <span>{benefit}</span>
-                                    </motion.li>
-                                ))}
-                            </motion.ul>
-                            <div className="mt-10 flex justify-center relative z-10">
-                                <a
-                                    href="/booking/start"
-                                    className="btn-primary"
-                                >
-                                    <CalendarIcon className="h-5 w-5" />
-                                    Book an Appointment
-                                </a>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl"
-                >
-                    <div
-                        style={{
-                            clipPath:
-                                "polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)",
-                        }}
-                        className="aspect-1318/752 w-329.5 flex-none bg-gradient-to-r from-purple-200 to-brand-200 opacity-30"
-                    />
-                </div>
+        <section className="relative overflow-hidden bg-gradient-to-b from-white to-brand-50 py-24 sm:py-32">
+            {/* Decorative blobs */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
+            >
+                <div className="absolute -top-32 -right-24 w-[560px] h-[560px] bg-brand-100 rounded-full blur-3xl opacity-40" />
+                <div className="absolute bottom-0 -left-24 w-[480px] h-[480px] bg-purple-100 rounded-full blur-3xl opacity-35" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] bg-blue-50 rounded-full blur-3xl opacity-30" />
             </div>
-        </div>
+
+            <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+                {/* Section header */}
+                <motion.div
+                    variants={headerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-80px" }}
+                    className="mx-auto max-w-2xl text-center mb-16"
+                >
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-200 text-brand-600 text-sm font-medium shadow-sm mb-6">
+                        🐾 Premium Grooming Services
+                    </span>
+
+                    <h2 className="text-gray-950">
+                        Every pup deserves{" "}
+                        <span className="text-brand-500">to look their best</span>
+                    </h2>
+
+                    <p className="mt-5 text-lg text-gray-500 leading-relaxed">
+                        From fluffy Pomeranians to gentle giants — professional grooming
+                        with a personal touch, right here in Sunbury.
+                    </p>
+                </motion.div>
+
+                {/* Service cards */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-60px" }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                    {services.map((service) => (
+                        <ServiceCard key={service.name} service={service} />
+                    ))}
+                </motion.div>
+
+                {/* Highlights strip */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4"
+                >
+                    {highlights.map((item) => (
+                        <div
+                            key={item.label}
+                            className="flex flex-col items-center gap-2 p-4 rounded-card bg-white/80 backdrop-blur-sm border border-white shadow-sm text-center"
+                        >
+                            <span className="text-2xl">{item.emoji}</span>
+                            <span className="text-sm font-medium text-gray-700">
+                                {item.label}
+                            </span>
+                        </div>
+                    ))}
+                </motion.div>
+
+                {/* CTA */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.35 }}
+                    className="mt-12 flex justify-center"
+                >
+                    <Link href="/booking/start" className="btn-primary">
+                        <CalendarIcon className="h-5 w-5" />
+                        Book an Appointment
+                    </Link>
+                </motion.div>
+            </div>
+        </section>
     );
 }
