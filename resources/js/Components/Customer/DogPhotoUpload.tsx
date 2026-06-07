@@ -79,7 +79,7 @@ export default function DogPhotoUpload({
 
             {/* Photo or placeholder */}
             <div
-                className={`${sizeClasses[size]} rounded-full overflow-hidden bg-primary-100 flex items-center justify-center`}
+                className={`${sizeClasses[size]} rounded-full overflow-hidden bg-brand-100 flex items-center justify-center`}
             >
                 {displayUrl ? (
                     <img
@@ -89,7 +89,7 @@ export default function DogPhotoUpload({
                     />
                 ) : (
                     <HeartIcon
-                        className={`${iconSizeClasses[size]} text-primary-600`}
+                        className={`${iconSizeClasses[size]} text-brand-400`}
                         aria-hidden
                     />
                 )}

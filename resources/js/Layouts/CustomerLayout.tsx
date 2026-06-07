@@ -16,12 +16,8 @@ import {
     UserIcon,
     HeartIcon,
 } from "@heroicons/react/24/outline";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { ChevronDownIcon, CalendarDaysIcon } from "@heroicons/react/20/solid";
 import { Link, usePage, router } from "@inertiajs/react";
-
-function classNames(...classes: (string | boolean | undefined)[]) {
-    return classes.filter(Boolean).join(" ");
-}
 
 interface CustomerLayoutProps {
     children: React.ReactNode;
@@ -32,6 +28,13 @@ interface CustomerLayoutProps {
     };
 }
 
+const navigation = [
+    { name: "Dashboard", href: "/my/dashboard", icon: HomeIcon },
+    { name: "Appointments", href: "/my/appointments", icon: CalendarIcon },
+    { name: "My Dogs", href: "/my/dogs", icon: HeartIcon },
+    { name: "Profile", href: "/my/profile", icon: UserIcon },
+];
+
 export default function CustomerLayout({
     children,
     customer,
@@ -39,22 +42,20 @@ export default function CustomerLayout({
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { url } = usePage();
 
-    const navigation = [
-        { name: "Dashboard", href: "/my/dashboard", icon: HomeIcon },
-        { name: "Appointments", href: "/my/appointments", icon: CalendarIcon },
-        { name: "My Dogs", href: "/my/dogs", icon: HeartIcon },
-        { name: "Profile", href: "/my/profile", icon: UserIcon },
-    ];
-
     const isCurrent = (href: string) => url.startsWith(href);
 
     const handleLogout = () => {
         router.post("/customer/logout");
     };
 
+    const initials = customer.name.charAt(0).toUpperCase();
+
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Top Navigation Bar */}
+            {/* Brand accent bar */}
+            <div className="h-1 bg-gradient-to-r from-brand-400 via-purple-400 to-blue-400" />
+
+            {/* Top Navigation */}
             <nav className="bg-white shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -70,71 +71,60 @@ export default function CustomerLayout({
                         </div>
 
                         {/* Desktop Navigation */}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
+                        <div className="hidden sm:flex sm:items-center sm:gap-1">
                             {navigation.map((item) => (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className={classNames(
+                                    className={[
+                                        "inline-flex items-center gap-1.5 border-b-2 px-3 pt-1 pb-0.5 text-sm font-medium font-display transition-colors",
                                         isCurrent(item.href)
-                                            ? "border-primary-500 text-gray-900"
-                                            : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                                        "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition-colors",
-                                    )}
+                                            ? "border-brand-400 text-brand-500"
+                                            : "border-transparent text-gray-500 hover:border-gray-200 hover:text-gray-700",
+                                    ].join(" ")}
                                 >
                                     {item.name}
                                 </Link>
                             ))}
                         </div>
 
-                        {/* User Menu */}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                            <Menu as="div" className="relative ml-3">
-                                <MenuButton className="flex items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                                    <span className="sr-only">
-                                        Open user menu
-                                    </span>
-                                    <div className="flex items-center gap-x-3">
-                                        <div className="flex size-8 items-center justify-center rounded-full bg-primary-100 text-primary-600">
-                                            <span className="text-sm font-semibold">
-                                                {customer.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
-                                            </span>
-                                        </div>
-                                        <span className="text-sm font-medium text-gray-700">
-                                            {customer.name}
-                                        </span>
-                                        <ChevronDownIcon
-                                            aria-hidden="true"
-                                            className="size-5 text-gray-400"
-                                        />
+                        {/* Desktop right side: Book + User menu */}
+                        <div className="hidden sm:flex sm:items-center sm:gap-4">
+                            <Link
+                                href="/booking/create"
+                                className="btn-primary !py-2 !text-sm"
+                            >
+                                <CalendarDaysIcon className="h-4 w-4" />
+                                Book Now
+                            </Link>
+
+                            <Menu as="div" className="relative">
+                                <MenuButton className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2">
+                                    <div className="flex size-8 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-display font-extrabold">
+                                        {initials}
                                     </div>
+                                    <span className="font-medium text-gray-700">
+                                        {customer.name.split(" ")[0]}
+                                    </span>
+                                    <ChevronDownIcon className="size-4 text-gray-400" />
                                 </MenuButton>
+
                                 <MenuItems
                                     transition
-                                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-card bg-white py-1 shadow-lg ring-1 ring-black/5 transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                                 >
                                     <MenuItem>
                                         <Link
                                             href="/my/profile"
-                                            className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
+                                            className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-50"
                                         >
                                             Your Profile
                                         </Link>
                                     </MenuItem>
                                     <MenuItem>
-                                        <Link
-                                            href="/booking/create"
-                                            className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
-                                        >
-                                            Book Appointment
-                                        </Link>
-                                    </MenuItem>
-                                    <MenuItem>
                                         <button
                                             onClick={handleLogout}
-                                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 data-focus:bg-gray-100"
+                                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 data-focus:bg-gray-50"
                                         >
                                             Sign out
                                         </button>
@@ -148,7 +138,7 @@ export default function CustomerLayout({
                             <button
                                 type="button"
                                 onClick={() => setMobileMenuOpen(true)}
-                                className="-mx-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                                className="-mx-2 inline-flex items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
                             >
                                 <span className="sr-only">Open main menu</span>
                                 <Bars3Icon className="size-6" aria-hidden />
@@ -184,45 +174,44 @@ export default function CustomerLayout({
                             </button>
                         </div>
 
-                        {/* Mobile User Info */}
-                        <div className="border-t border-gray-200 px-4 py-6">
-                            <div className="flex items-center">
-                                <div className="flex size-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
-                                    <span className="text-base font-semibold">
-                                        {customer.name.charAt(0).toUpperCase()}
-                                    </span>
+                        {/* Mobile user info */}
+                        <div className="border-t border-gray-100 px-4 py-5">
+                            <div className="flex items-center gap-3">
+                                <div className="flex size-10 items-center justify-center rounded-full bg-brand-100 text-brand-600 font-display font-extrabold">
+                                    {initials}
                                 </div>
-                                <div className="ml-3">
-                                    <div className="text-base font-medium text-gray-800">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">
                                         {customer.name}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-500">
+                                    </p>
+                                    <p className="text-xs text-gray-500">
                                         {customer.email}
-                                    </div>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Mobile Navigation Links */}
+                        {/* Mobile nav links */}
                         <div className="space-y-1 px-2 pb-3">
                             {navigation.map((item) => (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className={classNames(
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={[
+                                        "flex items-center gap-3 rounded-card px-3 py-2.5 text-sm font-medium font-display transition-colors",
                                         isCurrent(item.href)
-                                            ? "bg-primary-50 text-primary-700"
+                                            ? "bg-brand-50 text-brand-600"
                                             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
-                                        "flex items-center gap-x-3 rounded-md px-3 py-2 text-base font-medium",
-                                    )}
+                                    ].join(" ")}
                                 >
                                     <item.icon
-                                        className={classNames(
+                                        className={[
+                                            "size-5",
                                             isCurrent(item.href)
-                                                ? "text-primary-700"
+                                                ? "text-brand-500"
                                                 : "text-gray-400",
-                                            "size-6",
-                                        )}
+                                        ].join(" ")}
                                         aria-hidden
                                     />
                                     {item.name}
@@ -230,17 +219,19 @@ export default function CustomerLayout({
                             ))}
                         </div>
 
-                        {/* Mobile Actions */}
-                        <div className="border-t border-gray-200 px-4 py-6">
+                        {/* Mobile actions */}
+                        <div className="border-t border-gray-100 px-4 py-5 space-y-3">
                             <Link
                                 href="/booking/create"
-                                className="block rounded-md bg-primary-600 px-4 py-2 text-center text-base font-medium text-white hover:bg-primary-700"
+                                className="btn-primary w-full justify-center"
+                                onClick={() => setMobileMenuOpen(false)}
                             >
+                                <CalendarDaysIcon className="h-4 w-4" />
                                 Book Appointment
                             </Link>
                             <button
                                 onClick={handleLogout}
-                                className="mt-3 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-center text-base font-medium text-gray-700 hover:bg-gray-50"
+                                className="btn-outline w-full justify-center"
                             >
                                 Sign out
                             </button>
@@ -249,7 +240,7 @@ export default function CustomerLayout({
                 </div>
             </Dialog>
 
-            {/* Main Content */}
+            {/* Page content */}
             <main>
                 <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                     {children}

@@ -1,4 +1,3 @@
-import React from "react";
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import StatCard from "@/Components/Customer/StatCard";
 import AppointmentCard from "@/Components/Customer/AppointmentCard";
@@ -8,6 +7,7 @@ import {
     HeartIcon,
     ClockIcon,
 } from "@heroicons/react/24/outline";
+import { CalendarDaysIcon } from "@heroicons/react/20/solid";
 
 interface DashboardProps {
     customer: {
@@ -20,15 +20,8 @@ interface DashboardProps {
         appointment_date: string;
         appointment_time: string;
         status: string;
-        dog: {
-            id: number;
-            name: string;
-        };
-        service: {
-            id: number;
-            name: string;
-            emoji: string;
-        };
+        dog: { id: number; name: string };
+        service: { id: number; name: string; emoji: string };
     }>;
     stats: {
         upcomingCount: number;
@@ -45,64 +38,63 @@ export default function Dashboard({
     upcomingAppointments,
     stats,
 }: DashboardProps) {
-    // Format next appointment date
     const nextAppointmentText = stats.nextAppointment
         ? new Date(stats.nextAppointment.appointment_date).toLocaleDateString(
-              "en-US",
-              {
-                  month: "short",
-                  day: "numeric",
-              },
+              "en-AU",
+              { month: "short", day: "numeric" },
           )
-        : "None";
+        : "None booked";
+
+    const firstName = customer.name.split(" ")[0];
 
     return (
         <CustomerLayout customer={customer}>
-            {/* Welcome Header */}
+            {/* Welcome header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">
-                    Welcome back, {customer.name.split(" ")[0]}! 🐶
-                </h1>
-                <p className="mt-2 text-gray-600">
-                    Here's what's happening with your appointments
+                <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                    Welcome back,{" "}
+                    <span className="text-brand-500">{firstName}</span> 🐾
+                </h2>
+                <p className="mt-1 text-gray-500">
+                    Here's what's on for your pups.
                 </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
                 <StatCard
                     icon={CalendarIcon}
                     label="Upcoming Appointments"
                     value={stats.upcomingCount}
-                    iconColor="text-blue-600"
-                    iconBgColor="bg-blue-100"
+                    iconColor="text-brand-500"
+                    iconBgColor="bg-brand-100"
                 />
                 <StatCard
                     icon={HeartIcon}
                     label="Registered Dogs"
                     value={stats.totalDogs}
-                    iconColor="text-pink-600"
-                    iconBgColor="bg-pink-100"
+                    iconColor="text-purple-500"
+                    iconBgColor="bg-purple-100"
                 />
                 <StatCard
                     icon={ClockIcon}
                     label="Next Appointment"
                     value={nextAppointmentText}
-                    iconColor="text-green-600"
-                    iconBgColor="bg-green-100"
+                    iconColor="text-blue-500"
+                    iconBgColor="bg-blue-100"
                 />
             </div>
 
-            {/* Upcoming Appointments Section */}
+            {/* Upcoming appointments */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <p className="font-display font-extrabold text-gray-900">
                         Upcoming Appointments
-                    </h2>
+                    </p>
                     {upcomingAppointments.length > 0 && (
                         <Link
                             href="/my/appointments"
-                            className="text-sm font-medium text-primary-600 hover:text-primary-500"
+                            className="text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors"
                         >
                             View all
                         </Link>
@@ -110,7 +102,7 @@ export default function Dashboard({
                 </div>
 
                 {upcomingAppointments.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {upcomingAppointments.map((appointment) => (
                             <AppointmentCard
                                 key={appointment.id}
@@ -120,44 +112,47 @@ export default function Dashboard({
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
+                    <div className="rounded-card border-2 border-dashed border-gray-200 p-12 text-center">
                         <CalendarIcon
-                            className="mx-auto size-12 text-gray-400"
+                            className="mx-auto size-10 text-gray-300"
                             aria-hidden
                         />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                        <p className="mt-3 font-display font-extrabold text-gray-900 text-sm">
                             No upcoming appointments
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Get started by booking your first grooming
-                            appointment.
                         </p>
-                        <div className="mt-6">
+                        <p className="mt-1 text-sm text-gray-500">
+                            Book a grooming session for your pup today.
+                        </p>
+                        <div className="mt-5">
                             <Link
                                 href="/booking/create"
-                                className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500"
+                                className="btn-primary !text-sm !px-4 !py-2"
                             >
-                                Book New Appointment
+                                <CalendarDaysIcon className="h-4 w-4" />
+                                Book Appointment
                             </Link>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick action CTA */}
             {upcomingAppointments.length > 0 && (
-                <div className="rounded-lg bg-primary-50 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                        Ready for another grooming session?
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600">
-                        Book a new appointment for your furry friend
-                    </p>
+                <div className="rounded-card border border-brand-100 bg-gradient-to-r from-brand-50 to-purple-50 px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <p className="font-display font-extrabold text-gray-900">
+                            Ready for another session?
+                        </p>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                            Book your pup's next grooming appointment.
+                        </p>
+                    </div>
                     <Link
                         href="/booking/create"
-                        className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500"
+                        className="btn-primary shrink-0 !text-sm"
                     >
-                        Book New Appointment
+                        <CalendarDaysIcon className="h-4 w-4" />
+                        Book Now
                     </Link>
                 </div>
             )}

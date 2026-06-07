@@ -1,12 +1,11 @@
-import React from "react";
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import { Link, router } from "@inertiajs/react";
 import {
     CalendarIcon,
     ClockIcon,
-    MapPinIcon,
     PhoneIcon,
-} from "@heroicons/react/24/outline";
+    ChevronLeftIcon,
+} from "@heroicons/react/20/solid";
 
 interface AppointmentDetailProps {
     customer: {
@@ -38,56 +37,46 @@ interface AppointmentDetailProps {
     };
 }
 
-function getStatusBadge(status: string) {
-    const badges = {
-        pending: "bg-yellow-100 text-yellow-800",
-        confirmed: "bg-green-100 text-green-800",
-        waiting_on_client: "bg-blue-100 text-blue-800",
-        cancelled: "bg-red-100 text-red-800",
-        completed: "bg-gray-100 text-gray-800",
-    };
-
-    const labels = {
-        pending: "Pending",
-        confirmed: "Confirmed",
-        waiting_on_client: "Awaiting Your Confirmation",
-        cancelled: "Cancelled",
-        completed: "Completed",
-    };
-
-    return {
-        className: badges[status as keyof typeof badges] || badges.pending,
-        label: labels[status as keyof typeof labels] || status,
-    };
-}
+const statusStyles: Record<string, { badge: string; label: string }> = {
+    pending: { badge: "bg-yellow-100 text-yellow-700", label: "Pending" },
+    confirmed: { badge: "bg-green-100 text-green-700", label: "Confirmed" },
+    waiting_on_client: {
+        badge: "bg-blue-100 text-blue-700",
+        label: "Awaiting Your Confirmation",
+    },
+    cancelled: { badge: "bg-red-100 text-red-700", label: "Cancelled" },
+    completed: { badge: "bg-gray-100 text-gray-600", label: "Completed" },
+};
 
 export default function AppointmentDetail({
     customer,
     appointment,
 }: AppointmentDetailProps) {
-    const statusBadge = getStatusBadge(appointment.status);
+    const status =
+        statusStyles[appointment.status] ?? statusStyles.pending;
+
     const isPast =
         new Date(appointment.appointment_date) <
         new Date(new Date().toDateString());
+
     const canCancel =
         !isPast &&
         appointment.status !== "cancelled" &&
         appointment.status !== "completed";
 
-    // Format date
-    const appointmentDate = new Date(appointment.appointment_date);
-    const formattedDate = appointmentDate.toLocaleDateString("en-US", {
+    const formattedDate = new Date(
+        appointment.appointment_date,
+    ).toLocaleDateString("en-AU", {
         weekday: "long",
-        year: "numeric",
-        month: "long",
         day: "numeric",
+        month: "long",
+        year: "numeric",
     });
 
-    // Format time
     const [hours, minutes] = appointment.appointment_time.split(":");
-    const time = new Date();
-    time.setHours(parseInt(hours), parseInt(minutes));
-    const formattedTime = time.toLocaleTimeString("en-US", {
+    const t = new Date();
+    t.setHours(parseInt(hours), parseInt(minutes));
+    const formattedTime = t.toLocaleTimeString("en-AU", {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
@@ -106,44 +95,42 @@ export default function AppointmentDetail({
     return (
         <CustomerLayout customer={customer}>
             {/* Breadcrumb */}
-            <nav className="mb-6 flex" aria-label="Breadcrumb">
-                <ol className="flex items-center space-x-2">
-                    <li>
-                        <Link
-                            href="/my/appointments"
-                            className="text-sm text-gray-500 hover:text-gray-700"
-                        >
-                            Appointments
-                        </Link>
-                    </li>
-                    <li className="text-sm text-gray-500">/</li>
-                    <li className="text-sm font-medium text-gray-900">
-                        Appointment Details
-                    </li>
-                </ol>
+            <nav className="mb-6 flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+                <Link
+                    href="/my/appointments"
+                    className="flex items-center gap-1 text-gray-400 hover:text-brand-500 transition-colors font-display font-extrabold"
+                >
+                    <ChevronLeftIcon className="size-4" />
+                    Appointments
+                </Link>
+                <span className="text-gray-300">/</span>
+                <span className="text-gray-600 font-display font-extrabold">
+                    Details
+                </span>
             </nav>
 
             {/* Page Header */}
-            <div className="mb-8 flex items-start justify-between">
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-x-3">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Appointment Details
-                        </h1>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                            Appointment{" "}
+                            <span className="text-brand-500">Details</span>
+                        </h2>
                         <span
-                            className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${statusBadge.className}`}
+                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${status.badge}`}
                         >
-                            {statusBadge.label}
+                            {status.label}
                         </span>
                     </div>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-1 text-sm text-gray-400 font-display font-extrabold">
                         Booking #{appointment.id}
                     </p>
                 </div>
                 {canCancel && (
                     <button
                         onClick={handleCancel}
-                        className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                        className="shrink-0 rounded-button px-4 py-2 text-sm font-medium font-display text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
                     >
                         Cancel Appointment
                     </button>
@@ -154,73 +141,55 @@ export default function AppointmentDetail({
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Service Information */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow">
-                        <div className="px-6 py-5">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                Service Details
-                            </h2>
-                            <div className="flex items-start gap-x-4">
-                                <span className="text-4xl">
-                                    {appointment.service.emoji}
-                                </span>
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">
-                                        {appointment.service.name}
-                                    </h3>
-                                    <p className="mt-2 text-sm text-gray-600">
-                                        {appointment.service.description}
-                                    </p>
-                                    <div className="mt-4 flex items-center gap-x-6">
-                                        <div>
-                                            <span className="text-sm text-gray-500">
-                                                Duration
-                                            </span>
-                                            <p className="text-lg font-semibold text-gray-900">
-                                                {appointment.duration} minutes
-                                            </p>
-                                        </div>
-                                    </div>
+                    <div className="card p-6">
+                        <p className="font-display font-extrabold text-gray-900 mb-5">
+                            Service Details
+                        </p>
+                        <div className="flex items-start gap-4">
+                            <span className="text-4xl shrink-0">
+                                {appointment.service.emoji}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="!text-lg text-gray-900">
+                                    {appointment.service.name}
+                                </h3>
+                                <p className="mt-1.5 text-sm text-gray-500">
+                                    {appointment.service.description}
+                                </p>
+                                <div className="mt-4 flex items-center gap-1.5 text-sm text-gray-500">
+                                    <ClockIcon className="size-4 text-brand-400 shrink-0" />
+                                    {appointment.duration} minutes
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Date & Time */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow">
-                        <div className="px-6 py-5">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                Date & Time
-                            </h2>
-                            <div className="space-y-3">
-                                <div className="flex items-center text-gray-700">
-                                    <CalendarIcon
-                                        className="mr-3 size-6 text-gray-400"
-                                        aria-hidden
-                                    />
-                                    <span>{formattedDate}</span>
-                                </div>
-                                <div className="flex items-center text-gray-700">
-                                    <ClockIcon
-                                        className="mr-3 size-6 text-gray-400"
-                                        aria-hidden
-                                    />
-                                    <span>{formattedTime}</span>
-                                </div>
+                    <div className="card p-6">
+                        <p className="font-display font-extrabold text-gray-900 mb-5">
+                            Date &amp; Time
+                        </p>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                                <CalendarIcon className="size-4 text-brand-400 shrink-0" />
+                                {formattedDate}
+                            </div>
+                            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                                <ClockIcon className="size-4 text-brand-400 shrink-0" />
+                                {formattedTime}
                             </div>
                         </div>
                     </div>
 
                     {/* Notes */}
                     {appointment.notes && (
-                        <div className="overflow-hidden rounded-lg bg-white shadow">
-                            <div className="px-6 py-5">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                                    Special Notes
-                                </h2>
-                                <p className="text-sm text-gray-600">
-                                    {appointment.notes}
-                                </p>
-                            </div>
+                        <div className="card p-6">
+                            <p className="font-display font-extrabold text-gray-900 mb-3">
+                                Special Notes
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                {appointment.notes}
+                            </p>
                         </div>
                     )}
                 </div>
@@ -228,65 +197,57 @@ export default function AppointmentDetail({
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Dog Information */}
-                    <div className="overflow-hidden rounded-lg bg-white shadow">
-                        <div className="px-6 py-5">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                Dog Information
-                            </h2>
-                            <div className="flex items-center gap-x-4">
-                                {appointment.dog.photo_url ? (
-                                    <img
-                                        src={appointment.dog.photo_url}
-                                        alt={appointment.dog.name}
-                                        className="size-16 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex size-16 items-center justify-center rounded-full bg-primary-100">
-                                        <span className="text-2xl">🐶</span>
-                                    </div>
-                                )}
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">
-                                        {appointment.dog.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        {appointment.dog.breed}
-                                    </p>
-                                    <p className="text-sm text-gray-500 capitalize">
-                                        {appointment.dog.size} size
-                                    </p>
+                    <div className="card p-6">
+                        <p className="font-display font-extrabold text-gray-900 mb-5">
+                            Dog
+                        </p>
+                        <div className="flex items-center gap-3">
+                            {appointment.dog.photo_url ? (
+                                <img
+                                    src={appointment.dog.photo_url}
+                                    alt={appointment.dog.name}
+                                    className="size-14 rounded-full object-cover shrink-0"
+                                />
+                            ) : (
+                                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-100 text-2xl">
+                                    🐶
                                 </div>
+                            )}
+                            <div className="min-w-0">
+                                <p className="font-display font-extrabold text-gray-900 truncate">
+                                    {appointment.dog.name}
+                                </p>
+                                <p className="text-sm text-gray-500 truncate">
+                                    {appointment.dog.breed}
+                                </p>
+                                <p className="text-xs text-gray-400 capitalize">
+                                    {appointment.dog.size}
+                                </p>
                             </div>
-                            <Link
-                                href={`/my/dogs/${appointment.dog.id}`}
-                                className="mt-4 block text-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                            >
-                                View Dog Profile
-                            </Link>
                         </div>
+                        <Link
+                            href={`/my/dogs/${appointment.dog.id}`}
+                            className="btn-outline mt-4 w-full justify-center !text-sm !px-3 !py-2"
+                        >
+                            View Dog Profile
+                        </Link>
                     </div>
 
-                    {/* Contact Information */}
-                    <div className="overflow-hidden rounded-lg bg-primary-50 shadow">
-                        <div className="px-6 py-5">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                Need to Reschedule?
-                            </h2>
-                            <p className="text-sm text-gray-600 mb-4">
-                                Please contact us to reschedule your
-                                appointment.
-                            </p>
-                            <a
-                                href="tel:+1234567890"
-                                className="flex items-center text-sm text-primary-700 hover:text-primary-600"
-                            >
-                                <PhoneIcon
-                                    className="mr-2 size-5"
-                                    aria-hidden
-                                />
-                                Call us
-                            </a>
-                        </div>
+                    {/* Reschedule */}
+                    <div className="rounded-card border border-brand-100 bg-brand-50 px-5 py-4">
+                        <p className="font-display font-extrabold text-gray-900 text-sm">
+                            Need to Reschedule?
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Give us a call and we'll sort it out for you.
+                        </p>
+                        <a
+                            href="tel:+61400000000"
+                            className="mt-3 flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-display font-extrabold transition-colors"
+                        >
+                            <PhoneIcon className="size-4 shrink-0" />
+                            Call us
+                        </a>
                     </div>
                 </div>
             </div>

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import AppointmentCard from "@/Components/Customer/AppointmentCard";
 import DogPhotoUpload from "@/Components/Customer/DogPhotoUpload";
 import BreedSelector from "@/Components/ui/BreedSelector";
 import { Link, useForm } from "@inertiajs/react";
-import { HeartIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, XMarkIcon, CalendarDaysIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { CalendarIcon } from "@heroicons/react/24/outline";
 
 interface DogDetailProps {
     customer: {
@@ -33,10 +34,16 @@ interface DogDetailProps {
     };
 }
 
+const sizeBadges: Record<string, { badge: string; label: string }> = {
+    small: { badge: "bg-blue-100 text-blue-700", label: "Small" },
+    medium: { badge: "bg-purple-100 text-purple-700", label: "Medium" },
+    large: { badge: "bg-orange-100 text-orange-700", label: "Large" },
+};
+
 export default function DogDetail({ customer, dog }: DogDetailProps) {
     const [showEditModal, setShowEditModal] = useState(false);
 
-    const { data, setData, patch, processing, errors, reset } = useForm({
+    const { data, setData, patch, processing, errors } = useForm({
         name: dog.name,
         breed: dog.breed,
         size: dog.size as "small" | "medium" | "large",
@@ -46,133 +53,101 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         patch(`/my/dogs/${dog.id}`, {
-            onSuccess: () => {
-                setShowEditModal(false);
-            },
+            onSuccess: () => setShowEditModal(false),
         });
     };
 
-    function getSizeBadge(size: string) {
-        const badges = {
-            small: "bg-blue-100 text-blue-800",
-            medium: "bg-purple-100 text-purple-800",
-            large: "bg-orange-100 text-orange-800",
-        };
+    const sizeBadge = sizeBadges[dog.size] ?? sizeBadges.medium;
 
-        const labels = {
-            small: "Small",
-            medium: "Medium",
-            large: "Large",
-        };
-
-        return {
-            className: badges[size as keyof typeof badges] || badges.medium,
-            label: labels[size as keyof typeof labels] || size,
-        };
-    }
-
-    const sizeBadge = getSizeBadge(dog.size);
-
-    // Format appointments with dog info for AppointmentCard
     const appointmentsWithDog = dog.appointments.map((apt) => ({
         ...apt,
-        dog: {
-            id: dog.id,
-            name: dog.name,
-        },
+        dog: { id: dog.id, name: dog.name },
     }));
 
     return (
         <CustomerLayout customer={customer}>
             {/* Breadcrumb */}
-            <nav className="mb-6 flex" aria-label="Breadcrumb">
-                <ol className="flex items-center space-x-2">
-                    <li>
-                        <Link
-                            href="/my/dogs"
-                            className="text-sm text-gray-500 hover:text-gray-700"
-                        >
-                            My Dogs
-                        </Link>
-                    </li>
-                    <li className="text-sm text-gray-500">/</li>
-                    <li className="text-sm font-medium text-gray-900">
-                        {dog.name}
-                    </li>
-                </ol>
+            <nav className="mb-6 flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+                <Link
+                    href="/my/dogs"
+                    className="flex items-center gap-1 text-gray-400 hover:text-brand-500 transition-colors font-display font-extrabold"
+                >
+                    <ChevronLeftIcon className="size-4" />
+                    My Dogs
+                </Link>
+                <span className="text-gray-300">/</span>
+                <span className="text-gray-600 font-display font-extrabold">
+                    {dog.name}
+                </span>
             </nav>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Sidebar - Dog Info */}
                 <div className="lg:col-span-1">
-                    <div className="overflow-hidden rounded-lg bg-white shadow">
-                        <div className="px-6 py-5">
-                            <div className="flex flex-col items-center text-center">
-                                {/* Dog Photo Upload */}
-                                <DogPhotoUpload dog={dog} size="lg" />
+                    <div className="card p-6 text-center">
+                        {/* Photo */}
+                        <div className="flex justify-center">
+                            <DogPhotoUpload dog={dog} size="lg" />
+                        </div>
 
-                                {/* Dog Name & Size */}
-                                <h1 className="mt-4 text-2xl font-bold text-gray-900">
-                                    {dog.name}
-                                </h1>
-                                <span
-                                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${sizeBadge.className}`}
-                                >
-                                    {sizeBadge.label}
-                                </span>
+                        {/* Name & size */}
+                        <p className="mt-4 font-display font-extrabold text-gray-900 text-lg">
+                            {dog.name}
+                        </p>
+                        <span
+                            className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${sizeBadge.badge}`}
+                        >
+                            {sizeBadge.label}
+                        </span>
+
+                        {/* Details */}
+                        <div className="mt-6 space-y-3 border-t border-gray-100 pt-6 text-left">
+                            <div>
+                                <p className="text-xs font-display font-extrabold uppercase tracking-widest text-gray-400">
+                                    Breed
+                                </p>
+                                <p className="mt-1 text-sm text-gray-700">
+                                    {dog.breed}
+                                </p>
                             </div>
 
-                            {/* Dog Details */}
-                            <div className="mt-6 space-y-4">
+                            {dog.special_notes && (
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">
-                                        Breed
-                                    </h3>
-                                    <p className="mt-1 text-base text-gray-900">
-                                        {dog.breed}
+                                    <p className="text-xs font-display font-extrabold uppercase tracking-widest text-gray-400">
+                                        Notes
+                                    </p>
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        {dog.special_notes}
                                     </p>
                                 </div>
-
-                                {dog.special_notes && (
-                                    <div>
-                                        <h3 className="text-sm font-medium text-gray-500">
-                                            Special Notes
-                                        </h3>
-                                        <p className="mt-1 text-sm text-gray-700">
-                                            {dog.special_notes}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Edit Button */}
-                            <button
-                                onClick={() => setShowEditModal(true)}
-                                className="mt-6 w-full rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500"
-                            >
-                                <PencilIcon
-                                    className="mr-2 inline size-4"
-                                    aria-hidden
-                                />
-                                Edit Profile
-                            </button>
+                            )}
                         </div>
+
+                        {/* Edit button */}
+                        <button
+                            onClick={() => setShowEditModal(true)}
+                            className="btn-primary mt-6 w-full justify-center !text-sm !px-4 !py-2"
+                        >
+                            <PencilIcon className="size-4" aria-hidden />
+                            Edit Profile
+                        </button>
                     </div>
                 </div>
 
                 {/* Main Content - Appointment History */}
                 <div className="lg:col-span-2">
                     <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            Appointment History
+                        <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                            Appointment{" "}
+                            <span className="text-brand-500">History</span>
                         </h2>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-gray-500">
                             All appointments for {dog.name}
                         </p>
                     </div>
 
                     {appointmentsWithDog.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-1 gap-4">
                             {appointmentsWithDog.map((appointment) => (
                                 <AppointmentCard
                                     key={appointment.id}
@@ -182,23 +157,24 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
                             ))}
                         </div>
                     ) : (
-                        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-                            <HeartIcon
-                                className="mx-auto size-12 text-gray-400"
+                        <div className="rounded-card border-2 border-dashed border-gray-200 p-12 text-center">
+                            <CalendarIcon
+                                className="mx-auto size-10 text-gray-300"
                                 aria-hidden
                             />
-                            <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                            <p className="mt-3 font-display font-extrabold text-gray-900 text-sm">
                                 No appointments yet
-                            </h3>
+                            </p>
                             <p className="mt-1 text-sm text-gray-500">
                                 {dog.name} hasn't had any grooming appointments
                                 yet.
                             </p>
-                            <div className="mt-6">
+                            <div className="mt-5">
                                 <Link
                                     href="/booking/create"
-                                    className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500"
+                                    className="btn-primary !text-sm !px-4 !py-2"
                                 >
+                                    <CalendarDaysIcon className="size-4" />
                                     Book First Appointment
                                 </Link>
                             </div>
@@ -210,168 +186,142 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
             {/* Edit Dog Modal */}
             {showEditModal && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        {/* Backdrop */}
                         <div
-                            className="fixed inset-0 bg-gray-500/75 transition-opacity"
+                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
                             onClick={() => setShowEditModal(false)}
                         />
-                        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                            <div className="absolute top-0 right-0 pt-4 pr-4">
-                                <button
-                                    onClick={() => setShowEditModal(false)}
-                                    className="rounded-md bg-white text-gray-400 hover:text-gray-500"
-                                >
-                                    <span className="sr-only">Close</span>
-                                    <XMarkIcon className="size-6" aria-hidden />
-                                </button>
+
+                        {/* Panel */}
+                        <div className="relative w-full max-w-md rounded-card bg-white p-6 shadow-xl">
+                            {/* Close */}
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="absolute top-4 right-4 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                            >
+                                <XMarkIcon className="size-5" aria-hidden />
+                            </button>
+
+                            {/* Title */}
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="flex size-10 items-center justify-center rounded-xl bg-brand-100 text-xl">
+                                    🐾
+                                </div>
+                                <p className="font-display font-extrabold text-gray-900">
+                                    Edit {dog.name}'s Profile
+                                </p>
                             </div>
 
-                            <div className="sm:flex sm:items-start">
-                                <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-100 sm:mx-0 sm:size-10">
-                                    <PencilIcon
-                                        className="size-6 text-primary-600"
-                                        aria-hidden
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label htmlFor="edit-name" className="label">
+                                        Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="edit-name"
+                                        value={data.name}
+                                        onChange={(e) =>
+                                            setData("name", e.target.value)
+                                        }
+                                        className="input"
+                                        required
                                     />
+                                    {errors.name && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.name}
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="mt-3 w-full text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        Edit {dog.name}'s Profile
-                                    </h3>
-                                    <form
-                                        onSubmit={handleSubmit}
-                                        className="mt-6 space-y-4"
+
+                                <BreedSelector
+                                    value={data.breed}
+                                    onChange={(breed) =>
+                                        setData("breed", breed)
+                                    }
+                                    error={errors.breed}
+                                    label="Breed"
+                                    required
+                                />
+
+                                <div>
+                                    <label htmlFor="edit-size" className="label">
+                                        Size *
+                                    </label>
+                                    <select
+                                        id="edit-size"
+                                        value={data.size}
+                                        onChange={(e) =>
+                                            setData(
+                                                "size",
+                                                e.target.value as
+                                                    | "small"
+                                                    | "medium"
+                                                    | "large",
+                                            )
+                                        }
+                                        className="input"
+                                        required
                                     >
-                                        {/* Name */}
-                                        <div>
-                                            <label
-                                                htmlFor="name"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Name *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="name"
-                                                value={data.name}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "name",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                                required
-                                            />
-                                            {errors.name && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.name}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Breed */}
-                                        <BreedSelector
-                                            value={data.breed}
-                                            onChange={(breed) =>
-                                                setData("breed", breed)
-                                            }
-                                            error={errors.breed}
-                                            label="Breed"
-                                            required
-                                        />
-
-                                        {/* Size */}
-                                        <div>
-                                            <label
-                                                htmlFor="size"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Size *
-                                            </label>
-                                            <select
-                                                id="size"
-                                                value={data.size}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "size",
-                                                        e.target.value as
-                                                            | "small"
-                                                            | "medium"
-                                                            | "large",
-                                                    )
-                                                }
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                                required
-                                            >
-                                                <option value="small">
-                                                    Small
-                                                </option>
-                                                <option value="medium">
-                                                    Medium
-                                                </option>
-                                                <option value="large">
-                                                    Large
-                                                </option>
-                                            </select>
-                                            {errors.size && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.size}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Special Notes */}
-                                        <div>
-                                            <label
-                                                htmlFor="special_notes"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Special Notes (Optional)
-                                            </label>
-                                            <textarea
-                                                id="special_notes"
-                                                rows={3}
-                                                value={data.special_notes}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "special_notes",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                                placeholder="Any special needs or notes..."
-                                            />
-                                            {errors.special_notes && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.special_notes}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-                                            <button
-                                                type="submit"
-                                                disabled={processing}
-                                                className="inline-flex w-full justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 disabled:opacity-50 sm:w-auto"
-                                            >
-                                                {processing
-                                                    ? "Saving..."
-                                                    : "Save Changes"}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setShowEditModal(false)
-                                                }
-                                                className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </form>
+                                        <option value="small">Small</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+                                    {errors.size && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.size}
+                                        </p>
+                                    )}
                                 </div>
-                            </div>
+
+                                <div>
+                                    <label
+                                        htmlFor="edit-notes"
+                                        className="label"
+                                    >
+                                        Notes{" "}
+                                        <span className="text-gray-400 font-normal">
+                                            (optional)
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        id="edit-notes"
+                                        rows={3}
+                                        value={data.special_notes}
+                                        onChange={(e) =>
+                                            setData(
+                                                "special_notes",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="input"
+                                        placeholder="Allergies, behaviour, anything we should know..."
+                                    />
+                                    {errors.special_notes && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.special_notes}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditModal(false)}
+                                        className="btn-outline flex-1 justify-center"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="btn-primary flex-1 justify-center disabled:opacity-50"
+                                    >
+                                        {processing ? "Saving…" : "Save Changes"}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

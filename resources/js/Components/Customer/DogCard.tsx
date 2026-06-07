@@ -1,6 +1,4 @@
-import React from "react";
 import { Link } from "@inertiajs/react";
-import { HeartIcon } from "@heroicons/react/24/outline";
 
 interface DogCardProps {
     dog: {
@@ -14,91 +12,77 @@ interface DogCardProps {
     showActions?: boolean;
 }
 
-function getSizeBadge(size: string) {
-    const badges = {
-        small: "bg-blue-100 text-blue-800",
-        medium: "bg-purple-100 text-purple-800",
-        large: "bg-orange-100 text-orange-800",
-    };
+const sizeBadges: Record<string, string> = {
+    small: "bg-blue-100 text-blue-700",
+    medium: "bg-purple-100 text-purple-700",
+    large: "bg-orange-100 text-orange-700",
+};
 
-    const labels = {
-        small: "Small",
-        medium: "Medium",
-        large: "Large",
-    };
-
-    return {
-        className: badges[size as keyof typeof badges] || badges.medium,
-        label: labels[size as keyof typeof labels] || size,
-    };
-}
+const sizeLabels: Record<string, string> = {
+    small: "Small",
+    medium: "Medium",
+    large: "Large",
+};
 
 export default function DogCard({ dog, showActions = true }: DogCardProps) {
-    const sizeBadge = getSizeBadge(dog.size);
+    const badgeClass = sizeBadges[dog.size] ?? sizeBadges.medium;
+    const sizeLabel = sizeLabels[dog.size] ?? dog.size;
 
     return (
-        <div className="overflow-hidden rounded-lg bg-white shadow hover:shadow-md transition-shadow">
-            <div className="p-6">
-                <div className="flex items-start gap-x-4">
-                    {/* Dog Photo or Placeholder */}
-                    <div className="flex-shrink-0">
-                        {dog.photo_url ? (
-                            <img
-                                src={dog.photo_url}
-                                alt={dog.name}
-                                className="size-16 rounded-full object-cover"
-                            />
-                        ) : (
-                            <div className="flex size-16 items-center justify-center rounded-full bg-primary-100">
-                                <HeartIcon
-                                    className="size-8 text-primary-600"
-                                    aria-hidden
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Dog Info */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-x-2">
-                            <h3 className="text-lg font-semibold text-gray-900 truncate">
-                                {dog.name}
-                            </h3>
-                            <span
-                                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${sizeBadge.className}`}
-                            >
-                                {sizeBadge.label}
-                            </span>
+        <div className="card-hover p-6">
+            <div className="flex items-start gap-4">
+                {/* Photo or placeholder */}
+                <div className="shrink-0">
+                    {dog.photo_url ? (
+                        <img
+                            src={dog.photo_url}
+                            alt={dog.name}
+                            className="size-16 rounded-full object-cover ring-2 ring-brand-100"
+                        />
+                    ) : (
+                        <div className="flex size-16 items-center justify-center rounded-full bg-brand-100 text-2xl">
+                            🐾
                         </div>
-                        <p className="mt-1 text-sm text-gray-600">
-                            {dog.breed}
-                        </p>
-                        {dog.special_notes && (
-                            <p className="mt-2 text-sm text-gray-500 line-clamp-2">
-                                <span className="font-medium">Note:</span>{" "}
-                                {dog.special_notes}
-                            </p>
-                        )}
-                    </div>
+                    )}
                 </div>
 
-                {showActions && (
-                    <div className="mt-6 flex gap-x-3">
-                        <Link
-                            href={`/my/dogs/${dog.id}`}
-                            className="flex-1 rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-display font-extrabold text-gray-900 truncate">
+                            {dog.name}
+                        </p>
+                        <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass}`}
                         >
-                            View Details
-                        </Link>
-                        <Link
-                            href={`/my/dogs/${dog.id}`}
-                            className="rounded-md bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-100"
-                        >
-                            Edit
-                        </Link>
+                            {sizeLabel}
+                        </span>
                     </div>
-                )}
+                    <p className="mt-0.5 text-sm text-gray-500">{dog.breed}</p>
+                    {dog.special_notes && (
+                        <p className="mt-2 text-sm text-gray-400 line-clamp-2">
+                            {dog.special_notes}
+                        </p>
+                    )}
+                </div>
             </div>
+
+            {showActions && (
+                <div className="mt-5 flex gap-3">
+                    <Link
+                        href={`/my/dogs/${dog.id}`}
+                        className="btn-outline flex-1 justify-center !px-3 !py-2 !text-sm"
+                    >
+                        View & Edit
+                    </Link>
+                    <Link
+                        href="/booking/create"
+                        className="btn-primary !px-3 !py-2 !text-sm"
+                    >
+                        Book
+                    </Link>
+                </div>
+            )}
         </div>
     );
 }
