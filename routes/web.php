@@ -85,9 +85,7 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('dashboard.bookings');
 
-    Route::get('/dashboard/dogs', function () {
-        return Inertia::render('Dashboard/Dogs');
-    })->name('dashboard.dogs');
+    Route::get('/dashboard/dogs', [AdminDogController::class, 'index'])->name('dashboard.dogs');
 
     Route::get('/dashboard/calendar', function () {
         $businessHours = \App\Models\BusinessHours::query()

@@ -1,8 +1,9 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { router, usePage } from "@inertiajs/react";
 import { useState } from "react";
+import { XMarkIcon, PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ClockIcon } from "@heroicons/react/20/solid";
 
-// defining what a BusinessHour looks like
 interface BusinessHour {
     id: number;
     day_of_week: string;
@@ -12,7 +13,6 @@ interface BusinessHour {
     slot_duration: number;
 }
 
-// defining what a BlockedTime object looks like
 interface BlockedTime {
     id: number;
     start_datetime: string;
@@ -20,23 +20,29 @@ interface BlockedTime {
     reason: string | null;
 }
 
-// defining what props this page recieves from the backend
 interface AvailabilityProps {
     businessHours: BusinessHour[];
     blockedTimes: BlockedTime[];
+}
+
+function formatDateTime(iso: string) {
+    return new Date(iso).toLocaleString("en-AU", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    });
 }
 
 export default function Availability({
     businessHours,
     blockedTimes,
 }: AvailabilityProps) {
-    // Get errors from Inertia
     const { errors } = usePage().props as any;
 
-    // State for editing a specific day's hours
     const [editingDay, setEditingDay] = useState<BusinessHour | null>(null);
-
-    // State for the form when editing hours
     const [editForm, setEditForm] = useState({
         is_open: true,
         open_time: "09:00",
@@ -44,13 +50,12 @@ export default function Availability({
         slot_duration: 30,
     });
 
-    // State for blocking new times
     const [blockForm, setBlockForm] = useState({
         start_datetime: "",
         end_datetime: "",
         reason: "",
     });
-    // Handler: When user clicks "Edit" on a day
+
     const handleEditDay = (day: BusinessHour) => {
         setEditingDay(day);
         setEditForm({
@@ -61,122 +66,265 @@ export default function Availability({
         });
     };
 
-    // Handler: When user saves edited hours
     const handleSaveHours = () => {
         if (!editingDay) return;
-
         router.patch(`/admin/business-hours/${editingDay.id}`, editForm, {
             preserveScroll: true,
-            onSuccess: () => {
-                setEditingDay(null); // Close the edit modal
-            },
+            onSuccess: () => setEditingDay(null),
         });
     };
 
-    // Handler: When user cancels editing
-    const handleCancelEdit = () => {
-        setEditingDay(null);
-    };
-
-    // Handler: When user submits a new blocked time
     const handleAddBlockedTime = (e: React.FormEvent) => {
         e.preventDefault();
-
         router.post("/admin/blocked-times", blockForm, {
             preserveScroll: true,
-            onSuccess: () => {
-                // Clear the form
-                setBlockForm({
-                    start_datetime: "",
-                    end_datetime: "",
-                    reason: "",
-                });
-            },
+            onSuccess: () =>
+                setBlockForm({ start_datetime: "", end_datetime: "", reason: "" }),
         });
     };
 
-    // Handler: When user deletes a blocked time
     const handleDeleteBlockedTime = (id: number) => {
-        if (confirm("Are you sure you want to remove this blocked time?")) {
-            router.delete(`/admin/blocked-times/${id}`, {
-                preserveScroll: true,
-            });
+        if (confirm("Remove this blocked time?")) {
+            router.delete(`/admin/blocked-times/${id}`, { preserveScroll: true });
         }
     };
+
     return (
         <AdminLayout>
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-semibold mb-6 text-gray-900">
-                    My Availability
-                </h1>
-
-                {/* SECTION 1: Weekly Business Hours */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        📅 Weekly Business Hours
+            <div className="max-w-2xl">
+                {/* Header */}
+                <div className="mb-8">
+                    <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                        My{" "}
+                        <span className="text-brand-500">Availability</span>
                     </h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Manage your weekly hours and block time off.
+                    </p>
+                </div>
 
-                    <div className="space-y-3">
+                {/* Weekly Hours */}
+                <div className="card p-6 mb-6">
+                    <p className="font-display font-extrabold text-gray-900 mb-5">
+                        Weekly Business Hours
+                    </p>
+                    <div className="space-y-2">
                         {businessHours.map((day) => (
                             <div
                                 key={day.id}
-                                className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+                                className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3"
                             >
-                                <div className="flex-1">
-                                    <span className="font-medium text-gray-900 capitalize">
+                                <div className="flex items-center gap-4">
+                                    <p className="w-28 font-display font-extrabold text-gray-900 capitalize">
                                         {day.day_of_week}
-                                    </span>
-                                    <span className="text-gray-600 ml-4">
-                                        {day.is_open
-                                            ? `${day.open_time} - ${day.close_time}`
-                                            : "Closed"}
-                                    </span>
+                                    </p>
+                                    {day.is_open ? (
+                                        <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                                            <ClockIcon className="size-4 text-brand-400 shrink-0" />
+                                            {day.open_time} – {day.close_time}
+                                            <span className="ml-2 text-xs text-gray-400">
+                                                ({day.slot_duration} min slots)
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="inline-flex rounded-full px-2 py-0.5 text-xs font-display font-extrabold bg-gray-200 text-gray-500">
+                                            Closed
+                                        </span>
+                                    )}
                                 </div>
                                 <button
                                     onClick={() => handleEditDay(day)}
-                                    className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                    className="inline-flex items-center gap-1.5 rounded-button px-3 py-1.5 text-sm font-display font-extrabold text-brand-600 bg-brand-50 hover:bg-brand-100 transition-colors"
                                 >
+                                    <PencilIcon className="size-3.5" />
                                     Edit
                                 </button>
                             </div>
                         ))}
                     </div>
                 </div>
-                {/* SECTION 2: Edit Modal */}
-                {editingDay && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4 capitalize">
+
+                {/* Blocked Times */}
+                <div className="card p-6 mb-6">
+                    <p className="font-display font-extrabold text-gray-900 mb-1">
+                        Blocked Times
+                    </p>
+                    <p className="text-sm text-gray-500 mb-5">
+                        Customers cannot book during these times.
+                    </p>
+
+                    {blockedTimes.length === 0 ? (
+                        <p className="text-sm text-gray-400 font-display font-extrabold py-4 text-center">
+                            No blocked times scheduled
+                        </p>
+                    ) : (
+                        <div className="space-y-2">
+                            {blockedTimes.map((blocked) => (
+                                <div
+                                    key={blocked.id}
+                                    className="flex items-start justify-between gap-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3"
+                                >
+                                    <div>
+                                        <p className="text-sm font-display font-extrabold text-gray-900">
+                                            {formatDateTime(blocked.start_datetime)}
+                                            {" — "}
+                                            {formatDateTime(blocked.end_datetime)}
+                                        </p>
+                                        {blocked.reason && (
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                {blocked.reason}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            handleDeleteBlockedTime(blocked.id)
+                                        }
+                                        className="shrink-0 rounded-button p-1.5 text-red-500 hover:bg-red-100 transition-colors"
+                                        title="Remove"
+                                    >
+                                        <TrashIcon className="size-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Add Blocked Time */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-2 mb-1">
+                        <PlusIcon className="size-5 text-brand-400" />
+                        <p className="font-display font-extrabold text-gray-900">
+                            Block New Time
+                        </p>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-5">
+                        Block holidays, vacations, or any time you're
+                        unavailable.
+                    </p>
+
+                    {errors.blocked_time && (
+                        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                            <p className="text-sm text-red-700">
+                                {errors.blocked_time}
+                            </p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleAddBlockedTime} className="space-y-4">
+                        <div>
+                            <label className="label">Start Date &amp; Time</label>
+                            <input
+                                type="datetime-local"
+                                value={blockForm.start_datetime}
+                                onChange={(e) =>
+                                    setBlockForm({
+                                        ...blockForm,
+                                        start_datetime: e.target.value,
+                                    })
+                                }
+                                required
+                                className="input"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="label">End Date &amp; Time</label>
+                            <input
+                                type="datetime-local"
+                                value={blockForm.end_datetime}
+                                onChange={(e) =>
+                                    setBlockForm({
+                                        ...blockForm,
+                                        end_datetime: e.target.value,
+                                    })
+                                }
+                                required
+                                className="input"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="label">
+                                Reason{" "}
+                                <span className="text-gray-400 font-normal">
+                                    (optional)
+                                </span>
+                            </label>
+                            <input
+                                type="text"
+                                value={blockForm.reason}
+                                onChange={(e) =>
+                                    setBlockForm({
+                                        ...blockForm,
+                                        reason: e.target.value,
+                                    })
+                                }
+                                placeholder="e.g., Christmas Holiday, Vacation"
+                                className="input"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="btn-primary w-full justify-center"
+                        >
+                            Block This Time
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* Edit Hours Modal */}
+            {editingDay && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <div
+                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+                            onClick={() => setEditingDay(null)}
+                        />
+                        <div className="relative w-full max-w-sm rounded-card bg-white p-6 shadow-xl">
+                            {/* Close */}
+                            <button
+                                onClick={() => setEditingDay(null)}
+                                className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                            >
+                                <XMarkIcon className="size-5" />
+                            </button>
+
+                            {/* Title */}
+                            <p className="font-display font-extrabold text-gray-900 capitalize mb-6">
                                 Edit {editingDay.day_of_week}
-                            </h3>
+                            </p>
 
                             <div className="space-y-4">
-                                {/* Is Open Toggle */}
-                                <div>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={editForm.is_open}
-                                            onChange={(e) =>
-                                                setEditForm({
-                                                    ...editForm,
-                                                    is_open: e.target.checked,
-                                                })
-                                            }
-                                            className="rounded border-gray-300 text-indigo-600 mr-2"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            Open on this day
-                                        </span>
+                                {/* Open toggle */}
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        id="is_open"
+                                        type="checkbox"
+                                        checked={editForm.is_open}
+                                        onChange={(e) =>
+                                            setEditForm({
+                                                ...editForm,
+                                                is_open: e.target.checked,
+                                            })
+                                        }
+                                        className="size-4 rounded border-gray-300 text-brand-400 focus:ring-brand-400"
+                                    />
+                                    <label
+                                        htmlFor="is_open"
+                                        className="text-sm font-display font-extrabold text-gray-700"
+                                    >
+                                        Open on this day
                                     </label>
                                 </div>
 
-                                {/* Show time fields only if open */}
                                 {editForm.is_open && (
                                     <>
-                                        {/* Open Time */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="label">
                                                 Open Time
                                             </label>
                                             <input
@@ -185,17 +333,15 @@ export default function Availability({
                                                 onChange={(e) =>
                                                     setEditForm({
                                                         ...editForm,
-                                                        open_time:
-                                                            e.target.value,
+                                                        open_time: e.target.value,
                                                     })
                                                 }
-                                                className="w-full rounded-md border-gray-300 shadow-sm"
+                                                className="input"
                                             />
                                         </div>
 
-                                        {/* Close Time */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="label">
                                                 Close Time
                                             </label>
                                             <input
@@ -208,15 +354,13 @@ export default function Availability({
                                                             e.target.value,
                                                     })
                                                 }
-                                                className="w-full rounded-md border-gray-300 shadow-sm"
+                                                className="input"
                                             />
                                         </div>
 
-                                        {/* Slot Duration */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Appointment Slot Duration
-                                                (minutes)
+                                            <label className="label">
+                                                Slot Duration (minutes)
                                             </label>
                                             <input
                                                 type="number"
@@ -232,185 +376,31 @@ export default function Availability({
                                                 min="30"
                                                 max="120"
                                                 step="30"
-                                                className="w-full rounded-md border-gray-300 shadow-sm"
+                                                className="input"
                                             />
                                         </div>
                                     </>
                                 )}
                             </div>
 
-                            {/* Modal Buttons */}
-                            <div className="flex gap-3 mt-6">
+                            <div className="mt-6 flex gap-3">
                                 <button
-                                    onClick={handleCancelEdit}
-                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                                    onClick={() => setEditingDay(null)}
+                                    className="btn-outline flex-1 justify-center"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveHours}
-                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                    className="btn-primary flex-1 justify-center"
                                 >
-                                    Save Changes
+                                    Save
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
-                {/* SECTION 3: Blocked Times List */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <>
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            🚫 Blocked Times
-                        </h2>
-                        <p className="text-sm text-gray-600 mb-4">
-                            These are the blocked times that you have locked in.
-                            Customers or yourself won't be able to make bookings
-                            during these times.
-                        </p>
-                    </>
-
-                    {blockedTimes.length === 0 ? (
-                        <p className="text-gray-500 text-sm italic">
-                            No blocked times scheduled
-                        </p>
-                    ) : (
-                        <div className="space-y-3">
-                            {blockedTimes.map((blocked) => (
-                                <div
-                                    key={blocked.id}
-                                    className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-md"
-                                >
-                                    <div>
-                                        <div className="font-medium text-gray-900">
-                                            {new Date(
-                                                blocked.start_datetime,
-                                            ).toLocaleString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                                hour: "numeric",
-                                                minute: "2-digit",
-                                                hour12: true,
-                                            })}
-                                            {" - "}
-                                            {new Date(
-                                                blocked.end_datetime,
-                                            ).toLocaleString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                                hour: "numeric",
-                                                minute: "2-digit",
-                                                hour12: true,
-                                            })}
-                                        </div>
-                                        {blocked.reason && (
-                                            <div className="text-sm text-gray-600 mt-1">
-                                                {blocked.reason}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() =>
-                                            handleDeleteBlockedTime(blocked.id)
-                                        }
-                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
-                {/* SECTION 4: Add New Blocked Time Form */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        ➕ Block New Time
-                    </h2>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Use this to block out holidays, vacations, or any time
-                        you're unavailable
-                    </p>
-
-                    {/* Error Message */}
-                    {errors.blocked_time && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                            <p className="text-sm text-red-800">
-                                ⚠️ {errors.blocked_time}
-                            </p>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleAddBlockedTime} className="space-y-4">
-                        {/* Start Date/Time */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Start Date & Time
-                            </label>
-                            <input
-                                type="datetime-local"
-                                value={blockForm.start_datetime}
-                                onChange={(e) =>
-                                    setBlockForm({
-                                        ...blockForm,
-                                        start_datetime: e.target.value,
-                                    })
-                                }
-                                required
-                                className="w-full rounded-md border-gray-300 shadow-sm"
-                            />
-                        </div>
-
-                        {/* End Date/Time */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                End Date & Time
-                            </label>
-                            <input
-                                type="datetime-local"
-                                value={blockForm.end_datetime}
-                                onChange={(e) =>
-                                    setBlockForm({
-                                        ...blockForm,
-                                        end_datetime: e.target.value,
-                                    })
-                                }
-                                required
-                                className="w-full rounded-md border-gray-300 shadow-sm"
-                            />
-                        </div>
-
-                        {/* Reason */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Reason (optional)
-                            </label>
-                            <input
-                                type="text"
-                                value={blockForm.reason}
-                                onChange={(e) =>
-                                    setBlockForm({
-                                        ...blockForm,
-                                        reason: e.target.value,
-                                    })
-                                }
-                                placeholder="e.g., Christmas Holiday, Vacation"
-                                className="w-full rounded-md border-gray-300 shadow-sm"
-                            />
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
-                        >
-                            Block Time
-                        </button>
-                    </form>
-                </div>
-            </div>
+            )}
         </AdminLayout>
     );
 }

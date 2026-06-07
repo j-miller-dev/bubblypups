@@ -1,9 +1,6 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import UpcomingBookingsCal from "@/Pages/Dashboard/Components/UpcomingBookingsCal.tsx";
-import AppointmentCardComponent from "@/Components/ui/AppointmentCardComponent";
-import Calendar from "@/Pages/Dashboard/Components/Calendar";
-import { PlusIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import { Link } from "@inertiajs/react";
 
 interface OverviewProps {
@@ -11,27 +8,21 @@ interface OverviewProps {
 }
 
 export default function Overview({ appointments }: OverviewProps) {
-    const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
     const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, "0");
-    const d = String(today.getDate()).padStart(2, "0");
-    const todayString = `${y}-${m}-${d}`;
+    const todayString = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
 
     async function loadBookings(date: string) {
         try {
-            // Prepare API request. Adjust URL to your Laravel route.
-            const url = `/dashboard/bookings?date=${encodeURIComponent(date)}`;
-            const res = await fetch(url, {
-                headers: { Accept: "application/json" },
-            });
-            if (!res.ok) {
-                // If the route isn't ready yet, fail gracefully and return empty list.
-                return [] as any[];
-            }
+            const res = await fetch(
+                `/dashboard/bookings?date=${encodeURIComponent(date)}`,
+                { headers: { Accept: "application/json" } },
+            );
+            if (!res.ok) return [] as any[];
             const data = await res.json();
-            // Normalize to BookingItem[] shape expected by UpcomingBookingsCal
-            // Try to infer fields; adjust as needed on backend.
             const items = (
                 Array.isArray(data?.bookings)
                     ? data.bookings
@@ -48,7 +39,7 @@ export default function Overview({ appointments }: OverviewProps) {
                 location: b.location ?? b.address ?? undefined,
             }));
             return items;
-        } catch (e) {
+        } catch {
             return [] as any[];
         }
     }
@@ -56,18 +47,31 @@ export default function Overview({ appointments }: OverviewProps) {
     return (
         <AdminLayout>
             <div className="space-y-6">
+                {/* Header */}
                 <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-semibold text-gray-900">
-                        Upcoming Bookings
-                    </h2>
+                    <div>
+                        <h2 className="!text-2xl md:!text-3xl text-gray-950">
+                            Upcoming{" "}
+                            <span className="text-brand-500">Bookings</span>
+                        </h2>
+                        <p className="mt-1 text-sm text-gray-500">
+                            {today.toLocaleDateString("en-AU", {
+                                weekday: "long",
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                            })}
+                        </p>
+                    </div>
                     <Link
                         href={route("admin.bookings.create")}
-                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                        className="btn-primary !text-sm shrink-0"
                     >
-                        <PlusIcon className="h-5 w-5" />
+                        <PlusIcon className="size-4" aria-hidden />
                         New Booking
                     </Link>
                 </div>
+
                 <UpcomingBookingsCal
                     currentDate={todayString}
                     appointments={appointments}
