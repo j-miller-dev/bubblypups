@@ -1,211 +1,318 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import SelectInput from '@/Components/SelectInput';
-import TextareaInput from '@/Components/TextareaInput';
-import BreedSelector from '@/Components/ui/BreedSelector';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import BreedSelector from "@/Components/ui/BreedSelector";
+import MainLayout from "@/Layouts/MainLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { UserPlusIcon } from "@heroicons/react/20/solid";
 
+function SectionDivider({ label }) {
+    return (
+        <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-xs font-display font-extrabold uppercase tracking-widest text-gray-400">
+                {label}
+            </span>
+            <div className="h-px flex-1 bg-gray-100" />
+        </div>
+    );
+}
 
 export default function CustomerRegister() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        password_confirmation: '',
-        dog_name: '',
-        dog_breed: '',
-        dog_size: 'medium',
-        dog_notes: '',
+    const { data, setData, post, processing, errors } = useForm({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        password_confirmation: "",
+        dog_name: "",
+        dog_breed: "",
+        dog_size: "medium",
+        dog_notes: "",
     });
-
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('customer.register'));
-    }
+        post(route("customer.register"));
+    };
 
     return (
-        <GuestLayout>
+        <MainLayout title="Create Account | Bubbly Pups">
             <Head title="Create Account" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+            <section className="relative overflow-hidden bg-gradient-to-b from-white to-brand-50 py-16 sm:py-24">
+                {/* Decorative blobs */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-purple-100 opacity-50 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-brand-100 opacity-40 blur-3xl"
+                />
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="phone" value="Phone" />
-
-                    <TextInput
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        value={data.phone}
-                        className="mt-1 block w-full"
-                        autoComplete="tel"
-                        onChange={(e) => setData('phone', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.phone} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                {/* Dog Information Section */}
-                <div className="mt-8 border-t border-gray-200 pt-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">
-                        Tell Us About Your Dog
-                    </h2>
-
-                    <div>
-                        <InputLabel htmlFor="dog_name" value="Dog's Name" />
-
-                        <TextInput
-                            id="dog_name"
-                            name="dog_name"
-                            value={data.dog_name}
-                            className="mt-1 block w-full"
-                            onChange={(e) => setData('dog_name', e.target.value)}
-                            required
-                        />
-
-                        <InputError message={errors.dog_name} className="mt-2" />
+                <div className="mx-auto max-w-2xl px-6 lg:px-8">
+                    {/* Page header */}
+                    <div className="mb-10">
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-purple-600 text-sm font-medium shadow-sm mb-5">
+                            <UserPlusIcon className="h-4 w-4" />
+                            New customer
+                        </span>
+                        <h2 className="text-gray-950">
+                            Welcome to{" "}
+                            <span className="text-brand-500">Bubbly Pups</span>
+                        </h2>
+                        <p className="mt-2 text-gray-500">
+                            Create your account and tell us about your pup.
+                            We'll get you booked in right away.
+                        </p>
                     </div>
 
-                    <div className="mt-4">
-                        <BreedSelector
-                            value={data.dog_breed}
-                            onChange={(breed) => setData('dog_breed', breed)}
-                            error={errors.dog_breed}
-                            label="Breed"
-                            required
-                        />
-                    </div>
+                    <form onSubmit={submit} className="space-y-8">
+                        {/* Owner details */}
+                        <div className="space-y-4">
+                            <SectionDivider label="About you" />
 
-                    <div className="mt-4">
-                        <InputLabel htmlFor="dog_size" value="Size" />
+                            <div>
+                                <label htmlFor="name" className="label">
+                                    Full name
+                                </label>
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    autoComplete="name"
+                                    autoFocus
+                                    required
+                                    value={data.name}
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
+                                    className="input"
+                                />
+                                {errors.name && (
+                                    <p className="mt-1.5 text-sm text-red-600">
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
 
-                        <SelectInput
-                            id="dog_size"
-                            name="dog_size"
-                            value={data.dog_size}
-                            className="mt-1 block w-full"
-                            onChange={(e) => setData('dog_size', e.target.value)}
-                            required
-                        >
-                            <option value="small">Small</option>
-                            <option value="medium">Medium</option>
-                            <option value="large">Large</option>
-                        </SelectInput>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="email" className="label">
+                                        Email address
+                                    </label>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        autoComplete="username"
+                                        required
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData("email", e.target.value)
+                                        }
+                                        className="input"
+                                    />
+                                    {errors.email && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="phone" className="label">
+                                        Mobile number
+                                    </label>
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        autoComplete="tel"
+                                        required
+                                        value={data.phone}
+                                        onChange={(e) =>
+                                            setData("phone", e.target.value)
+                                        }
+                                        className="input"
+                                    />
+                                    {errors.phone && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.phone}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
 
-                        <InputError message={errors.dog_size} className="mt-2" />
-                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="password" className="label">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        value={data.password}
+                                        onChange={(e) =>
+                                            setData("password", e.target.value)
+                                        }
+                                        className="input"
+                                    />
+                                    {errors.password && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.password}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label
+                                        htmlFor="password_confirmation"
+                                        className="label"
+                                    >
+                                        Confirm password
+                                    </label>
+                                    <input
+                                        id="password_confirmation"
+                                        name="password_confirmation"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        required
+                                        value={data.password_confirmation}
+                                        onChange={(e) =>
+                                            setData(
+                                                "password_confirmation",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="input"
+                                    />
+                                    {errors.password_confirmation && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.password_confirmation}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="mt-4">
-                        <InputLabel htmlFor="dog_notes" value="Special Notes (Optional)" />
+                        {/* Dog details */}
+                        <div className="space-y-4">
+                            <SectionDivider label="About your pup" />
 
-                        <TextareaInput
-                            id="dog_notes"
-                            name="dog_notes"
-                            value={data.dog_notes}
-                            className="mt-1 block w-full"
-                            rows="3"
-                            onChange={(e) => setData('dog_notes', e.target.value)}
-                            placeholder="Any special care instructions, behavioral notes, or health information we should know..."
-                        />
+                            <div>
+                                <label htmlFor="dog_name" className="label">
+                                    Dog's name
+                                </label>
+                                <input
+                                    id="dog_name"
+                                    name="dog_name"
+                                    type="text"
+                                    required
+                                    value={data.dog_name}
+                                    onChange={(e) =>
+                                        setData("dog_name", e.target.value)
+                                    }
+                                    className="input"
+                                />
+                                {errors.dog_name && (
+                                    <p className="mt-1.5 text-sm text-red-600">
+                                        {errors.dog_name}
+                                    </p>
+                                )}
+                            </div>
 
-                        <InputError message={errors.dog_notes} className="mt-2" />
-                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <BreedSelector
+                                    value={data.dog_breed}
+                                    onChange={(breed) =>
+                                        setData("dog_breed", breed)
+                                    }
+                                    error={errors.dog_breed}
+                                    label="Breed"
+                                    required
+                                />
+                                <div>
+                                    <label htmlFor="dog_size" className="label">
+                                        Size
+                                    </label>
+                                    <select
+                                        id="dog_size"
+                                        name="dog_size"
+                                        required
+                                        value={data.dog_size}
+                                        onChange={(e) =>
+                                            setData("dog_size", e.target.value)
+                                        }
+                                        className="input"
+                                    >
+                                        <option value="small">
+                                            Small (under 10 kg)
+                                        </option>
+                                        <option value="medium">
+                                            Medium (10–25 kg)
+                                        </option>
+                                        <option value="large">
+                                            Large (25 kg+)
+                                        </option>
+                                    </select>
+                                    {errors.dog_size && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.dog_size}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="dog_notes" className="label">
+                                    Special notes{" "}
+                                    <span className="text-gray-400 font-normal">
+                                        (optional)
+                                    </span>
+                                </label>
+                                <textarea
+                                    id="dog_notes"
+                                    name="dog_notes"
+                                    rows={3}
+                                    value={data.dog_notes}
+                                    onChange={(e) =>
+                                        setData("dog_notes", e.target.value)
+                                    }
+                                    placeholder="Allergies, anxiety, special care instructions — anything we should know."
+                                    className="input"
+                                />
+                                {errors.dog_notes && (
+                                    <p className="mt-1.5 text-sm text-red-600">
+                                        {errors.dog_notes}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-2">
+                            <p className="text-sm text-gray-500">
+                                Already have an account?{" "}
+                                <Link
+                                    href={route("customer.login.form")}
+                                    className="text-brand-500 font-medium hover:text-brand-600"
+                                >
+                                    Log in
+                                </Link>
+                            </p>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                                {processing
+                                    ? "Creating account…"
+                                    : "Create Account & Book"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('customer.login.form')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Create Account & Book Appointment
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+            </section>
+        </MainLayout>
     );
 }
