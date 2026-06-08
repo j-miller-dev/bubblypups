@@ -62,6 +62,11 @@ class Customer extends Authenticatable
         ];
     }
 
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\CustomerResetPasswordNotification($token));
+    }
+
     public function dogs(): HasMany
     {
         return $this->hasMany(Dog::class);

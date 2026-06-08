@@ -5,7 +5,9 @@ use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\BlockedTimeController;
 use App\Http\Controllers\Admin\BusinessHoursController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Auth\CustomerForgotPasswordController;
 use App\Http\Controllers\Auth\CustomerLoginController;
+use App\Http\Controllers\Auth\CustomerNewPasswordController;
 use App\Http\Controllers\Auth\CustomerRegisterController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContactController;
@@ -130,6 +132,12 @@ Route::post('/register', [CustomerRegisterController::class, 'store'])->name('cu
 Route::get('/customer/login', [CustomerLoginController::class, 'create'])->name('customer.login.form');
 Route::post('/customer/login', [CustomerLoginController::class, 'store'])->name('customer.login');
 Route::post('/customer/logout', [CustomerLoginController::class, 'destroy'])->name('customer.logout');
+
+// Customer Password Reset
+Route::get('/customer/forgot-password', [CustomerForgotPasswordController::class, 'create'])->name('customer.password.request');
+Route::post('/customer/forgot-password', [CustomerForgotPasswordController::class, 'store'])->name('customer.password.email');
+Route::get('/customer/reset-password/{token}', [CustomerNewPasswordController::class, 'create'])->name('customer.password.reset');
+Route::post('/customer/reset-password', [CustomerNewPasswordController::class, 'store'])->name('customer.password.update');
 
 // Customer Routes (Protected)
 Route::middleware(['auth:customer'])->group(function () {

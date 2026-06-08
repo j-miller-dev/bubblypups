@@ -1,23 +1,30 @@
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
 import { Container } from "@/Components/layout";
-import { CalendarDaysIcon } from "@heroicons/react/20/solid";
+import { LockClosedIcon } from "@heroicons/react/20/solid";
 
-export default function CustomerLogin({ status }: { status?: string }) {
+export default function CustomerResetPassword({
+    token,
+    email,
+}: {
+    token: string;
+    email: string;
+}) {
     const { data, setData, post, processing, errors } = useForm({
-        email: "",
+        token,
+        email,
         password: "",
-        remember: false as boolean,
+        password_confirmation: "",
     });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route("customer.login"));
+        post(route("customer.password.update"));
     };
 
     return (
-        <MainLayout title="Log In | Bubbly Pups">
-            <Head title="Log In" />
+        <MainLayout title="Reset Password | Bubbly Pups">
+            <Head title="Reset Password" />
 
             <section className="relative overflow-hidden bg-gradient-to-b from-white to-brand-50 py-20 sm:py-28">
                 {/* Decorative blobs */}
@@ -35,26 +42,20 @@ export default function CustomerLogin({ status }: { status?: string }) {
                         {/* Header */}
                         <div className="text-center mb-8">
                             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-200 text-brand-600 text-sm font-medium shadow-sm mb-5">
-                                <CalendarDaysIcon className="h-4 w-4" />
-                                Welcome back
+                                <LockClosedIcon className="h-4 w-4" />
+                                Choose a new password
                             </span>
                             <h2 className="text-gray-950">
-                                Log in to your{" "}
-                                <span className="text-brand-500">account</span>
+                                Reset your{" "}
+                                <span className="text-brand-500">password</span>
                             </h2>
                             <p className="mt-3 text-gray-500">
-                                Book your next grooming appointment in seconds.
+                                Enter a new password for your Bubbly Pups account.
                             </p>
                         </div>
 
                         {/* Card */}
                         <div className="card p-8">
-                            {status && (
-                                <div className="mb-5 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-700">
-                                    {status}
-                                </div>
-                            )}
-
                             <form onSubmit={submit} className="space-y-5">
                                 <div>
                                     <label htmlFor="email" className="label">
@@ -66,11 +67,8 @@ export default function CustomerLogin({ status }: { status?: string }) {
                                         name="email"
                                         value={data.email}
                                         autoComplete="username"
-                                        autoFocus
                                         required
-                                        onChange={(e) =>
-                                            setData("email", e.target.value)
-                                        }
+                                        onChange={(e) => setData("email", e.target.value)}
                                         className="input"
                                     />
                                     {errors.email && (
@@ -81,30 +79,18 @@ export default function CustomerLogin({ status }: { status?: string }) {
                                 </div>
 
                                 <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <label
-                                            htmlFor="password"
-                                            className="label !mb-0"
-                                        >
-                                            Password
-                                        </label>
-                                        <Link
-                                            href={route("customer.password.request")}
-                                            className="text-sm text-brand-500 font-medium hover:text-brand-600"
-                                        >
-                                            Forgot password?
-                                        </Link>
-                                    </div>
+                                    <label htmlFor="password" className="label">
+                                        New password
+                                    </label>
                                     <input
                                         id="password"
                                         type="password"
                                         name="password"
                                         value={data.password}
-                                        autoComplete="current-password"
+                                        autoComplete="new-password"
+                                        autoFocus
                                         required
-                                        onChange={(e) =>
-                                            setData("password", e.target.value)
-                                        }
+                                        onChange={(e) => setData("password", e.target.value)}
                                         className="input"
                                     />
                                     {errors.password && (
@@ -114,41 +100,37 @@ export default function CustomerLogin({ status }: { status?: string }) {
                                     )}
                                 </div>
 
-                                <label className="flex items-center gap-2 cursor-pointer">
+                                <div>
+                                    <label htmlFor="password_confirmation" className="label">
+                                        Confirm new password
+                                    </label>
                                     <input
-                                        type="checkbox"
-                                        name="remember"
-                                        checked={data.remember}
+                                        id="password_confirmation"
+                                        type="password"
+                                        name="password_confirmation"
+                                        value={data.password_confirmation}
+                                        autoComplete="new-password"
+                                        required
                                         onChange={(e) =>
-                                            setData("remember", e.target.checked)
+                                            setData("password_confirmation", e.target.value)
                                         }
-                                        className="rounded border-gray-300 text-brand-400 shadow-sm focus:ring-brand-400"
+                                        className="input"
                                     />
-                                    <span className="text-sm text-gray-600">
-                                        Remember me
-                                    </span>
-                                </label>
+                                    {errors.password_confirmation && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.password_confirmation}
+                                        </p>
+                                    )}
+                                </div>
 
                                 <button
                                     type="submit"
                                     disabled={processing}
                                     className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {processing ? "Logging in…" : "Log in"}
+                                    {processing ? "Resetting…" : "Reset password"}
                                 </button>
                             </form>
-
-                            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                                <p className="text-sm text-gray-500">
-                                    New to Bubbly Pups?{" "}
-                                    <Link
-                                        href={route("customer.register.form")}
-                                        className="text-brand-500 font-medium hover:text-brand-600"
-                                    >
-                                        Create an account
-                                    </Link>
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </Container>
