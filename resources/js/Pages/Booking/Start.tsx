@@ -92,11 +92,11 @@ export default function Start() {
 
                         {/* Phone option */}
                         <div className="mt-4 flex flex-col sm:flex-row items-center gap-4 rounded-card border border-brand-100 bg-brand-50 px-5 py-4">
-                            <div className="flex items-center gap-3 flex-1">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 flex-1">
                                 <div className="w-10 h-10 rounded-xl bg-white border border-brand-100 flex items-center justify-center shrink-0">
-                                    <PhoneIcon className="w-4 h-4 text-brand-400" />
+                                    <PhoneIcon className="w-7 h-7 md:w-4 md:h-4 text-brand-400" />
                                 </div>
-                                <div>
+                                <div className="text-center sm:text-left">
                                     <p className="font-display font-extrabold text-gray-900 text-sm">
                                         Prefer to call?
                                     </p>

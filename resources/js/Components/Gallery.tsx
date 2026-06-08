@@ -6,9 +6,29 @@ import { EyeIcon } from "@heroicons/react/20/solid";
 
 function InstagramIcon({ className }: { className?: string }) {
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" strokeWidth="2" />
-            <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
+        <svg
+            className={className}
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <rect
+                x="2"
+                y="2"
+                width="20"
+                height="20"
+                rx="5"
+                stroke="currentColor"
+                strokeWidth="2"
+            />
+            <circle
+                cx="12"
+                cy="12"
+                r="4"
+                stroke="currentColor"
+                strokeWidth="2"
+            />
             <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" />
         </svg>
     );
@@ -71,16 +91,19 @@ function Gallery() {
                     transition={{ duration: 0.6, ease: "easeOut" as const }}
                     className="mx-auto max-w-2xl text-center mb-14"
                 >
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-purple-600 text-sm font-medium shadow-sm mb-6">
+                    <span className="text-center inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-brand-200 text-brand-600 text-sm font-medium shadow-sm mb-6">
                         <InstagramIcon className="w-4 h-4" />
                         Fresh from the salon
                     </span>
                     <h2 className="text-gray-950">
                         Pups that left looking{" "}
-                        <span className="text-brand-500">absolutely fabulous</span>
+                        <span className="text-brand-500">
+                            absolutely fabulous
+                        </span>
                     </h2>
                     <p className="mt-5 text-lg text-gray-500 leading-relaxed">
-                        Every groom tells a story. Here are a few of our favourites.
+                        Every groom tells a story. Here are a few of our
+                        favourites.
                     </p>
                 </motion.div>
 
@@ -103,7 +126,9 @@ function Gallery() {
                             className={[
                                 "relative overflow-hidden rounded-card cursor-pointer group",
                                 "aspect-square lg:aspect-auto",
-                                index === 0 ? "lg:col-span-2 lg:row-span-2" : "",
+                                index === 0
+                                    ? "lg:col-span-2 lg:row-span-2"
+                                    : "",
                             ].join(" ")}
                         >
                             <img
@@ -139,7 +164,8 @@ function Gallery() {
                                 Follow along on Instagram
                             </p>
                             <p className="text-sm text-gray-500 mt-0.5">
-                                {INSTAGRAM_HANDLE} · Fresh transformations posted regularly
+                                {INSTAGRAM_HANDLE} · Fresh transformations
+                                posted regularly
                             </p>
                         </div>
                     </div>

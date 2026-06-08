@@ -11,9 +11,9 @@ import { Link } from "@inertiajs/react";
 
 function Hero() {
     return (
-        <section className="relative bg-white">
+        <section className="relative bg-white flex flex-col justify-center min-h-[calc(100svh-4rem)]">
             <Bubbles />
-            <Container className="flex items-center justify-center py-20 sm:py-28 lg:py-32">
+            <Container className="flex items-center justify-center py-10">
                 <div className="text-center">
                     <div className="mx-auto max-w-2xl">
                         <img

@@ -9,38 +9,31 @@ import { motion } from "framer-motion";
 const faqs = [
     {
         question: "What's included in the full doggy pamper?",
-        answer:
-            "The full pamper includes a bath with premium shampoo and conditioner, blow dry, breed-specific haircut, nail trimming, ear cleaning — and of course a free bandana for your pup to take home in style.",
+        answer: "The full pamper includes a bath with premium shampoo and conditioner, blow dry, breed-specific haircut, nail trimming, ear cleaning — and of course a free bandana for your pup to take home in style.",
     },
     {
         question: "How long does a grooming session take?",
-        answer:
-            "It depends on the service and your dog's size. A nail trim takes around 15 minutes, while a full pamper for a larger dog can take up to 2 hours. You'll see estimated durations for each service when you book.",
+        answer: "It depends on the service and your dog's size. A nail trim takes around 15 minutes, while a full pamper for a larger dog can take up to 2 hours. You'll see estimated durations for each service when you book.",
     },
     {
         question: "Do you groom all breeds and sizes?",
-        answer:
-            "Absolutely — from tiny Chihuahuas to large Labradors, every breed and every size is welcome. Pricing is based on size, so check the service cards for a full breakdown.",
+        answer: "Absolutely — from tiny Chihuahuas to large Labradors, every breed and every size is welcome. Pricing is based on size, so check the service cards for a full breakdown.",
     },
     {
         question: "Is grooming suitable for puppies?",
-        answer:
-            "Yes! Getting puppies comfortable with grooming early makes a big difference. First grooms are kept gentle and brief so they have a positive experience. We recommend starting from around 12–16 weeks, after their vaccinations are up to date.",
+        answer: "Yes! Getting puppies comfortable with grooming early makes a big difference. First grooms are kept gentle and brief so they have a positive experience. We recommend starting from around 12–16 weeks, after their vaccinations are up to date.",
     },
     {
         question: "How far in advance should I book?",
-        answer:
-            "We recommend booking at least a week ahead, especially for weekends. You can book online any time through our booking system — just pick your service, date, and preferred time.",
+        answer: "We recommend booking at least a week ahead, especially for weekends. You can book online any time through our booking system — just pick your service, date, and preferred time.",
     },
     {
         question: "What if my dog is anxious or nervous around grooming?",
-        answer:
-            "We take a calm and patient approach with every pup. If your dog gets stressed, just mention it when booking and we'll take extra care to make the session as relaxed and positive as possible.",
+        answer: "We take a calm and patient approach with every pup. If your dog gets stressed, just mention it when booking and we'll take extra care to make the session as relaxed and positive as possible.",
     },
     {
         question: "Where are you located, and what areas do you service?",
-        answer:
-            "We're based in Sunbury, Victoria, and also service the wider region including Diggers Rest, Riddells Creek, and surrounding areas. Not sure if we cover your suburb? Reach out and we'll let you know.",
+        answer: "We're based in Sunbury, Victoria, and also service the wider region including Diggers Rest, Riddells Creek, and surrounding areas. Not sure if we cover your suburb? Reach out and we'll let you know.",
     },
 ];
 
@@ -125,8 +118,8 @@ export default function FAQSection() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-6 px-6 py-5 rounded-card bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-100"
                 >
-                    <div>
-                        <p className="font-display font-extrabold text-gray-950 text-base">
+                    <div className="text-center sm:text-left">
+                        <p className="font-display font-extrabold text-gray-950 text-base ">
                             Still have a question?
                         </p>
                         <p className="text-sm text-gray-500 mt-0.5">

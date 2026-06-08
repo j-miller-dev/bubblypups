@@ -170,7 +170,7 @@ export function Navbar({ banner }: { banner?: React.ReactNode }) {
         <Disclosure
             as="header"
             className={[
-                "sticky top-0 z-40 bg-white/95 backdrop-blur-sm transition-shadow duration-300 px-4 sm:px-6 lg:px-8",
+                "sticky top-0 z-40 bg-white/95 transition-shadow duration-300 px-4 sm:px-6 lg:px-8",
                 scrolled ? "shadow-md" : "",
             ].join(" ")}
         >
