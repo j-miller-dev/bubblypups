@@ -1,156 +1,200 @@
-import MainLayout from '@/Layouts/MainLayout';
-import {Container} from '@/Components/layout';
-import {Gradient, Image} from '@/Components/graphics';
-import {Link} from '@/Components/ui';
+import MainLayout from '@/Layouts/MainLayout'
+import { Container } from '@/Components/layout'
+import { Link } from '@inertiajs/react'
 
-// Sample blog post data
-const blogPosts = [
-    {
-        id: 1,
-        title: 'Radiant raises $100M Series A from Tailwind Ventures',
-        excerpt: "We're excited to announce our Series A funding round led by Tailwind Ventures, which will help us accelerate our mission to revolutionize sales intelligence.",
-        date: 'July 15, 2025',
-        author: 'Jane Smith',
-        category: 'Company News',
-        slug: 'radiant-raises-100m-series-a-from-tailwind-ventures'
-    },
-    {
-        id: 2,
-        title: 'Introducing Radiant AI: The Future of Sales Intelligence',
-        excerpt: 'Our new AI-powered features help sales teams understand customer behavior better than ever before, leading to higher conversion rates and more closed deals.',
-        date: 'June 28, 2025',
-        author: 'John Doe',
-        category: 'Product Updates',
-        slug: 'introducing-radiant-ai-the-future-of-sales-intelligence'
-    },
-    {
-        id: 3,
-        title: '5 Ways to Improve Your Sales Pipeline with Data',
-        excerpt: 'Learn how data-driven insights can transform your sales process and help you close more deals with less effort.',
-        date: 'June 10, 2025',
-        author: 'Sarah Johnson',
-        category: 'Sales Tips',
-        slug: '5-ways-to-improve-your-sales-pipeline-with-data'
-    },
-    {
-        id: 4,
-        title: 'Customer Success Story: How Company X Increased Sales by 300%',
-        excerpt: 'See how Company X used Radiant to transform their sales process and achieve record-breaking results in just three months.',
-        date: 'May 22, 2025',
-        author: 'Michael Brown',
-        category: 'Case Studies',
-        slug: 'customer-success-story-how-company-x-increased-sales-by-300-percent'
-    },
-    {
-        id: 5,
-        title: 'The Future of B2B Sales in a Digital-First World',
-        excerpt: 'Explore the trends shaping the future of B2B sales and how technology is enabling more personalized, efficient sales processes.',
-        date: 'May 5, 2025',
-        author: 'Jane Smith',
-        category: 'Industry Insights',
-        slug: 'the-future-of-b2b-sales-in-a-digital-first-world'
-    },
-    {
-        id: 6,
-        title: 'Announcing Our New Integration with CRM Platform',
-        excerpt: 'Our latest integration with a popular CRM platform makes it easier than ever to incorporate Radiant into your existing workflow.',
-        date: 'April 18, 2025',
-        author: 'John Doe',
-        category: 'Product Updates',
-        slug: 'announcing-our-new-integration-with-crm-platform'
-    }
-];
+interface BlogPost {
+    id: number
+    title: string
+    slug: string
+    excerpt: string | null
+    category: string
+    cover_image_url: string | null
+    published_at: string
+    user: { name: string } | null
+}
 
-export default function Blog() {
+interface PaginatedPosts {
+    data: BlogPost[]
+    links: { url: string | null; label: string; active: boolean }[]
+    current_page: number
+    last_page: number
+}
+
+interface BlogProps {
+    posts: PaginatedPosts
+}
+
+const categoryLabels: Record<string, string> = {
+    grooming_tips: 'Grooming Tips',
+    breed_guides: 'Breed Guides',
+    dog_care: 'Dog Care',
+    business_news: 'Business News',
+}
+
+function CategoryBadge({ category }: { category: string }) {
     return (
-        <MainLayout title="Blog - Radiant" description="Latest news, updates, and insights from the Radiant team">
-            <div className="overflow-hidden">
-                <div className="relative">
-                    <Gradient className="absolute inset-2 bottom-0 rounded-4xl ring-1 ring-black/5 ring-inset"/>
-                    <Container className="relative py-24 sm:py-32">
-                        <h1 className="text-4xl font-medium tracking-tighter text-pretty text-gray-950 sm:text-6xl">
-                            Blog
-                        </h1>
-                        <p className="mt-6 max-w-lg text-xl/7 font-medium text-gray-950/75">
-                            Latest news, updates, and insights from the Radiant team.
-                        </p>
-                    </Container>
+        <span className="inline-block rounded-full bg-brand-100 px-3 py-0.5 text-xs font-display font-extrabold text-brand-600">
+            {categoryLabels[category] ?? category}
+        </span>
+    )
+}
+
+function PostCard({ post, featured = false }: { post: BlogPost; featured?: boolean }) {
+    const coverBg = post.cover_image_url
+        ? undefined
+        : 'bg-gradient-to-br from-brand-100 via-purple-100 to-blue-100'
+
+    return (
+        <article className={['flex flex-col', featured ? 'lg:flex-row gap-8' : ''].join(' ')}>
+            <Link
+                href={route('blog.show', post.slug)}
+                className={[
+                    'block shrink-0 overflow-hidden rounded-card',
+                    featured ? 'lg:w-1/2 h-72' : 'h-48',
+                    coverBg ?? '',
+                ].join(' ')}
+            >
+                {post.cover_image_url ? (
+                    <img
+                        src={post.cover_image_url}
+                        alt={post.title}
+                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                    />
+                ) : (
+                    <div className={['h-full w-full', coverBg].join(' ')} />
+                )}
+            </Link>
+
+            <div className={featured ? 'flex flex-col justify-center' : 'mt-4 flex flex-col'}>
+                <div className="flex items-center gap-3">
+                    <CategoryBadge category={post.category} />
+                    <span className="text-sm text-gray-400">
+                        {new Date(post.published_at).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                        })}
+                    </span>
                 </div>
 
-                <Container className="py-24">
-                    {/* Featured Post */}
-                    <div className="mb-16 border-b border-gray-200 pb-16">
-                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                            <Image
-                                src={`/blog/${blogPosts[0].slug}.jpg`}
-                                alt={blogPosts[0].title}
-                                className="h-80"
-                                aspectRatio="landscape"
-                            />
-                            <div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <span>{blogPosts[0].category}</span>
-                                    <span>•</span>
-                                    <span>{blogPosts[0].date}</span>
-                                </div>
-                                <h2 className="mt-2 text-3xl font-medium tracking-tight text-gray-900">
-                                    {blogPosts[0].title}
-                                </h2>
-                                <p className="mt-4 text-lg text-gray-600">
-                                    {blogPosts[0].excerpt}
-                                </p>
-                                <div className="mt-6">
-                                    <Link href={`/blog/${blogPosts[0].slug}`} className="text-fuchsia-600 font-medium">
-                                        Read more
-                                    </Link>
-                                </div>
-                                <div className="mt-6 flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-gray-200"></div>
-                                    <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900">{blogPosts[0].author}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <Link href={route('blog.show', post.slug)}>
+                    <h2
+                        className={[
+                            'mt-2 font-display font-extrabold tracking-tight text-gray-900 hover:text-brand-500 transition-colors',
+                            featured ? 'text-3xl' : 'text-xl',
+                        ].join(' ')}
+                    >
+                        {post.title}
+                    </h2>
+                </Link>
 
-                    {/* Blog Post Grid */}
-                    <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-                        {blogPosts.slice(1).map((post) => (
-                            <article key={post.id} className="flex flex-col">
-                                <Image
-                                    src={`/blog/${post.slug}.jpg`}
-                                    alt={post.title}
-                                    className="h-48"
-                                    aspectRatio="landscape"
-                                />
-                                <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-                                    <span>{post.category}</span>
-                                    <span>•</span>
-                                    <span>{post.date}</span>
-                                </div>
-                                <h3 className="mt-2 text-xl font-medium tracking-tight text-gray-900">
-                                    {post.title}
-                                </h3>
-                                <p className="mt-4 flex-grow text-base text-gray-600">
-                                    {post.excerpt}
-                                </p>
-                                <div className="mt-6">
-                                    <Link href={`/blog/${post.slug}`} className="text-fuchsia-600 font-medium">
-                                        Read more
-                                    </Link>
-                                </div>
-                                <div className="mt-6 flex items-center">
-                                    <div className="h-8 w-8 rounded-full bg-gray-200"></div>
-                                    <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900">{post.author}</p>
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                {post.excerpt && (
+                    <p className={['mt-3 text-gray-600 flex-grow', featured ? 'text-lg' : 'text-base'].join(' ')}>
+                        {post.excerpt}
+                    </p>
+                )}
+
+                <div className="mt-4 flex items-center justify-between">
+                    {post.user && (
+                        <span className="text-sm text-gray-500">{post.user.name}</span>
+                    )}
+                    <Link
+                        href={route('blog.show', post.slug)}
+                        className="text-sm font-display font-extrabold text-brand-500 hover:text-brand-600 transition-colors ml-auto"
+                    >
+                        Read more →
+                    </Link>
+                </div>
+            </div>
+        </article>
+    )
+}
+
+export default function Blog({ posts }: BlogProps) {
+    const [featured, ...rest] = posts.data
+
+    return (
+        <MainLayout title="Blog — Bubbly Pups" description="Grooming tips, breed guides, and dog care advice from Bubbly Pups.">
+            {/* Hero */}
+            <div className="relative overflow-hidden bg-white">
+                {/* Decorative blobs */}
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-brand-100 opacity-40 blur-3xl"
+                />
+                <div
+                    aria-hidden
+                    className="pointer-events-none absolute -bottom-20 -right-20 h-[400px] w-[400px] rounded-full bg-blue-100 opacity-40 blur-3xl"
+                />
+
+                <Container className="relative py-20 sm:py-28 text-center">
+                    <span className="inline-block rounded-full bg-brand-100 px-4 py-1 text-sm font-display font-extrabold text-brand-600 mb-4">
+                        The Bubbly Blog
+                    </span>
+                    <h1 className="text-4xl sm:text-5xl font-display font-extrabold text-gray-900 tracking-tight">
+                        Tips, Guides &{' '}
+                        <span className="text-brand-400">Dog Love</span>
+                    </h1>
+                    <p className="mx-auto mt-4 max-w-xl text-lg text-gray-600">
+                        Grooming advice, breed-specific guides, and updates from Bubbly Pups — written with love for your pup.
+                    </p>
                 </Container>
             </div>
+
+            <Container className="py-16">
+                {posts.data.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 text-center">
+                        <div className="text-6xl mb-4">🐾</div>
+                        <h2 className="text-2xl font-display font-extrabold text-gray-700">No posts yet</h2>
+                        <p className="mt-2 text-gray-500">Check back soon — we're working on some great content!</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Featured post */}
+                        {featured && (
+                            <div className="mb-16 border-b border-gray-200 pb-16">
+                                <PostCard post={featured} featured />
+                            </div>
+                        )}
+
+                        {/* Grid */}
+                        {rest.length > 0 && (
+                            <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                                {rest.map((post) => (
+                                    <PostCard key={post.id} post={post} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {posts.last_page > 1 && (
+                            <div className="mt-16 flex justify-center gap-1">
+                                {posts.links.map((link, i) => (
+                                    link.url ? (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            className={[
+                                                'px-3 py-1.5 rounded text-sm font-display font-extrabold transition-colors',
+                                                link.active
+                                                    ? 'bg-brand-400 text-white'
+                                                    : 'text-gray-600 hover:bg-gray-100',
+                                            ].join(' ')}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ) : (
+                                        <span
+                                            key={i}
+                                            className="px-3 py-1.5 rounded text-sm text-gray-400"
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    )
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </Container>
         </MainLayout>
-    );
+    )
 }

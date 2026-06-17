@@ -3,12 +3,14 @@
 use App\Http\Controllers\Admin\AdminDogController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\BlockedTimeController;
+use App\Http\Controllers\Admin\BlogPostController;
 use App\Http\Controllers\Admin\BusinessHoursController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\CustomerForgotPasswordController;
 use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\CustomerNewPasswordController;
 use App\Http\Controllers\Auth\CustomerRegisterController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Customer\CustomerAppointmentController;
@@ -31,9 +33,8 @@ Route::get('/booking/start', function () {
     return Inertia::render('Booking/Start');
 })->name('booking.start');
 
-Route::get('/blog', function () {
-    return Inertia::render('Blog');
-})->name('blog');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+Route::get('/blog/{blogPost:slug}', [BlogController::class, 'show'])->name('blog.show');
 
 Route::get('/contact', function () {
     return Inertia::render('Contact');
@@ -271,6 +272,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Business hours management
     Route::patch('/business-hours/{businessHours}', [BusinessHoursController::class, 'update'])->name('business-hours.update');
+
+    // Blog post management
+    Route::get('/blog', [BlogPostController::class, 'index'])->name('blog.index');
+    Route::get('/blog/create', [BlogPostController::class, 'create'])->name('blog.create');
+    Route::post('/blog', [BlogPostController::class, 'store'])->name('blog.store');
+    Route::get('/blog/{blogPost}/edit', [BlogPostController::class, 'edit'])->name('blog.edit');
+    Route::patch('/blog/{blogPost}', [BlogPostController::class, 'update'])->name('blog.update');
+    Route::delete('/blog/{blogPost}', [BlogPostController::class, 'destroy'])->name('blog.destroy');
+    Route::patch('/blog/{blogPost}/publish', [BlogPostController::class, 'publish'])->name('blog.publish');
 });
 
 require __DIR__.'/auth.php';

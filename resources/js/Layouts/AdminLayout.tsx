@@ -17,6 +17,7 @@ import {
     Cog6ToothIcon,
     HeartIcon,
     HomeIcon,
+    NewspaperIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
@@ -28,6 +29,7 @@ const nav = [
     { name: "Doggie Database", href: "/dashboard/dogs", icon: HeartIcon, exact: false },
     { name: "Calendar", href: "/dashboard/calendar", icon: CalendarIcon, exact: false },
     { name: "My Availability", href: "/dashboard/availability", icon: ClockIcon, exact: false },
+    { name: "Blog Posts", href: "/admin/blog", icon: NewspaperIcon, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
