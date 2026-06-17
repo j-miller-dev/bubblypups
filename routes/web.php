@@ -24,7 +24,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/booking', function () {
-    return Inertia::render('Booking');
+    return redirect()->route('booking.start');
 })->name('booking');
 
 Route::get('/booking/start', function () {
