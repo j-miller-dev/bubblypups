@@ -245,9 +245,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');
     Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy'])->name('blocked-times.destroy');
 
-    Route::get('/admin/calendar', [CalendarController::class, 'index']);
-    Route::get('/admin/calendar/appointments', [CalendarController::class, 'appointments']);
-
     Route::get('/dashboard/calendar', function () {
         $businessHours = \App\Models\BusinessHours::query()
             ->orderByRaw("CASE day_of_week
