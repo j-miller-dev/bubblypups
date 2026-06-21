@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Twilio\TwilioChannel;
+use NotificationChannels\Twilio\TwilioSmsMessage;
 
 class AppointmentRescheduledNotification extends Notification implements ShouldQueue
 {
@@ -28,7 +30,28 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $channels = ['mail'];
+
+        if ($notifiable->phone) {
+            $channels[] = TwilioChannel::class;
+        }
+
+        return $channels;
+    }
+
+    public function toTwilio(object $notifiable): TwilioSmsMessage
+    {
+        $appointment = $this->appointment;
+        $date = $appointment->appointment_date->format('D j M');
+        $time = $appointment->appointment_time->format('g:i A');
+
+        if ($appointment->status === 'waiting_on_client') {
+            return (new TwilioSmsMessage)
+                ->content("{$appointment->dog->name}'s grooming has been rescheduled to {$date} at {$time}. Please check your email to confirm the new time.");
+        }
+
+        return (new TwilioSmsMessage)
+            ->content("{$appointment->dog->name}'s grooming has been rescheduled to {$date} at {$time}. See you then!");
     }
 
     /**
@@ -37,8 +60,8 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->appointment->status === 'waiting_on_client'
-        ? 'Please Confirm New Appointment Time For ' . $this->appointment->dog->name
-        : 'Appointment Rescheduled for ' . $this->appointment->dog->name;
+        ? 'Please Confirm New Appointment Time For '.$this->appointment->dog->name
+        : 'Appointment Rescheduled for '.$this->appointment->dog->name;
 
         $confirmUrl = \Illuminate\Support\Facades\URL::signedRoute(
             'appointments.confirm-from-email',
@@ -46,7 +69,7 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
             now()->addDays(7) // Link expires in 7 days
         );
 
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject($subject)
             ->markdown('notifications.appointment-rescheduled', [
                 'appointment' => $this->appointment,

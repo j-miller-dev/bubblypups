@@ -62,6 +62,21 @@ class Customer extends Authenticatable
         ];
     }
 
+    public function routeNotificationForTwilio(): ?string
+    {
+        if (! $this->phone) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $this->phone);
+
+        if (str_starts_with($digits, '0')) {
+            return '+61'.substr($digits, 1);
+        }
+
+        return '+'.$digits;
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new \App\Notifications\CustomerResetPasswordNotification($token));

@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Twilio\TwilioChannel;
+use NotificationChannels\Twilio\TwilioSmsMessage;
 
 class NewBookingNotification extends Notification implements ShouldQueue
 {
@@ -27,7 +29,24 @@ class NewBookingNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $channels = ['mail'];
+
+        if ($notifiable->phone) {
+            $channels[] = TwilioChannel::class;
+        }
+
+        return $channels;
+    }
+
+    public function toTwilio(object $notifiable): TwilioSmsMessage
+    {
+        $appointment = $this->appointment;
+        $customer = $appointment->dog->customer;
+        $date = $appointment->appointment_date->format('D j M');
+        $time = $appointment->appointment_time->format('g:i A');
+
+        return (new TwilioSmsMessage)
+            ->content("New booking request! {$customer->name}'s {$appointment->dog->name} for {$appointment->service->name} on {$date} at {$time}.");
     }
 
     /**
