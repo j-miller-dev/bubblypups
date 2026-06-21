@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
 import { Container } from "@/Components/layout";
 import {
     CalendarDaysIcon,
-    ClockIcon,
     CheckCircleIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ClockIcon,
 } from "@heroicons/react/20/solid";
 
 interface Dog {
@@ -30,6 +32,25 @@ interface Props {
     selectedDogId?: number;
 }
 
+function formatDate(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function formatDisplayTime(timeStr: string): string {
+    if (!timeStr) return "";
+    const [h, m] = timeStr.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m);
+    return d.toLocaleTimeString("en-AU", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
 function SectionDivider({ label }: { label: string }) {
     return (
         <div className="flex items-center gap-3">
@@ -52,6 +73,74 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
         appointment_time: "",
         notes: "",
     });
+
+    const todayStr = formatDate(new Date());
+    const [viewDate, setViewDate] = useState<Date>(new Date());
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+
+    const calendarDays = useMemo(() => {
+        const y = viewDate.getFullYear();
+        const m = viewDate.getMonth();
+        const firstDay = new Date(y, m, 1).getDay();
+        const mondayOffset = (firstDay + 6) % 7;
+        const daysInPrevMonth = new Date(y, m, 0).getDate();
+        const daysInThisMonth = new Date(y, m + 1, 0).getDate();
+
+        const grid: { date: string; isCurrentMonth: boolean }[] = [];
+
+        for (let i = mondayOffset; i > 0; i--) {
+            const d = new Date(y, m - 1, daysInPrevMonth - i + 1);
+            grid.push({ date: formatDate(d), isCurrentMonth: false });
+        }
+        for (let day = 1; day <= daysInThisMonth; day++) {
+            const d = new Date(y, m, day);
+            grid.push({ date: formatDate(d), isCurrentMonth: true });
+        }
+        const remainder = grid.length % 7;
+        const trailing = remainder === 0 ? 0 : 7 - remainder;
+        for (let i = 1; i <= trailing; i++) {
+            const d = new Date(y, m + 1, i);
+            grid.push({ date: formatDate(d), isCurrentMonth: false });
+        }
+        return grid;
+    }, [viewDate]);
+
+    useEffect(() => {
+        if (!data.appointment_date) return;
+        let ignore = false;
+
+        setIsLoadingSlots(true);
+        setAvailableSlots([]);
+
+        fetch(`/booking/available-slots?date=${data.appointment_date}`)
+            .then((r) => r.json())
+            .then((result) => {
+                if (!ignore) {
+                    setAvailableSlots(result.slots || []);
+                    setIsLoadingSlots(false);
+                }
+            })
+            .catch(() => {
+                if (!ignore) {
+                    setAvailableSlots([]);
+                    setIsLoadingSlots(false);
+                }
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, [data.appointment_date]);
+
+    const handleDateSelect = (date: string, isCurrentMonth: boolean) => {
+        setData("appointment_date", date);
+        setData("appointment_time", "");
+        if (!isCurrentMonth) {
+            const [yy, mm] = date.slice(0, 7).split("-").map(Number);
+            setViewDate(new Date(yy, (mm ?? 1) - 1, 1));
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -89,7 +178,6 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
             <Head title="Book Appointment" />
 
             <section className="relative overflow-hidden bg-gradient-to-b from-white to-brand-50 py-16 sm:py-24">
-                {/* Decorative blobs */}
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-brand-100 opacity-50 blur-3xl"
@@ -121,7 +209,7 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-8">
-                            {/* Dog selector — only shown when customer has multiple dogs */}
+                            {/* Dog selector */}
                             {dogs.length > 1 && (
                                 <div>
                                     <SectionDivider label="Which pup?" />
@@ -221,86 +309,228 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                 )}
                             </div>
 
-                            {/* Date & time */}
+                            {/* Date & Time */}
                             <div>
                                 <SectionDivider label="Pick a date & time" />
-                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Calendar */}
                                     <div>
-                                        <label
-                                            htmlFor="date"
-                                            className="label"
-                                        >
-                                            Preferred date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            id="date"
-                                            value={data.appointment_date}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "appointment_date",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            min={
-                                                new Date()
-                                                    .toISOString()
-                                                    .split("T")[0]
-                                            }
-                                            className="input"
-                                        />
+                                        <p className="text-xs font-display font-extrabold text-gray-500 uppercase tracking-wide mb-3">
+                                            Select a date
+                                        </p>
+
+                                        {/* Month nav */}
+                                        <div className="flex items-center justify-between mb-3">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setViewDate(
+                                                        new Date(
+                                                            viewDate.getFullYear(),
+                                                            viewDate.getMonth() -
+                                                                1,
+                                                            1,
+                                                        ),
+                                                    )
+                                                }
+                                                className="rounded-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                                            >
+                                                <span className="sr-only">
+                                                    Previous month
+                                                </span>
+                                                <ChevronLeftIcon className="size-4" />
+                                            </button>
+                                            <span className="text-sm font-display font-extrabold text-gray-900">
+                                                {viewDate.toLocaleString(
+                                                    "en-AU",
+                                                    {
+                                                        month: "long",
+                                                        year: "numeric",
+                                                    },
+                                                )}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setViewDate(
+                                                        new Date(
+                                                            viewDate.getFullYear(),
+                                                            viewDate.getMonth() +
+                                                                1,
+                                                            1,
+                                                        ),
+                                                    )
+                                                }
+                                                className="rounded-button p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                                            >
+                                                <span className="sr-only">
+                                                    Next month
+                                                </span>
+                                                <ChevronRightIcon className="size-4" />
+                                            </button>
+                                        </div>
+
+                                        {/* Day headers */}
+                                        <div className="grid grid-cols-7 text-xs font-display font-extrabold text-gray-400 text-center mb-1">
+                                            {[
+                                                "M",
+                                                "T",
+                                                "W",
+                                                "T",
+                                                "F",
+                                                "S",
+                                                "S",
+                                            ].map((d, i) => (
+                                                <div key={i}>{d}</div>
+                                            ))}
+                                        </div>
+
+                                        {/* Calendar grid */}
+                                        <div className="isolate grid grid-cols-7 gap-px rounded-card bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200 overflow-hidden">
+                                            {calendarDays.map((day) => {
+                                                const isSelected =
+                                                    day.date ===
+                                                    data.appointment_date;
+                                                const isToday =
+                                                    day.date === todayStr;
+                                                const isPast =
+                                                    day.date < todayStr;
+                                                return (
+                                                    <button
+                                                        key={day.date}
+                                                        type="button"
+                                                        disabled={isPast}
+                                                        onClick={() =>
+                                                            handleDateSelect(
+                                                                day.date,
+                                                                day.isCurrentMonth,
+                                                            )
+                                                        }
+                                                        className={[
+                                                            "py-2 text-center transition-colors focus:z-10 disabled:cursor-not-allowed disabled:opacity-40",
+                                                            isSelected
+                                                                ? "bg-brand-500"
+                                                                : day.isCurrentMonth
+                                                                  ? "bg-white hover:bg-brand-50"
+                                                                  : "bg-gray-50 hover:bg-gray-100",
+                                                            isToday &&
+                                                            !isSelected
+                                                                ? "ring-1 ring-inset ring-brand-300"
+                                                                : "",
+                                                        ].join(" ")}
+                                                    >
+                                                        <time
+                                                            dateTime={day.date}
+                                                            className={[
+                                                                "mx-auto flex size-8 items-center justify-center rounded-full text-xs font-display font-extrabold",
+                                                                isSelected
+                                                                    ? "text-white"
+                                                                    : isToday
+                                                                      ? "text-brand-500"
+                                                                      : day.isCurrentMonth
+                                                                        ? "text-gray-900"
+                                                                        : "text-gray-400",
+                                                            ].join(" ")}
+                                                        >
+                                                            {day.date
+                                                                .split("-")
+                                                                .pop()
+                                                                ?.replace(
+                                                                    /^0/,
+                                                                    "",
+                                                                )}
+                                                        </time>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
                                         {errors.appointment_date && (
-                                            <p className="mt-1.5 text-sm text-red-600">
+                                            <p className="mt-2 text-sm text-red-600">
                                                 {errors.appointment_date}
                                             </p>
                                         )}
                                     </div>
 
+                                    {/* Time slots */}
                                     <div>
-                                        <label
-                                            htmlFor="time"
-                                            className="label"
-                                        >
-                                            Preferred time
-                                        </label>
-                                        <select
-                                            id="time"
-                                            value={data.appointment_time}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "appointment_time",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="input"
-                                        >
-                                            <option value="">
-                                                Select a time
-                                            </option>
-                                            <option value="09:00">
-                                                9:00 AM
-                                            </option>
-                                            <option value="10:00">
-                                                10:00 AM
-                                            </option>
-                                            <option value="11:00">
-                                                11:00 AM
-                                            </option>
-                                            <option value="13:00">
-                                                1:00 PM
-                                            </option>
-                                            <option value="14:00">
-                                                2:00 PM
-                                            </option>
-                                            <option value="15:00">
-                                                3:00 PM
-                                            </option>
-                                            <option value="16:00">
-                                                4:00 PM
-                                            </option>
-                                        </select>
+                                        <p className="text-xs font-display font-extrabold text-gray-500 uppercase tracking-wide mb-3">
+                                            Select a time
+                                        </p>
+
+                                        {!data.appointment_date && (
+                                            <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-gray-200 py-10 text-center">
+                                                <CalendarDaysIcon className="size-8 text-gray-300 mb-2" />
+                                                <p className="text-sm text-gray-400">
+                                                    Pick a date first
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {data.appointment_date &&
+                                            isLoadingSlots && (
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {Array.from({
+                                                        length: 6,
+                                                    }).map((_, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="h-11 rounded-button bg-gray-100 animate-pulse"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                        {data.appointment_date &&
+                                            !isLoadingSlots &&
+                                            availableSlots.length === 0 && (
+                                                <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-gray-200 py-10 text-center">
+                                                    <ClockIcon className="size-8 text-gray-300 mb-2" />
+                                                    <p className="text-sm text-gray-400">
+                                                        No times available for
+                                                        this date
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        Try a different day
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                        {data.appointment_date &&
+                                            !isLoadingSlots &&
+                                            availableSlots.length > 0 && (
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {availableSlots.map(
+                                                        (slot) => (
+                                                            <button
+                                                                key={slot}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setData(
+                                                                        "appointment_time",
+                                                                        slot,
+                                                                    )
+                                                                }
+                                                                className={[
+                                                                    "flex items-center justify-center gap-1.5 rounded-button border px-3 py-3 text-sm font-display font-extrabold transition-colors",
+                                                                    data.appointment_time ===
+                                                                    slot
+                                                                        ? "bg-brand-500 text-white border-brand-500 shadow-sm"
+                                                                        : "bg-white text-gray-700 border-gray-200 hover:border-brand-300 hover:bg-brand-50",
+                                                                ].join(" ")}
+                                                            >
+                                                                <ClockIcon className="size-3.5 shrink-0" />
+                                                                {formatDisplayTime(
+                                                                    slot,
+                                                                )}
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+
                                         {errors.appointment_time && (
-                                            <p className="mt-1.5 text-sm text-red-600">
+                                            <p className="mt-2 text-sm text-red-600">
                                                 {errors.appointment_time}
                                             </p>
                                         )}
@@ -336,6 +566,42 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                 </div>
                             </div>
 
+                            {/* Penciled in notice */}
+                            <div className="rounded-card border border-amber-200 bg-amber-50 px-5 py-4">
+                                <div className="flex items-start gap-3">
+                                    <span className="text-xl shrink-0 mt-0.5">📋</span>
+                                    <div>
+                                        <p className="text-sm font-display font-extrabold text-amber-800">
+                                            Your appointment will be penciled in, not locked in
+                                        </p>
+                                        <p className="mt-1 text-sm text-amber-700">
+                                            As a one-groomer salon, we assess each job before confirming times. We'll review your request and confirm within 24 hours — or reach out if a small time adjustment is needed.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Appointment summary */}
+                            {data.appointment_date && data.appointment_time && (
+                                <p className="text-center text-sm text-gray-500">
+                                    Your requested appointment:{" "}
+                                    <span className="font-display font-extrabold text-gray-900">
+                                        {new Date(
+                                            data.appointment_date + "T12:00:00",
+                                        ).toLocaleDateString("en-AU", {
+                                            weekday: "long",
+                                            day: "numeric",
+                                            month: "long",
+                                            year: "numeric",
+                                        })}{" "}
+                                        at{" "}
+                                        {formatDisplayTime(
+                                            data.appointment_time,
+                                        )}
+                                    </span>
+                                </p>
+                            )}
+
                             {/* Submit */}
                             <div className="flex justify-end pt-2">
                                 <button
@@ -350,8 +616,8 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                 >
                                     <CalendarDaysIcon className="h-4 w-4" />
                                     {processing
-                                        ? "Booking…"
-                                        : "Book Appointment"}
+                                        ? "Sending request…"
+                                        : "Request Appointment"}
                                 </button>
                             </div>
                         </form>

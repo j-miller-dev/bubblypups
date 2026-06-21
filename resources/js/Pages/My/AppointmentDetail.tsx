@@ -38,7 +38,7 @@ interface AppointmentDetailProps {
 }
 
 const statusStyles: Record<string, { badge: string; label: string }> = {
-    pending: { badge: "bg-yellow-100 text-yellow-700", label: "Pending" },
+    pending: { badge: "bg-amber-100 text-amber-700", label: "Penciled In" },
     confirmed: { badge: "bg-green-100 text-green-700", label: "Confirmed" },
     waiting_on_client: {
         badge: "bg-blue-100 text-blue-700",
@@ -180,6 +180,23 @@ export default function AppointmentDetail({
                             </div>
                         </div>
                     </div>
+
+                    {/* Penciled in notice */}
+                    {appointment.status === "pending" && (
+                        <div className="rounded-card border border-amber-200 bg-amber-50 px-5 py-4">
+                            <div className="flex items-start gap-3">
+                                <span className="text-xl shrink-0 mt-0.5">📋</span>
+                                <div>
+                                    <p className="text-sm font-display font-extrabold text-amber-800">
+                                        This appointment is penciled in
+                                    </p>
+                                    <p className="mt-1 text-sm text-amber-700">
+                                        We'll review the job requirements and confirm your time — or reach out if a small adjustment is needed. You'll receive an email once it's locked in.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Notes */}
                     {appointment.notes && (

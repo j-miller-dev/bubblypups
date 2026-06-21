@@ -22,8 +22,8 @@ interface AppointmentCardProps {
 
 const statusStyles: Record<string, { badge: string; label: string }> = {
     pending: {
-        badge: "bg-yellow-100 text-yellow-700",
-        label: "Pending",
+        badge: "bg-amber-100 text-amber-700",
+        label: "Penciled In",
     },
     confirmed: {
         badge: "bg-green-100 text-green-700",
