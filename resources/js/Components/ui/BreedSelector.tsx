@@ -10,6 +10,8 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { usePage } from "@inertiajs/react";
 import clsx from "clsx";
 
+const OTHER = "__other__";
+
 interface BreedSelectorProps {
     value: string;
     onChange: (value: string) => void;
@@ -28,47 +30,56 @@ export default function BreedSelector({
     const { breeds } = usePage<{ breeds: string[] }>().props;
     const [query, setQuery] = useState("");
     const [isMixed, setIsMixed] = useState(value.includes(" / "));
-    const [secondBreed, setSecondBreed] = useState(() => {
-        if (value.includes(" / ")) {
-            const parts = value.split(" / ");
-            return parts[1] || "";
-        }
-        return "";
-    });
+    const [secondBreed, setSecondBreed] = useState(() =>
+        value.includes(" / ") ? value.split(" / ")[1] || "" : ""
+    );
     const [secondQuery, setSecondQuery] = useState("");
+    const [isOtherPrimary, setIsOtherPrimary] = useState(() => {
+        const p = value.includes(" / ") ? value.split(" / ")[0] : value;
+        return !!p && !breeds.includes(p);
+    });
+    const [isOtherSecond, setIsOtherSecond] = useState(() => {
+        if (!value.includes(" / ")) return false;
+        const s = value.split(" / ")[1] || "";
+        return !!s && !breeds.includes(s);
+    });
 
-    const primaryBreed = useMemo(() => {
-        if (value.includes(" / ")) {
-            return value.split(" / ")[0];
-        }
-        return value;
-    }, [value]);
+    const primaryBreed = useMemo(
+        () => (value.includes(" / ") ? value.split(" / ")[0] : value),
+        [value]
+    );
 
     const filteredBreeds = useMemo(() => {
         if (query === "") return breeds;
-        return breeds.filter((breed) =>
-            breed.toLowerCase().includes(query.toLowerCase())
+        return breeds.filter((b) =>
+            b.toLowerCase().startsWith(query.toLowerCase())
         );
     }, [breeds, query]);
 
     const filteredBreedsSecond = useMemo(() => {
         if (secondQuery === "") return breeds;
-        return breeds.filter((breed) =>
-            breed.toLowerCase().includes(secondQuery.toLowerCase())
+        return breeds.filter((b) =>
+            b.toLowerCase().startsWith(secondQuery.toLowerCase())
         );
     }, [breeds, secondQuery]);
 
     const handlePrimaryChange = (newValue: string | null) => {
-        const breed = newValue || query;
-        if (isMixed && secondBreed) {
-            onChange(`${breed} / ${secondBreed}`);
-        } else {
-            onChange(breed);
+        if (newValue === OTHER) {
+            setIsOtherPrimary(true);
+            onChange("");
+            return;
         }
+        const breed = newValue ?? "";
+        onChange(isMixed && secondBreed ? `${breed} / ${secondBreed}` : breed);
     };
 
     const handleSecondChange = (newValue: string | null) => {
-        const breed = newValue || secondQuery;
+        if (newValue === OTHER) {
+            setIsOtherSecond(true);
+            setSecondBreed("");
+            return;
+        }
+        const breed = newValue ?? "";
         setSecondBreed(breed);
         onChange(`${primaryBreed} / ${breed}`);
     };
@@ -77,6 +88,7 @@ export default function BreedSelector({
         setIsMixed(checked);
         if (!checked) {
             setSecondBreed("");
+            setIsOtherSecond(false);
             onChange(primaryBreed);
         } else if (secondBreed) {
             onChange(`${primaryBreed} / ${secondBreed}`);
@@ -84,17 +96,15 @@ export default function BreedSelector({
     };
 
     const inputClasses = clsx(
-        "block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 shadow-sm",
+        "block w-full rounded-md border-0 py-1.5 pl-3 text-gray-900 shadow-sm",
         "ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6",
         error
             ? "ring-red-300 focus:ring-red-500"
             : "ring-gray-300 focus:ring-primary-600"
     );
 
-    const optionClasses = clsx(
-        "relative cursor-default select-none py-2 pl-3 pr-9",
-        "data-[focus]:bg-primary-600 data-[focus]:text-white text-gray-900"
-    );
+    const optionClasses =
+        "relative cursor-default select-none py-2 pl-3 pr-9 data-[focus]:bg-primary-600 data-[focus]:text-white text-gray-900";
 
     return (
         <div className="space-y-3">
@@ -105,87 +115,110 @@ export default function BreedSelector({
                         {label} {required && "*"}
                     </label>
                 )}
-                <Combobox
-                    value={primaryBreed}
-                    onChange={handlePrimaryChange}
-                    onClose={() => setQuery("")}
-                >
-                    <div className="relative">
-                        <ComboboxInput
-                            className={inputClasses}
-                            onChange={(e) => setQuery(e.target.value)}
-                            displayValue={(breed: string) => breed}
-                            placeholder="Search or type breed..."
+                {isOtherPrimary ? (
+                    <div className="space-y-1">
+                        <input
+                            type="text"
+                            autoFocus
+                            className={clsx(inputClasses, "pr-3")}
+                            value={primaryBreed}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                onChange(
+                                    isMixed && secondBreed
+                                        ? `${v} / ${secondBreed}`
+                                        : v
+                                );
+                            }}
+                            placeholder="Type breed name..."
                         />
-                        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-                            <ChevronUpDownIcon
-                                className="h-5 w-5 text-gray-400"
-                                aria-hidden="true"
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsOtherPrimary(false);
+                                onChange("");
+                            }}
+                            className="text-xs text-primary-600 hover:text-primary-500"
+                        >
+                            ← Back to breed list
+                        </button>
+                    </div>
+                ) : (
+                    <Combobox
+                        value={primaryBreed}
+                        onChange={handlePrimaryChange}
+                        onClose={() => setQuery("")}
+                    >
+                        <div className="relative">
+                            <ComboboxInput
+                                className={clsx(inputClasses, "pr-10")}
+                                onChange={(e) => setQuery(e.target.value)}
+                                displayValue={(breed: string) => breed}
+                                placeholder="Search breed..."
                             />
-                        </ComboboxButton>
-                        <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {query && !breeds.includes(query) && (
-                                <ComboboxOption
-                                    value={query}
-                                    className={optionClasses}
-                                >
-                                    {({ selected }) => (
-                                        <>
-                                            <span
-                                                className={clsx(
-                                                    "block truncate",
-                                                    selected && "font-semibold"
-                                                )}
-                                            >
-                                                Add "{query}"
-                                            </span>
-                                        </>
-                                    )}
-                                </ComboboxOption>
-                            )}
-                            {filteredBreeds.map((breed) => (
-                                <ComboboxOption
-                                    key={breed}
-                                    value={breed}
-                                    className={optionClasses}
-                                >
-                                    {({ selected, focus }) => (
-                                        <>
-                                            <span
-                                                className={clsx(
-                                                    "block truncate",
-                                                    selected && "font-semibold"
-                                                )}
-                                            >
-                                                {breed}
-                                            </span>
-                                            {selected && (
+                            <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                <ChevronUpDownIcon
+                                    className="h-5 w-5 text-gray-400"
+                                    aria-hidden="true"
+                                />
+                            </ComboboxButton>
+                            <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                {filteredBreeds.map((breed) => (
+                                    <ComboboxOption
+                                        key={breed}
+                                        value={breed}
+                                        className={optionClasses}
+                                    >
+                                        {({ selected, focus }) => (
+                                            <>
                                                 <span
                                                     className={clsx(
-                                                        "absolute inset-y-0 right-0 flex items-center pr-4",
-                                                        focus
-                                                            ? "text-white"
-                                                            : "text-primary-600"
+                                                        "block truncate",
+                                                        selected && "font-semibold"
                                                     )}
                                                 >
-                                                    <CheckIcon
-                                                        className="h-5 w-5"
-                                                        aria-hidden="true"
-                                                    />
+                                                    {breed}
                                                 </span>
+                                                {selected && (
+                                                    <span
+                                                        className={clsx(
+                                                            "absolute inset-y-0 right-0 flex items-center pr-4",
+                                                            focus
+                                                                ? "text-white"
+                                                                : "text-primary-600"
+                                                        )}
+                                                    >
+                                                        <CheckIcon
+                                                            className="h-5 w-5"
+                                                            aria-hidden="true"
+                                                        />
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </ComboboxOption>
+                                ))}
+                                <ComboboxOption
+                                    value={OTHER}
+                                    className={optionClasses}
+                                >
+                                    {({ focus }) => (
+                                        <span
+                                            className={clsx(
+                                                "block truncate italic",
+                                                focus
+                                                    ? "text-white"
+                                                    : "text-gray-400"
                                             )}
-                                        </>
+                                        >
+                                            Other (type your own)
+                                        </span>
                                     )}
                                 </ComboboxOption>
-                            ))}
-                            {filteredBreeds.length === 0 && !query && (
-                                <div className="px-3 py-2 text-sm text-gray-500">
-                                    Start typing to search breeds...
-                                </div>
-                            )}
-                        </ComboboxOptions>
-                    </div>
-                </Combobox>
+                            </ComboboxOptions>
+                        </div>
+                    </Combobox>
+                )}
             </div>
 
             {/* Mixed Breed Toggle */}
@@ -211,32 +244,61 @@ export default function BreedSelector({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Second Breed
                     </label>
-                    <Combobox
-                        value={secondBreed}
-                        onChange={handleSecondChange}
-                        onClose={() => setSecondQuery("")}
-                    >
-                        <div className="relative">
-                            <ComboboxInput
-                                className={inputClasses}
-                                onChange={(e) => setSecondQuery(e.target.value)}
-                                displayValue={(breed: string) => breed}
-                                placeholder="Search or type second breed..."
+                    {isOtherSecond ? (
+                        <div className="space-y-1">
+                            <input
+                                type="text"
+                                autoFocus
+                                className={clsx(inputClasses, "pr-3")}
+                                value={secondBreed}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    setSecondBreed(v);
+                                    onChange(`${primaryBreed} / ${v}`);
+                                }}
+                                placeholder="Type second breed name..."
                             />
-                            <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsOtherSecond(false);
+                                    setSecondBreed("");
+                                    onChange(primaryBreed);
+                                }}
+                                className="text-xs text-primary-600 hover:text-primary-500"
+                            >
+                                ← Back to breed list
+                            </button>
+                        </div>
+                    ) : (
+                        <Combobox
+                            value={secondBreed}
+                            onChange={handleSecondChange}
+                            onClose={() => setSecondQuery("")}
+                        >
+                            <div className="relative">
+                                <ComboboxInput
+                                    className={clsx(inputClasses, "pr-10")}
+                                    onChange={(e) =>
+                                        setSecondQuery(e.target.value)
+                                    }
+                                    displayValue={(breed: string) => breed}
+                                    placeholder="Search second breed..."
                                 />
-                            </ComboboxButton>
-                            <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                {secondQuery &&
-                                    !breeds.includes(secondQuery) && (
+                                <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                    <ChevronUpDownIcon
+                                        className="h-5 w-5 text-gray-400"
+                                        aria-hidden="true"
+                                    />
+                                </ComboboxButton>
+                                <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    {filteredBreedsSecond.map((breed) => (
                                         <ComboboxOption
-                                            value={secondQuery}
+                                            key={breed}
+                                            value={breed}
                                             className={optionClasses}
                                         >
-                                            {({ selected }) => (
+                                            {({ selected, focus }) => (
                                                 <>
                                                     <span
                                                         className={clsx(
@@ -245,51 +307,48 @@ export default function BreedSelector({
                                                                 "font-semibold"
                                                         )}
                                                     >
-                                                        Add "{secondQuery}"
+                                                        {breed}
                                                     </span>
+                                                    {selected && (
+                                                        <span
+                                                            className={clsx(
+                                                                "absolute inset-y-0 right-0 flex items-center pr-4",
+                                                                focus
+                                                                    ? "text-white"
+                                                                    : "text-primary-600"
+                                                            )}
+                                                        >
+                                                            <CheckIcon
+                                                                className="h-5 w-5"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </span>
+                                                    )}
                                                 </>
                                             )}
                                         </ComboboxOption>
-                                    )}
-                                {filteredBreedsSecond.map((breed) => (
+                                    ))}
                                     <ComboboxOption
-                                        key={breed}
-                                        value={breed}
+                                        value={OTHER}
                                         className={optionClasses}
                                     >
-                                        {({ selected, focus }) => (
-                                            <>
-                                                <span
-                                                    className={clsx(
-                                                        "block truncate",
-                                                        selected &&
-                                                            "font-semibold"
-                                                    )}
-                                                >
-                                                    {breed}
-                                                </span>
-                                                {selected && (
-                                                    <span
-                                                        className={clsx(
-                                                            "absolute inset-y-0 right-0 flex items-center pr-4",
-                                                            focus
-                                                                ? "text-white"
-                                                                : "text-primary-600"
-                                                        )}
-                                                    >
-                                                        <CheckIcon
-                                                            className="h-5 w-5"
-                                                            aria-hidden="true"
-                                                        />
-                                                    </span>
+                                        {({ focus }) => (
+                                            <span
+                                                className={clsx(
+                                                    "block truncate italic",
+                                                    focus
+                                                        ? "text-white"
+                                                        : "text-gray-400"
                                                 )}
-                                            </>
+                                            >
+                                                Other (type your own)
+                                            </span>
                                         )}
                                     </ComboboxOption>
-                                ))}
-                            </ComboboxOptions>
-                        </div>
-                    </Combobox>
+                                </ComboboxOptions>
+                            </div>
+                        </Combobox>
+                    )}
                 </div>
             )}
 
