@@ -23,12 +23,14 @@ class AppointmentFactory extends Factory
             'customer_id' => function (array $attributes) {
                 return \App\Models\Dog::find($attributes['dog_id'])->customer_id;
             },
+            'service_id' => \App\Models\Service::factory(),
             'appointment_date' => fake()->dateTimeBetween('now', '+7 days')->format('Y-m-d'),
             'appointment_time' => fake()->randomElement($times),
             'duration' => 60,
-            'status' => fake()->randomElement(['pending', 'confirmed', 'pending', 'pending']), // More pending
+            'status' => fake()->randomElement(['pending', 'pending', 'pending', 'confirmed', 'confirmed', 'waiting_on_client']),
             'notes' => fake()->optional(0.5)->sentence(),
             'confirmed_at' => null,
+            'reminder_sent_at' => null,
         ];
     }
 }

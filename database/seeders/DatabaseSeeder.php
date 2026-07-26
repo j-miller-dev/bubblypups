@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,10 +18,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@bubblypups.com',
         ]);
 
-        // Seed all business data
         $this->call([
+            BusinessHoursSeeder::class,
             ServiceSeeder::class,
             TestDataSeeder::class,
+            BlogPostSeeder::class,
         ]);
     }
 }

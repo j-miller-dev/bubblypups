@@ -13,14 +13,7 @@ use App\Notifications\NewBookingNotification;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
-    $this->service = Service::create([
-        'name' => 'Full Groom',
-        'description' => 'Complete grooming service',
-        'emoji' => '✂️',
-        'base_price' => 80,
-        'duration_minutes' => 90,
-        'pricing_tiers' => ['small' => 60, 'medium' => 80, 'large' => 100],
-    ]);
+    $this->service = Service::factory()->create();
 
     // Create business hours for testing
     BusinessHours::create([
