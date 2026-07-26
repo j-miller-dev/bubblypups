@@ -10,10 +10,13 @@ test('new users can register', function () {
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'phone' => '555-123-4567',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'dog_name' => 'Buddy',
+        'dog_size' => 'medium',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->assertAuthenticated('customer');
+    $response->assertRedirectContains(route('booking.create', absolute: false));
 });

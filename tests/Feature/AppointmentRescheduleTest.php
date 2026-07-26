@@ -5,13 +5,16 @@ use App\Models\BusinessHours;
 use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\User;
+use Carbon\Carbon;
 
 beforeEach(function () {
-    // Create an authenticated admin user
     $this->user = User::factory()->create();
     $this->actingAs($this->user);
 
-    // Create business hours for testing (Thursday is when 2026-01-15 falls)
+    // Use next Thursday so business hours match and dates are always in the future
+    $this->testDate = Carbon::parse('next thursday')->format('Y-m-d');
+    $this->nextDate = Carbon::parse('next thursday')->addDay()->format('Y-m-d');
+
     BusinessHours::create([
         'day_of_week' => 'thursday',
         'is_open' => true,
@@ -25,17 +28,15 @@ test('available slots endpoint excludes appointment being rescheduled', function
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->create(['customer_id' => $customer->id]);
 
-    // Create an appointment on 2026-01-15 at 10:00
     $appointment = Appointment::factory()->create([
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'confirmed',
     ]);
 
-    // Request available slots for the same date, excluding this appointment
-    $response = $this->getJson('/admin/appointments/available-slots?date=2026-01-15&exclude_appointment_id='.$appointment->id);
+    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate.'&exclude_appointment_id='.$appointment->id);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');
@@ -48,17 +49,15 @@ test('available slots endpoint shows slot as booked when not excluding appointme
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->create(['customer_id' => $customer->id]);
 
-    // Create an appointment on 2026-01-15 at 10:00
     Appointment::factory()->create([
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'confirmed',
     ]);
 
-    // Request available slots WITHOUT excluding the appointment
-    $response = $this->getJson('/admin/appointments/available-slots?date=2026-01-15');
+    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');
@@ -74,14 +73,13 @@ test('can reschedule appointment to same time without constraint violation', fun
     $appointment = Appointment::factory()->create([
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'pending',
     ]);
 
-    // Reschedule to the same time (edge case but should work)
     $response = $this->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00',
         'status' => 'confirmed',
         'notes' => 'Confirming current time',
@@ -89,7 +87,6 @@ test('can reschedule appointment to same time without constraint violation', fun
 
     $response->assertRedirect();
 
-    // Verify the appointment was updated
     $appointment->refresh();
     expect($appointment->status)->toBe('confirmed');
     expect($appointment->confirmed_at)->not->toBeNull();
@@ -102,14 +99,13 @@ test('can reschedule appointment to different available time', function () {
     $appointment = Appointment::factory()->create([
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'pending',
     ]);
 
-    // Reschedule to a different time
     $response = $this->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '11:00',
         'status' => 'confirmed',
         'notes' => 'Moving to 11am',
@@ -117,7 +113,6 @@ test('can reschedule appointment to different available time', function () {
 
     $response->assertRedirect();
 
-    // Verify the appointment was updated
     $appointment->refresh();
     expect($appointment->appointment_time->format('H:i'))->toBe('11:00');
     expect($appointment->status)->toBe('confirmed');
@@ -131,10 +126,10 @@ test('cannot reschedule to already booked time slot', function () {
     $dog2 = Dog::factory()->create(['customer_id' => $customer2->id]);
 
     // Create first appointment at 10:00
-    $appointment1 = Appointment::factory()->create([
+    Appointment::factory()->create([
         'customer_id' => $customer1->id,
         'dog_id' => $dog1->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'confirmed',
     ]);
@@ -143,22 +138,20 @@ test('cannot reschedule to already booked time slot', function () {
     $appointment2 = Appointment::factory()->create([
         'customer_id' => $customer2->id,
         'dog_id' => $dog2->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '11:00:00',
         'status' => 'confirmed',
     ]);
 
     // Try to reschedule appointment2 to 10:00 (already taken by appointment1)
     $response = $this->patchJson("/admin/appointments/{$appointment2->id}/reschedule", [
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00',
         'status' => 'confirmed',
     ]);
 
-    // Should fail with validation or constraint error
-    // This will either be a 422 validation error or 500 constraint error
-    // The important part is that it doesn't succeed
-    expect($response->status())->not->toBe(302); // Not a successful redirect
+    // Should fail with a validation error, not redirect
+    expect($response->status())->not->toBe(302);
 });
 
 test('reschedule with waiting_on_client status clears confirmed_at', function () {
@@ -168,15 +161,14 @@ test('reschedule with waiting_on_client status clears confirmed_at', function ()
     $appointment = Appointment::factory()->create([
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
-        'appointment_date' => '2026-01-15',
+        'appointment_date' => $this->testDate,
         'appointment_time' => '10:00:00',
         'status' => 'confirmed',
         'confirmed_at' => now(),
     ]);
 
-    // Reschedule with "waiting_on_client" status
     $response = $this->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
-        'appointment_date' => '2026-01-16',
+        'appointment_date' => $this->nextDate,
         'appointment_time' => '14:00',
         'status' => 'waiting_on_client',
         'notes' => 'Proposing new time to client',
@@ -184,7 +176,6 @@ test('reschedule with waiting_on_client status clears confirmed_at', function ()
 
     $response->assertRedirect();
 
-    // Verify confirmed_at was cleared
     $appointment->refresh();
     expect($appointment->status)->toBe('waiting_on_client');
     expect($appointment->confirmed_at)->toBeNull();

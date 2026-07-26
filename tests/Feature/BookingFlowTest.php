@@ -1,274 +1,157 @@
 <?php
 
-namespace Tests\Feature;
-
+use App\Models\Customer;
+use App\Models\Dog;
+use App\Models\Service;
+use App\Models\User;
+use App\Notifications\NewBookingNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\Support\Facades\Notification;
 
-class BookingFlowTest extends TestCase
-{
-    use RefreshDatabase;
+uses(RefreshDatabase::class);
 
-    public function test_booking_form_renders_correctly()
-    {
-        $response = $this->get('/booking/appointment');
+beforeEach(function () {
+    $this->service = Service::create([
+        'name' => 'Full Groom',
+        'description' => 'Complete grooming service',
+        'emoji' => '✂️',
+        'base_price' => 80,
+        'duration_minutes' => 90,
+        'pricing_tiers' => ['small' => 60, 'medium' => 80, 'large' => 100],
+    ]);
+});
 
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page->component('Booking')
-        );
-    }
+test('booking form renders correctly', function () {
+    $customer = Customer::factory()->create();
+    Dog::factory()->for($customer)->create();
 
-    public function test_booking_submission_creates_booking_successfully()
-    {
-        $bookingData = [
-            'service' => 'full-grooming',
-            'dog' => [
-                'name' => 'Buddy',
-                'breed' => 'Golden Retriever',
-                'age' => '3 years',
-                'weight' => '65',
-                'notes' => 'Very friendly dog',
-            ],
-            'appointment' => [
-                'date' => '2025-08-20',
-                'time' => '10:00 AM',
-            ],
-            'contact' => [
-                'name' => 'John Doe',
-                'email' => 'john@example.com',
-                'phone' => '555-123-4567',
-            ],
-        ];
+    $response = $this->actingAs($customer, 'customer')
+        ->get('/booking/create');
 
-        $response = $this->post('/bookings', $bookingData);
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page->component('Booking/Create'));
+});
 
-        $response->assertStatus(200);
-        $response->assertJson(['ok' => true]);
+test('booking requires authentication', function () {
+    $response = $this->post('/booking', []);
 
-        $this->assertDatabaseHas('owners', [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'phone' => '555-123-4567',
+    $response->assertRedirect(route('customer.login.form'));
+});
+
+test('booking submission creates appointment successfully', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    $response = $this->actingAs($customer, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'appointment_time' => '10:00',
         ]);
 
-        $this->assertDatabaseHas('dogs', [
-            'name' => 'Buddy',
-            'breed' => 'Golden Retriever',
-            'age' => '3 years',
-            'weight' => '65',
-            'notes' => 'Very friendly dog',
+    $response->assertRedirect(route('home'));
+    $this->assertDatabaseHas('appointments', [
+        'customer_id' => $customer->id,
+        'dog_id' => $dog->id,
+        'service_id' => $this->service->id,
+        'status' => 'pending',
+    ]);
+});
+
+test('booking validation requires all fields', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    // Provide dog_id so authorize() passes, leaving other required fields empty
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', ['dog_id' => $dog->id]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['service_id', 'appointment_date', 'appointment_time']);
+});
+
+test('booking rejects a dog owned by another customer', function () {
+    $customer = Customer::factory()->create();
+    $otherCustomer = Customer::factory()->create();
+    $otherDog = Dog::factory()->for($otherCustomer)->create();
+
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', [
+            'dog_id' => $otherDog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'appointment_time' => '10:00',
         ]);
 
-        $this->assertDatabaseHas('bookings', [
-            'service' => 'full-grooming',
-            'time' => '10:00 AM',
-            'status' => 'pending',
-        ]);
-    }
+    $response->assertForbidden();
+});
 
-    public function test_booking_validation_requires_all_fields()
-    {
-        $response = $this->postJson('/bookings', []);
+test('booking rejects a past date', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors([
-            'service',
-            'dog',
-            'dog.name',
-            'appointment',
-            'appointment.date',
-            'appointment.time',
-            'contact',
-            'contact.name',
-        ]);
-    }
-
-    public function test_booking_validates_service_selection()
-    {
-        $bookingData = [
-            'service' => 'invalid-service',
-            'dog' => [
-                'name' => 'Buddy',
-                'breed' => 'Golden Retriever',
-                'age' => '3 years',
-                'weight' => '65',
-            ],
-            'appointment' => [
-                'date' => '2025-08-20',
-                'time' => '10:00 AM',
-            ],
-            'contact' => [
-                'name' => 'John Doe',
-                'email' => 'john@example.com',
-                'phone' => '555-123-4567',
-            ],
-        ];
-
-        $response = $this->postJson('/bookings', $bookingData);
-
-        $response->assertStatus(200); // Service validation is handled client-side
-        $response->assertJson(['ok' => true]);
-    }
-
-    public function test_booking_validates_email_format()
-    {
-        $bookingData = [
-            'service' => 'full-grooming',
-            'dog' => [
-                'name' => 'Buddy',
-                'breed' => 'Golden Retriever',
-                'age' => '3 years',
-                'weight' => '65',
-            ],
-            'appointment' => [
-                'date' => '2025-08-20',
-                'time' => '10:00 AM',
-            ],
-            'contact' => [
-                'name' => 'John Doe',
-                'email' => 'invalid-email',
-                'phone' => '555-123-4567',
-            ],
-        ];
-
-        $response = $this->postJson('/bookings', $bookingData);
-
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['contact.email']);
-    }
-
-    public function test_booking_validates_future_date()
-    {
-        $bookingData = [
-            'service' => 'full-grooming',
-            'dog' => [
-                'name' => 'Buddy',
-                'breed' => 'Golden Retriever',
-                'age' => '3 years',
-                'weight' => '65',
-            ],
-            'appointment' => [
-                'date' => '2024-01-01', // Past date
-                'time' => '10:00 AM',
-            ],
-            'contact' => [
-                'name' => 'John Doe',
-                'email' => 'john@example.com',
-                'phone' => '555-123-4567',
-            ],
-        ];
-
-        $response = $this->postJson('/bookings', $bookingData);
-
-        $response->assertStatus(200); // Date validation is handled client-side
-        $response->assertJson(['ok' => true]);
-    }
-
-    public function test_booking_handles_existing_owner()
-    {
-        // Create an existing owner
-        $existingOwner = \App\Models\Owner::create([
-            'name' => 'Jane Smith',
-            'email' => 'jane@example.com',
-            'phone' => '555-987-6543',
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->subDay()->format('Y-m-d'),
+            'appointment_time' => '10:00',
         ]);
 
-        $bookingData = [
-            'service' => 'bath-brush',
-            'dog' => [
-                'name' => 'Max',
-                'breed' => 'Labrador',
-                'age' => '2 years',
-                'weight' => '55',
-            ],
-            'appointment' => [
-                'date' => '2025-08-25',
-                'time' => '2:00 PM',
-            ],
-            'contact' => [
-                'name' => 'Jane Smith',
-                'email' => 'jane@example.com', // Same email as existing owner
-                'phone' => '555-987-6543',
-            ],
-        ];
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['appointment_date']);
+});
 
-        $response = $this->post('/bookings', $bookingData);
+test('booking rejects invalid time format', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
 
-        $response->assertStatus(200);
-        $response->assertJson(['ok' => true]);
-
-        // Should only have one owner record
-        $this->assertEquals(1, \App\Models\Owner::where('email', 'jane@example.com')->count());
-    }
-
-    public function test_booking_with_special_notes()
-    {
-        $bookingData = [
-            'service' => 'nail-trim',
-            'dog' => [
-                'name' => 'Luna',
-                'breed' => 'Chihuahua',
-                'age' => '1 year',
-                'weight' => '8',
-                'notes' => 'Nervous around strangers, needs gentle handling',
-            ],
-            'appointment' => [
-                'date' => '2025-08-22',
-                'time' => '11:30 AM',
-            ],
-            'contact' => [
-                'name' => 'Sarah Johnson',
-                'email' => 'sarah@example.com',
-                'phone' => '555-456-7890',
-            ],
-        ];
-
-        $response = $this->post('/bookings', $bookingData);
-
-        $response->assertStatus(200);
-        $this->assertDatabaseHas('dogs', [
-            'name' => 'Luna',
-            'notes' => 'Nervous around strangers, needs gentle handling',
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'appointment_time' => '10:00 AM',
         ]);
-    }
 
-    public function test_booking_with_all_available_services()
-    {
-        $services = [
-            'full-grooming',
-            'bath-brush',
-            'nail-trim',
-            'teeth-cleaning',
-            'deshedding',
-            'puppy-groom',
-        ];
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['appointment_time']);
+});
 
-        foreach ($services as $service) {
-            $bookingData = [
-                'service' => $service,
-                'dog' => [
-                    'name' => 'TestDog'.$service,
-                    'breed' => 'Test Breed',
-                    'age' => '2 years',
-                    'weight' => '40',
-                ],
-                'appointment' => [
-                    'date' => '2025-08-30',
-                    'time' => '9:00 AM',
-                ],
-                'contact' => [
-                    'name' => 'Test Owner',
-                    'email' => 'test'.$service.'@example.com',
-                    'phone' => '555-000-000'.substr($service, -1),
-                ],
-            ];
+test('booking saves notes', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
 
-            $response = $this->post('/bookings', $bookingData);
-            $response->assertStatus(200);
+    $this->actingAs($customer, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'appointment_time' => '10:00',
+            'notes' => 'Please be gentle, he is nervous',
+        ]);
 
-            $this->assertDatabaseHas('bookings', [
-                'service' => $service,
-            ]);
-        }
-    }
-}
+    $this->assertDatabaseHas('appointments', [
+        'dog_id' => $dog->id,
+        'notes' => 'Please be gentle, he is nervous',
+    ]);
+});
+
+test('booking notifies all admin users on submission', function () {
+    Notification::fake();
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+    $admin = User::factory()->create();
+
+    $this->actingAs($customer, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'appointment_time' => '10:00',
+        ]);
+
+    Notification::assertSentTo($admin, NewBookingNotification::class);
+});

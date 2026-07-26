@@ -4,6 +4,7 @@ use App\Models\Appointment;
 use App\Models\BusinessHours;
 use App\Models\Customer;
 use App\Models\Dog;
+use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentConfirmedNotification;
 use App\Notifications\AppointmentReminderNotification;
@@ -12,6 +13,15 @@ use App\Notifications\NewBookingNotification;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
+    $this->service = Service::create([
+        'name' => 'Full Groom',
+        'description' => 'Complete grooming service',
+        'emoji' => '✂️',
+        'base_price' => 80,
+        'duration_minutes' => 90,
+        'pricing_tiers' => ['small' => 60, 'medium' => 80, 'large' => 100],
+    ]);
+
     // Create business hours for testing
     BusinessHours::create([
         'day_of_week' => 'monday',
@@ -64,6 +74,7 @@ test('sends new booking notification to admin when customer books', function () 
     $this->actingAs($customer, 'customer')
         ->post('/booking', [
             'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
             'appointment_date' => now()->addDays(3)->toDateString(),
             'appointment_time' => '10:00',
         ]);
@@ -93,13 +104,13 @@ test('sends reschedule notification to customer when admin reschedules', functio
         'customer_id' => $customer->id,
         'dog_id' => $dog->id,
         'status' => 'confirmed',
-        'appointment_date' => '2026-01-20',
+        'appointment_date' => now()->addDays(7)->toDateString(),
         'appointment_time' => '10:00:00',
     ]);
     $admin = User::factory()->create();
 
     $response = $this->actingAs($admin)->patch("/admin/appointments/{$appointment->id}/reschedule", [
-        'appointment_date' => '2026-01-21',
+        'appointment_date' => now()->addDays(8)->toDateString(),
         'appointment_time' => '14:00',
         'status' => 'confirmed',
         'notes' => 'Changed to afternoon',
