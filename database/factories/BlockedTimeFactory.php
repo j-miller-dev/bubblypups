@@ -16,8 +16,12 @@ class BlockedTimeFactory extends Factory
      */
     public function definition(): array
     {
+        $start = fake()->dateTimeBetween('+1 days', '+7 days');
+
         return [
-            //
+            'reason' => fake()->words(3, true),
+            'start_datetime' => $start,
+            'end_datetime' => (clone $start)->modify('+8 hours'),
         ];
     }
 }

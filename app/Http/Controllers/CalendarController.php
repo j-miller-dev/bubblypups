@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class CalendarController extends Controller
     {
         $appointments = Appointment::with(['dog.customer', 'service'])
             ->whereBetween('appointment_date', [$request->start, $request->end])
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->get();
 
         return response()->json($appointments);

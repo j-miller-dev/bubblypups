@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAppointmentRequest extends FormRequest
 {
@@ -42,7 +44,7 @@ class StoreAppointmentRequest extends FormRequest
             'service_id' => ['required', 'exists:services,id'],
             'appointment_date' => ['required', 'date', 'after_or_equal:today'],
             'appointment_time' => ['required', 'date_format:H:i'],
-            'status' => ['required', 'in:pending,confirmed,waiting_on_client'],
+            'status' => ['required', Rule::in([AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])],
             'notes' => ['nullable', 'string'],
         ];
     }

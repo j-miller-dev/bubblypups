@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Inertia\Inertia;
@@ -14,16 +15,29 @@ use Inertia\Inertia;
  * upcoming appointments. All operations are scoped to the authenticated customer's
  * appointments only, ensuring customers cannot access or modify other customers' data.
  */
-
 class CustomerAppointmentController extends Controller
 {
     public function index()
     {
         $customer = auth('customer')->user();
 
-        $appointments = Appointment::query()
-            ->with(['dog', 'service'])
-            ->whereHas('dog', fn($q) => $q->where('customer_id', $customer->id))
+        $base = $customer->appointments()->with(['dog', 'service']);
+
+        $upcoming = (clone $base)
+            ->whereDate('appointment_date', '>=', today())
+            ->where('status', '!=', AppointmentStatus::Cancelled)
+            ->orderBy('appointment_date')
+            ->orderBy('appointment_time')
+            ->get();
+
+        $past = (clone $base)
+            ->whereDate('appointment_date', '<', today())
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('appointment_time', 'desc')
+            ->get();
+
+        $cancelled = (clone $base)
+            ->where('status', AppointmentStatus::Cancelled)
             ->orderBy('appointment_date', 'desc')
             ->orderBy('appointment_time', 'desc')
             ->get();
@@ -31,9 +45,9 @@ class CustomerAppointmentController extends Controller
         return Inertia::render('My/Appointments', [
             'customer' => $customer,
             'appointments' => [
-                'upcoming' => $appointments->filter(fn($a) => $a->appointment_date >= now()->toDateString() && $a->status !== 'cancelled')->values(),
-                'past' => $appointments->filter(fn($a) => $a->appointment_date < now()->toDateString())->values(),
-                'cancelled' => $appointments->filter(fn($a) => $a->status === 'cancelled')->values(),
+                'upcoming' => $upcoming,
+                'past' => $past,
+                'cancelled' => $cancelled,
             ],
         ]);
     }
@@ -58,11 +72,11 @@ class CustomerAppointmentController extends Controller
             abort(403);
         }
 
-        if ($appointment->appointment_date < now()->toDateString() || $appointment->status === 'cancelled') {
+        if ($appointment->appointment_date < now()->toDateString() || $appointment->status === AppointmentStatus::Cancelled) {
             return back()->withErrors(['error' => 'This appointment cannot be cancelled.']);
         }
 
-        $appointment->status = 'cancelled';
+        $appointment->status = AppointmentStatus::Cancelled;
         $appointment->save();
 
         return back()->with('success', 'Appointment cancelled successfully.');

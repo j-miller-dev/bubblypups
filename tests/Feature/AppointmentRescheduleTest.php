@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BusinessHours;
 use App\Models\Customer;
@@ -88,7 +89,7 @@ test('can reschedule appointment to same time without constraint violation', fun
     $response->assertRedirect();
 
     $appointment->refresh();
-    expect($appointment->status)->toBe('confirmed');
+    expect($appointment->status)->toBe(AppointmentStatus::Confirmed);
     expect($appointment->confirmed_at)->not->toBeNull();
 });
 
@@ -115,7 +116,7 @@ test('can reschedule appointment to different available time', function () {
 
     $appointment->refresh();
     expect($appointment->appointment_time->format('H:i'))->toBe('11:00');
-    expect($appointment->status)->toBe('confirmed');
+    expect($appointment->status)->toBe(AppointmentStatus::Confirmed);
 });
 
 test('cannot reschedule to already booked time slot', function () {
@@ -154,6 +155,27 @@ test('cannot reschedule to already booked time slot', function () {
     expect($response->status())->not->toBe(302);
 });
 
+test('customer cannot reschedule an appointment', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->create(['customer_id' => $customer->id]);
+
+    $appointment = Appointment::factory()->create([
+        'customer_id' => $customer->id,
+        'dog_id' => $dog->id,
+        'appointment_date' => $this->testDate,
+        'appointment_time' => '10:00:00',
+        'status' => 'confirmed',
+    ]);
+
+    $this->actingAs($customer, 'customer')
+        ->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
+            'appointment_date' => $this->testDate,
+            'appointment_time' => '11:00',
+            'status' => 'confirmed',
+        ])
+        ->assertForbidden();
+});
+
 test('reschedule with waiting_on_client status clears confirmed_at', function () {
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->create(['customer_id' => $customer->id]);
@@ -177,6 +199,6 @@ test('reschedule with waiting_on_client status clears confirmed_at', function ()
     $response->assertRedirect();
 
     $appointment->refresh();
-    expect($appointment->status)->toBe('waiting_on_client');
+    expect($appointment->status)->toBe(AppointmentStatus::WaitingOnClient);
     expect($appointment->confirmed_at)->toBeNull();
 });

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -45,7 +46,7 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
         $date = $appointment->appointment_date->format('D j M');
         $time = $appointment->appointment_time->format('g:i A');
 
-        if ($appointment->status === 'waiting_on_client') {
+        if ($appointment->status === AppointmentStatus::WaitingOnClient) {
             return (new TwilioSmsMessage)
                 ->content("{$appointment->dog->name}'s grooming has been rescheduled to {$date} at {$time}. Please check your email to confirm the new time.");
         }

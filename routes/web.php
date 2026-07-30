@@ -58,64 +58,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Dashboard Pages
-    Route::get('/dashboard/bookings', function () {
-        $appointments = \App\Models\Appointment::with(['dog.customer', 'service'])
-            ->upcoming()
-            ->get()
-            ->map(function ($appointment) {
-                $service = $appointment->service;
-                $dogSize = $appointment->dog?->size ?? 'medium';
-
-                return [
-                    'id' => $appointment->id,
-                    'dog' => $appointment->dog?->name ?? 'Unknown',
-                    'breed' => $appointment->dog?->breed ?? 'Unknown',
-                    'owner' => $appointment->dog?->customer?->name ?? 'Unknown',
-                    'photo_url' => $appointment->dog?->photo_url,
-                    'phone' => $appointment->dog?->customer?->phone ?? null,
-                    'email' => $appointment->dog?->customer?->email ?? null,
-                    'service' => $service?->name ?? 'No service',
-                    'service_emoji' => $service?->emoji ?? '',
-                    'price' => $service ? $service->getPriceForSize($dogSize) : 0,
-                    'date' => $appointment->appointment_date->format('Y-m-d'),
-                    'time' => $appointment->appointment_time->format('h:i A'),
-                    'status' => $appointment->status,
-                ];
-            });
-
-        return Inertia::render('Dashboard/Bookings', [
-            'appointments' => $appointments,
-        ]);
-    })->name('dashboard.bookings');
+    Route::get('/dashboard/bookings', [DashboardController::class, 'bookings'])->name('dashboard.bookings');
 
     Route::get('/dashboard/dogs', [AdminDogController::class, 'index'])->name('dashboard.dogs');
 
-    Route::get('/dashboard/calendar', function () {
-        $businessHours = \App\Models\BusinessHours::query()
-            ->orderByRaw("CASE day_of_week
-                WHEN 'monday' THEN 1
-                WHEN 'tuesday' THEN 2
-                WHEN 'wednesday' THEN 3
-                WHEN 'thursday' THEN 4
-                WHEN 'friday' THEN 5
-                WHEN 'saturday' THEN 6
-                WHEN 'sunday' THEN 7
-            END")
-            ->get();
-
-        $appointments = \App\Models\Appointment::with(['dog.customer', 'service'])
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
-            ->get();
-
-        $blockedTimes = \App\Models\BlockedTime::active()->get();
-
-        return Inertia::render('Dashboard/Calendar', [
-            'businessHours' => $businessHours,
-            'appointments' => $appointments,
-            'blockedTimes' => $blockedTimes,
-            'initialDate' => now()->format('Y-m-d'),
-        ]);
-    })->name('dashboard.calendar');
+    Route::get('/dashboard/calendar', [DashboardController::class, 'calendar'])->name('dashboard.calendar');
 
     Route::get('/dashboard/availability', [BusinessHoursController::class, 'index'])->name('dashboard.availability');
 });
@@ -143,7 +90,7 @@ Route::post('/customer/reset-password', [CustomerNewPasswordController::class, '
 // Customer Routes (Protected)
 Route::middleware(['auth:customer'])->group(function () {
     Route::get('/booking/create', [BookingController::class, 'create'])->name('booking.create');
-    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/booking', [BookingController::class, 'store'])->middleware('throttle:5,1')->name('booking.store');
     Route::get('/booking/available-slots', [BookingController::class, 'availableSlots'])->name('booking.available-slots');
 });
 
@@ -224,7 +171,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         $existingAppointments = \App\Models\Appointment::query()
             ->with(['dog', 'dog.customer', 'service'])
             ->whereDate('appointment_date', $request->date)
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->whereIn('status', [\App\Enums\AppointmentStatus::Pending, \App\Enums\AppointmentStatus::Confirmed, \App\Enums\AppointmentStatus::WaitingOnClient])
             ->when($request->input('exclude_appointment_id'), fn ($query, $id) => $query->where('id', '!=', $id))
             ->orderBy('appointment_time')
             ->get()
@@ -246,29 +193,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');
     Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy'])->name('blocked-times.destroy');
 
-    Route::get('/dashboard/calendar', function () {
-        $businessHours = \App\Models\BusinessHours::query()
-            ->orderByRaw("CASE day_of_week
-                WHEN 'monday' THEN 1
-                WHEN 'tuesday' THEN 2
-                WHEN 'wednesday' THEN 3
-                WHEN 'thursday' THEN 4
-                WHEN 'friday' THEN 5
-                WHEN 'saturday' THEN 6
-                WHEN 'sunday' THEN 7
-            END")
-            ->get();
-
-        $appointments = \App\Models\Appointment::with(['dog.customer', 'service'])
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
-            ->get();
-
-        return Inertia::render('Dashboard/Calendar', [
-            'businessHours' => $businessHours,
-            'appointments' => $appointments,
-            'initialDate' => now()->format('Y-m-d'),
-        ]);
-    })->name('dashboard.calendar');
+    Route::get('/dashboard/calendar', [DashboardController::class, 'calendar'])->name('dashboard.calendar');
 
     // Business hours management
     Route::patch('/business-hours/{businessHours}', [BusinessHoursController::class, 'update'])->name('business-hours.update');

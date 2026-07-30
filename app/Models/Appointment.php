@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
  * @property \Illuminate\Support\Carbon|null $confirmed_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string $status
+ * @property \App\Enums\AppointmentStatus $status
  * @property-read \App\Models\Customer|null $customer
  * @property-read \App\Models\Dog $dog
  *
@@ -68,6 +69,7 @@ class Appointment extends Model
             'appointment_date' => 'date',
             'appointment_time' => 'datetime:H:i',
             'duration' => 'integer',
+            'status' => AppointmentStatus::class,
             'confirmed_at' => 'datetime',
             'reminder_sent_at' => 'datetime',
         ];
@@ -97,11 +99,11 @@ class Appointment extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', AppointmentStatus::Pending);
     }
 
     public function scopeConfirmed($query)
     {
-        return $query->where('status', 'confirmed');
+        return $query->where('status', AppointmentStatus::Confirmed);
     }
 }

@@ -6,11 +6,13 @@ use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\Service;
 use App\Models\User;
+use App\Notifications\AppointmentCancelledNotification;
 use App\Notifications\AppointmentConfirmedNotification;
 use App\Notifications\AppointmentReminderNotification;
 use App\Notifications\AppointmentRescheduledNotification;
 use App\Notifications\NewBookingNotification;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\Twilio\TwilioChannel;
 
 beforeEach(function () {
     $this->service = Service::factory()->create();
@@ -128,6 +130,43 @@ test('sends reminder to customers with appointments tomorrow', function () {
 
     Notification::assertSentTo($customer, AppointmentReminderNotification::class);
     expect($appointment->fresh()->reminder_sent_at)->not->toBeNull();
+});
+
+test('admin cancel sets status to cancelled and notifies customer', function () {
+    Notification::fake();
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+    $appointment = Appointment::factory()->for($dog)->create(['status' => 'confirmed']);
+    $admin = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->delete("/admin/appointments/{$appointment->id}")
+        ->assertRedirect();
+
+    expect($appointment->fresh()->status)->toBe(\App\Enums\AppointmentStatus::Cancelled);
+    $this->assertDatabaseHas('appointments', ['id' => $appointment->id]);
+    Notification::assertSentTo($customer, AppointmentCancelledNotification::class);
+});
+
+test('new booking notification includes twilio channel when admin has phone', function () {
+    $admin = User::factory()->withPhone()->create();
+    $appointment = Appointment::factory()->create();
+
+    $notification = new NewBookingNotification($appointment);
+    $channels = $notification->via($admin);
+
+    expect($channels)->toContain(TwilioChannel::class);
+});
+
+test('new booking notification excludes twilio channel when admin has no phone', function () {
+    $admin = User::factory()->create(['phone' => null]);
+    $appointment = Appointment::factory()->create();
+
+    $notification = new NewBookingNotification($appointment);
+    $channels = $notification->via($admin);
+
+    expect($channels)->not->toContain(TwilioChannel::class);
 });
 
 test('does not send reminder twice to same appointment', function () {

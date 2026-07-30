@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -94,14 +93,9 @@ class User extends Authenticatable
         $digits = preg_replace('/\D/', '', $this->phone);
 
         if (str_starts_with($digits, '0')) {
-            return '+61'.substr($digits, 1);
+            return config('app.country_code').substr($digits, 1);
         }
 
         return '+'.$digits;
-    }
-
-    public function owner(): HasOne
-    {
-        return $this->hasOne(Owner::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Dog;
@@ -58,14 +59,16 @@ class BookingController extends Controller
 
     public function store(StoreAppointmentRequest $request)
     {
+        $service = Service::findOrFail($request->service_id);
+
         $appointment = Appointment::create([
             'customer_id' => auth('customer')->id(),
             'dog_id' => $request->dog_id,
             'service_id' => $request->service_id,
             'appointment_date' => $request->appointment_date,
             'appointment_time' => $request->appointment_time,
-            'duration' => 60,
-            'status' => 'pending',
+            'duration' => $service->duration_minutes,
+            'status' => AppointmentStatus::Pending,
             'notes' => $request->notes,
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\BlockedTime;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class BlockedTimeController extends Controller
                     \Carbon\Carbon::parse($validated['end_datetime'])->toDateString(),
                 ]);
             })
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->get();
 
         // If conflicts exist, return error with details

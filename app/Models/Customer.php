@@ -71,7 +71,7 @@ class Customer extends Authenticatable
         $digits = preg_replace('/\D/', '', $this->phone);
 
         if (str_starts_with($digits, '0')) {
-            return '+61'.substr($digits, 1);
+            return config('app.country_code').substr($digits, 1);
         }
 
         return '+'.$digits;

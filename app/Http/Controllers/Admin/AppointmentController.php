@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAppointmentRequest;
 use App\Http\Requests\RescheduleAppointmentRequest;
@@ -57,7 +58,7 @@ class AppointmentController extends Controller
             'duration' => $service->duration_minutes,
             'status' => $request->status,
             'notes' => $request->notes,
-            'confirmed_at' => $request->status === 'confirmed' ? now() : null,
+            'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
         ]);
 
         // Load relationships for notification
@@ -80,7 +81,7 @@ class AppointmentController extends Controller
 
     public function confirm(Appointment $appointment): RedirectResponse
     {
-        $appointment->status = 'confirmed';
+        $appointment->status = AppointmentStatus::Confirmed;
         $appointment->confirmed_at = now();
         $appointment->save();
 
@@ -104,7 +105,21 @@ class AppointmentController extends Controller
 
     public function cancel(Appointment $appointment): RedirectResponse
     {
-        $appointment->delete();
+        $appointment->status = AppointmentStatus::Cancelled;
+        $appointment->save();
+
+        $appointment->load(['dog.customer']);
+
+        try {
+            $appointment->dog->customer->notify(
+                new \App\Notifications\AppointmentCancelledNotification($appointment)
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to send cancellation notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'Appointment cancelled successfully!');
     }
@@ -112,12 +127,12 @@ class AppointmentController extends Controller
     public function confirmFromEmail(Appointment $appointment): RedirectResponse
     {
         // Only allow confirmation if status is waiting_on_client
-        if ($appointment->status !== 'waiting_on_client') {
+        if ($appointment->status !== AppointmentStatus::WaitingOnClient) {
             return redirect()->route('home')->with('error', 'This appointment has already been confirmed or cannot be confirmed.');
 
         }
 
-        $appointment->status = 'confirmed';
+        $appointment->status = AppointmentStatus::Confirmed;
         $appointment->confirmed_at = now();
         $appointment->save();
 
@@ -152,9 +167,9 @@ class AppointmentController extends Controller
         $appointment->appointment_time = $request->appointment_time;
         $appointment->status = $request->status;
 
-        if ($request->status === 'waiting_on_client') {
+        if ($request->status === AppointmentStatus::WaitingOnClient->value) {
             $appointment->confirmed_at = null;
-        } elseif ($request->status === 'confirmed') {
+        } elseif ($request->status === AppointmentStatus::Confirmed->value) {
             $appointment->confirmed_at = now();
         }
 
@@ -183,7 +198,7 @@ class AppointmentController extends Controller
             ]);
         }
 
-        $message = $request->status === 'waiting_on_client'
+        $message = $request->status === AppointmentStatus::WaitingOnClient->value
             ? 'Appointment rescheduled. Awaiting client confirmation.'
             : 'Appointment rescheduled and confirmed!';
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Inertia\Inertia;
@@ -14,9 +15,9 @@ class CustomerDashboardController extends Controller
 
         $upcomingAppointments = Appointment::query()
             ->with(['dog', 'service'])
-            ->whereHas('dog', fn($q) => $q->where('customer_id', $customer->id))
+            ->whereHas('dog', fn ($q) => $q->where('customer_id', $customer->id))
             ->where('appointment_date', '>=', now()->toDateString())
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->orderBy('appointment_date')
             ->orderBy('appointment_time')
             ->limit(3)
@@ -24,9 +25,9 @@ class CustomerDashboardController extends Controller
 
         $stats = [
             'upcomingCount' => Appointment::query()
-                ->whereHas('dog', fn($q) => $q->where('customer_id', $customer->id))
+                ->whereHas('dog', fn ($q) => $q->where('customer_id', $customer->id))
                 ->where('appointment_date', '>=', now()->toDateString())
-                ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+                ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
                 ->count(),
             'totalDogs' => $customer->dogs()->count(),
             'nextAppointment' => $upcomingAppointments->first(),

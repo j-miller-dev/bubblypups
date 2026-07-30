@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BlockedTime;
 use App\Models\BusinessHours;
@@ -84,7 +85,7 @@ class AvailabilityService
     {
         $bookedSlots = Appointment::query()
             ->whereDate('appointment_date', $day->toDateString())
-            ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->when($excludeAppointmentId, fn ($query, $id) => $query->where('id', '!=', $id))
             ->pluck('appointment_time')
             ->map(fn ($time) => Carbon::parse($time)->format('H:i'))

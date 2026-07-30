@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Notifications\AppointmentReminderNotification;
 use Illuminate\Console\Command;
@@ -16,7 +17,7 @@ class SendAppointmentReminders extends Command
     {
         // Find confirmed appointments 1-2 days away that haven't recieved a reminder
         $appointments = Appointment::query()
-            ->where('status', 'confirmed')
+            ->where('status', AppointmentStatus::Confirmed)
             ->whereBetween('appointment_date', [
                 now()->addDay()->startOfDay(),
                 now()->addDays(2)->endOfDay(),
@@ -32,7 +33,7 @@ class SendAppointmentReminders extends Command
                 );
 
                 $appointment->update(['reminder_sent_at' => now()]);
-                $this->info("Reminder sent for appointment #($appointment->id");
+                $this->info("Reminder sent for appointment #{$appointment->id}");
             } catch (\Exception $e) {
                 $this->error("Failed for appointment #{$appointment->id}: {$e->getMessage()}");
             }
