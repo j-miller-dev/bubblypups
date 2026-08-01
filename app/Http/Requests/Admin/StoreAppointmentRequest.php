@@ -3,6 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\AppointmentStatus;
+use App\Models\BlockedTime;
+use App\Models\BusinessHours;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,8 +45,52 @@ class StoreAppointmentRequest extends FormRequest
 
             // Appointment fields (always required)
             'service_id' => ['required', 'exists:services,id'],
-            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
-            'appointment_time' => ['required', 'date_format:H:i'],
+            'appointment_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                function ($attribute, $value, $fail) {
+                    $dayOfWeek = Carbon::parse($value)->format('l');
+                    $hours = BusinessHours::getHoursForDay($dayOfWeek);
+
+                    if (! $hours || ! $hours->is_open) {
+                        $fail('The business is not open on this day.');
+                    }
+                },
+            ],
+            'appointment_time' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    if (! $this->appointment_date) {
+                        return;
+                    }
+
+                    $dayOfWeek = Carbon::parse($this->appointment_date)->format('l');
+                    $hours = BusinessHours::getHoursForDay($dayOfWeek);
+
+                    if ($hours && $hours->is_open) {
+                        $slotTime = Carbon::parse($this->appointment_date.' '.$value);
+                        $open = Carbon::parse($this->appointment_date.' '.$hours->open_time);
+                        $close = Carbon::parse($this->appointment_date.' '.$hours->close_time);
+
+                        if ($slotTime->lt($open) || $slotTime->gte($close)) {
+                            $fail('This time is outside business hours.');
+                        }
+                    }
+
+                    $slotTime = Carbon::parse($this->appointment_date.' '.$value);
+
+                    $blocked = BlockedTime::query()
+                        ->where('start_datetime', '<=', $slotTime)
+                        ->where('end_datetime', '>=', $slotTime)
+                        ->exists();
+
+                    if ($blocked) {
+                        $fail('This time slot is blocked and unavailable.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in([AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])],
             'notes' => ['nullable', 'string'],
         ];

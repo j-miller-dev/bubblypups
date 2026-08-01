@@ -10,12 +10,63 @@ use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\Service;
+use App\Services\AvailabilityService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AppointmentController extends Controller
 {
+    public function create(): Response
+    {
+        $services = Service::all()->map(fn ($service) => [
+            'id' => $service->id,
+            'name' => $service->name,
+            'description' => $service->description,
+            'emoji' => $service->emoji,
+            'base_price' => $service->base_price,
+            'duration_minutes' => $service->duration_minutes,
+        ]);
+
+        return Inertia::render('Admin/BookingCreate', [
+            'services' => $services,
+        ]);
+    }
+
+    public function availableSlots(Request $request, AvailabilityService $availabilityService): JsonResponse
+    {
+        $request->validate([
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'exclude_appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
+        ]);
+
+        $slots = $availabilityService->getAvailableSlots($request->date, $request->input('exclude_appointment_id'));
+
+        $existingAppointments = Appointment::query()
+            ->with(['dog', 'dog.customer', 'service'])
+            ->whereDate('appointment_date', $request->date)
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
+            ->when($request->input('exclude_appointment_id'), fn ($query, $id) => $query->where('id', '!=', $id))
+            ->orderBy('appointment_time')
+            ->get()
+            ->map(fn ($apt) => [
+                'time' => $apt->appointment_time->format('H:i'),
+                'dog_name' => $apt->dog->name,
+                'service' => $apt->service->name ?? 'N/A',
+                'duration' => $apt->duration,
+                'status' => $apt->status,
+            ]);
+
+        return response()->json([
+            'slots' => $slots,
+            'existing_appointments' => $existingAppointments,
+        ]);
+    }
+
     public function store(StoreAppointmentRequest $request): RedirectResponse
     {
         // Determine dog_id and customer_id: use existing or create new customer+dog

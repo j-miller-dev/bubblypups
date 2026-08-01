@@ -7,6 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-pcntl": "*",
+        "ext-pdo_mysql": "*",
         "ably/ably-php": "^1.1",
         "aws/aws-php-sns-message-validator": "^1.10",
         "aws/aws-sdk-php": "^3.356",

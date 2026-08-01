@@ -60,7 +60,7 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $subject = $this->appointment->status === 'waiting_on_client'
+        $subject = $this->appointment->status === AppointmentStatus::WaitingOnClient
         ? 'Please Confirm New Appointment Time For '.$this->appointment->dog->name
         : 'Appointment Rescheduled for '.$this->appointment->dog->name;
 

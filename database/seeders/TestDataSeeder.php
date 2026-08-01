@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Dog;
@@ -25,20 +26,20 @@ class TestDataSeeder extends Seeder
         // Status weights for realistic distribution
         // More pending than waiting, more confirmed than pending
         $statuses = [
-            'pending',
-            'pending',
-            'pending',
-            'pending',
-            'pending',
-            'confirmed',
-            'confirmed',
-            'confirmed',
-            'confirmed',
-            'confirmed',
-            'confirmed',
-            'confirmed',
-            'waiting_on_client',
-            'waiting_on_client',
+            AppointmentStatus::Pending,
+            AppointmentStatus::Pending,
+            AppointmentStatus::Pending,
+            AppointmentStatus::Pending,
+            AppointmentStatus::Pending,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::Confirmed,
+            AppointmentStatus::WaitingOnClient,
+            AppointmentStatus::WaitingOnClient,
         ];
 
         // Generate 40-50 appointments spread across the next month
@@ -61,7 +62,7 @@ class TestDataSeeder extends Seeder
 
             // Set confirmed_at based on status
             $confirmedAt = null;
-            if ($status === 'confirmed') {
+            if ($status === AppointmentStatus::Confirmed) {
                 // Confirmed between 1-7 days ago
                 $confirmedAt = now()->subDays(rand(1, 7));
             }
@@ -90,9 +91,9 @@ class TestDataSeeder extends Seeder
         $this->command->newLine();
 
         // Show breakdown by status
-        $pending = Appointment::where('status', 'pending')->count();
-        $confirmed = Appointment::where('status', 'confirmed')->count();
-        $waiting = Appointment::where('status', 'waiting_on_client')->count();
+        $pending = Appointment::where('status', AppointmentStatus::Pending)->count();
+        $confirmed = Appointment::where('status', AppointmentStatus::Confirmed)->count();
+        $waiting = Appointment::where('status', AppointmentStatus::WaitingOnClient)->count();
 
         $this->command->info('Appointment breakdown:');
         $this->command->info("  - Pending: {$pending}");

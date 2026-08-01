@@ -2,10 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\AppointmentStatus;
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class RescheduleAppointmentRequest extends FormRequest
 {
@@ -14,7 +11,7 @@ class RescheduleAppointmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() instanceof User;
+        return true;
     }
 
     /**
@@ -35,7 +32,7 @@ class RescheduleAppointmentRequest extends FormRequest
                     $conflict = \App\Models\Appointment::query()
                         ->whereDate('appointment_date', $this->appointment_date)
                         ->where('appointment_time', $value.':00') // Add Seconds
-                        ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
+                        ->whereIn('status', ['pending', 'confirmed', 'waiting_on_client'])
                         ->where('id', '!=', $appointment->id) // exclude current appointment
                         ->exists();
 
@@ -44,7 +41,7 @@ class RescheduleAppointmentRequest extends FormRequest
                     }
                 },
             ],
-            'status' => ['required', Rule::in([AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])],
+            'status' => ['required', 'in:confirmed,waiting_on_client'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }

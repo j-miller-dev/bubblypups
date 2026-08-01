@@ -13,24 +13,21 @@ class CustomerDashboardController extends Controller
     {
         $customer = auth('customer')->user();
 
-        $upcomingAppointments = Appointment::query()
+        $allUpcoming = Appointment::query()
             ->with(['dog', 'service'])
             ->whereHas('dog', fn ($q) => $q->where('customer_id', $customer->id))
             ->where('appointment_date', '>=', now()->toDateString())
             ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->orderBy('appointment_date')
             ->orderBy('appointment_time')
-            ->limit(3)
             ->get();
 
+        $upcomingAppointments = $allUpcoming->take(3);
+
         $stats = [
-            'upcomingCount' => Appointment::query()
-                ->whereHas('dog', fn ($q) => $q->where('customer_id', $customer->id))
-                ->where('appointment_date', '>=', now()->toDateString())
-                ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
-                ->count(),
+            'upcomingCount' => $allUpcoming->count(),
             'totalDogs' => $customer->dogs()->count(),
-            'nextAppointment' => $upcomingAppointments->first(),
+            'nextAppointment' => $allUpcoming->first(),
         ];
 
         return Inertia::render('My/Dashboard', [

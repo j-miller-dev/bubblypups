@@ -133,22 +133,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dogs/search', [AdminDogController::class, 'search'])->name('dogs.search');
 
     // Booking create page
-    Route::get('/bookings/create', function () {
-        $services = \App\Models\Service::all()->map(function ($service) {
-            return [
-                'id' => $service->id,
-                'name' => $service->name,
-                'description' => $service->description,
-                'emoji' => $service->emoji,
-                'base_price' => $service->base_price,
-                'duration_minutes' => $service->duration_minutes,
-            ];
-        });
-
-        return Inertia::render('Admin/BookingCreate', [
-            'services' => $services,
-        ]);
-    })->name('bookings.create');
+    Route::get('/bookings/create', [AppointmentController::class, 'create'])->name('bookings.create');
 
     // Create appointment
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
@@ -158,36 +143,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Reschedule Endpoint
     Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
     // Available slots API for modal
-    Route::get('/appointments/available-slots', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'date' => ['required', 'date', 'after_or_equal:today'],
-            'exclude_appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
-        ]);
-
-        $availabilityService = app(\App\Services\AvailabilityService::class);
-        $slots = $availabilityService->getAvailableSlots($request->date, $request->input('exclude_appointment_id'));
-
-        // Get existing appointments for the day to show schedule context
-        $existingAppointments = \App\Models\Appointment::query()
-            ->with(['dog', 'dog.customer', 'service'])
-            ->whereDate('appointment_date', $request->date)
-            ->whereIn('status', [\App\Enums\AppointmentStatus::Pending, \App\Enums\AppointmentStatus::Confirmed, \App\Enums\AppointmentStatus::WaitingOnClient])
-            ->when($request->input('exclude_appointment_id'), fn ($query, $id) => $query->where('id', '!=', $id))
-            ->orderBy('appointment_time')
-            ->get()
-            ->map(fn ($apt) => [
-                'time' => $apt->appointment_time->format('H:i'),
-                'dog_name' => $apt->dog->name,
-                'service' => $apt->service->name ?? 'N/A',
-                'duration' => $apt->duration,
-                'status' => $apt->status,
-            ]);
-
-        return response()->json([
-            'slots' => $slots,
-            'existing_appointments' => $existingAppointments,
-        ]);
-    })->name('admin.appointments.available-slots');
+    Route::get('/appointments/available-slots', [AppointmentController::class, 'availableSlots'])->name('appointments.available-slots');
 
     Route::get('/blocked-times', [BlockedTimeController::class, 'index'])->name('blocked-times.index');
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');

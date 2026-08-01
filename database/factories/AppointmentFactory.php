@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,7 +28,7 @@ class AppointmentFactory extends Factory
             'appointment_date' => fake()->dateTimeBetween('now', '+7 days')->format('Y-m-d'),
             'appointment_time' => fake()->randomElement($times),
             'duration' => 60,
-            'status' => fake()->randomElement(['pending', 'pending', 'pending', 'confirmed', 'confirmed', 'waiting_on_client']),
+            'status' => fake()->randomElement([AppointmentStatus::Pending, AppointmentStatus::Pending, AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient]),
             'notes' => fake()->optional(0.5)->sentence(),
             'confirmed_at' => null,
             'reminder_sent_at' => null,
