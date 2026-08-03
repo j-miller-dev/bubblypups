@@ -1,3 +1,6 @@
+[phases.setup]
+nixPkgs = ["supervisor"]
+
 [phases.build]
 cmds = [
     "npm ci --ignore-scripts",
