@@ -1,5 +1,5 @@
 [phases.setup]
-aptPkgs = ["supervisor"]
+aptPkgs = ["supervisor", "nginx"]
 
 [phases.build]
 cmds = [
