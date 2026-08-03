@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["supervisor"]
+aptPkgs = ["supervisor"]
 
 [phases.build]
 cmds = [
