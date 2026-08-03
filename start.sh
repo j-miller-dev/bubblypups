@@ -12,6 +12,7 @@ php artisan migrate --force
 
 echo "==> Setting permissions..."
 chown -R www-data:www-data /app/storage /app/bootstrap/cache
+usermod -aG www-data root
 
 echo "==> Starting services..."
 exec supervisord -c /app/supervisord.conf
