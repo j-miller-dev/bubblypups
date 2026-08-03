@@ -10,5 +10,8 @@ php artisan event:cache
 echo "==> Running migrations..."
 php artisan migrate --force
 
+echo "==> Setting permissions..."
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
 echo "==> Starting services..."
 exec supervisord -c /app/supervisord.conf
