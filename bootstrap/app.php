@@ -15,7 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+
         ]);
+        $middleware->alias([
+            'ensure.not.customer' => \App\Http\Middleware\EnsureUserIsNotCustomer::class,
+        ]);
+
 
         // Configure customer guard redirects
         $middleware->redirectGuestsTo(function ($request) {

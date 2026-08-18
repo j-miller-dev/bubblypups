@@ -128,7 +128,7 @@ Route::middleware(['auth:customer'])->prefix('my')->name('my.')->group(function 
 });
 
 // Admin Routes (Protected)
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['ensure.not.customer', 'auth'])->prefix('admin')->name('admin.')->group(function () {
     // Dog search for booking
     Route::get('/dogs/search', [AdminDogController::class, 'search'])->name('dogs.search');
 
@@ -164,4 +164,4 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::patch('/blog/{blogPost}/publish', [BlogPostController::class, 'publish'])->name('blog.publish');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
