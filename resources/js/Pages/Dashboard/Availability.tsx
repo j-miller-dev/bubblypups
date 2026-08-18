@@ -276,7 +276,7 @@ export default function Availability({
                                     })
                                 }
                                 required
-                                className="input"
+                                className="input accent-[#e47bb9]"
                             />
                         </div>
 
@@ -292,7 +292,7 @@ export default function Availability({
                                     })
                                 }
                                 required
-                                className="input"
+                                className="input accent-[#e47bb9]"
                             />
                         </div>
 

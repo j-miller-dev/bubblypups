@@ -14,11 +14,11 @@ import {
     CalendarIcon,
     ClipboardDocumentListIcon,
     ClockIcon,
-    Cog6ToothIcon,
     HeartIcon,
     HomeIcon,
     NewspaperIcon,
     XMarkIcon,
+    ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Link, usePage } from "@inertiajs/react";
@@ -52,8 +52,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             className={[
                                 "group flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-display font-extrabold transition-colors",
                                 active
-                                    ? "bg-gray-800 text-white"
-                                    : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                    ? "bg-brand-50 text-brand-600"
+                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
                             ].join(" ")}
                         >
                             <item.icon
@@ -61,8 +61,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                                 className={[
                                     "size-5 shrink-0 transition-colors",
                                     active
-                                        ? "text-brand-400"
-                                        : "text-gray-500 group-hover:text-brand-400",
+                                        ? "text-brand-500"
+                                        : "text-gray-400 group-hover:text-gray-600",
                                 ].join(" ")}
                             />
                             <span className="flex-1">{item.name}</span>
@@ -81,11 +81,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             href={route("logout")}
             method="post"
             as="button"
-            className="group -mx-2 flex w-full items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-display font-extrabold text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+            className="group -mx-2 flex w-full items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-display font-extrabold text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700"
         >
-            <Cog6ToothIcon
+            <ArrowRightStartOnRectangleIcon
                 aria-hidden
-                className="size-5 shrink-0 text-gray-500 transition-colors group-hover:text-brand-400"
+                className="size-5 shrink-0 text-gray-400 transition-colors group-hover:text-gray-600"
             />
             Sign out
         </Link>
@@ -93,7 +93,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* 1px gradient accent bar */}
+            {/* Brand accent bar */}
             <div className="fixed inset-x-0 top-0 z-50 h-1 bg-gradient-to-r from-brand-400 via-purple-400 to-blue-400" />
 
             {/* Mobile sidebar */}
@@ -104,7 +104,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
                 <DialogBackdrop
                     transition
-                    className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity duration-300 ease-linear data-closed:opacity-0"
+                    className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity duration-300 ease-linear data-closed:opacity-0"
                 />
                 <div className="fixed inset-0 flex pt-1">
                     <DialogPanel
@@ -123,11 +123,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                                 </button>
                             </div>
                         </TransitionChild>
-                        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-950 px-5 pb-4">
+                        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-5 pb-4 shadow-xl">
                             <div className="flex h-16 shrink-0 items-center">
                                 <img
                                     alt="Bubbly Pups"
-                                    src="/images/PNG%20FIles/BubblyPups_LogoAlt(DBG).png"
+                                    src="/images/PNG%20FIles/BubblyPups_LogoAlt(LBG).png"
                                     className="h-8 w-auto"
                                 />
                             </div>
@@ -144,23 +144,23 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             {/* Desktop sidebar */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:top-1 lg:z-40 lg:flex lg:w-64 lg:flex-col">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-950 px-5 pb-4">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-100 bg-white px-5 pb-4">
                     <div className="flex h-16 shrink-0 items-center">
                         <img
                             alt="Bubbly Pups"
-                            src="/images/PNG%20FIles/BubblyPups_LogoAlt(DBG).png"
+                            src="/images/PNG%20FIles/BubblyPups_LogoAlt(LBG).png"
                             className="h-8 w-auto"
                         />
                     </div>
                     <nav className="flex flex-1 flex-col">
                         <ul role="list" className="flex flex-1 flex-col gap-y-7">
                             <li>
-                                <p className="mb-3 px-1 text-xs font-display font-extrabold uppercase tracking-widest text-gray-600">
+                                <p className="mb-3 px-1 text-xs font-display font-extrabold uppercase tracking-widest text-gray-400">
                                     Navigation
                                 </p>
                                 {renderNav()}
                             </li>
-                            <li className="mt-auto border-t border-gray-800 pt-4">
+                            <li className="mt-auto border-t border-gray-100 pt-4">
                                 {renderSignOut()}
                             </li>
                         </ul>
