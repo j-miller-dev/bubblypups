@@ -15,7 +15,7 @@ class EnsureUserIsNotCustomer
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth('customer')->check()) {
+        if (auth('customer')->check() && ! auth('web')->check()) {
             abort(403);
         }
 

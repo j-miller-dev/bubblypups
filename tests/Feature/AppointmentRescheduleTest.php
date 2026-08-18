@@ -37,7 +37,7 @@ test('available slots endpoint excludes appointment being rescheduled', function
         'status' => 'confirmed',
     ]);
 
-    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate.'&exclude_appointment_id='.$appointment->id);
+    $response = $this->getJson('/admin/appointments/available-slots?date=' . $this->testDate . '&exclude_appointment_id=' . $appointment->id);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');
@@ -58,7 +58,7 @@ test('available slots endpoint shows slot as booked when not excluding appointme
         'status' => 'confirmed',
     ]);
 
-    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate);
+    $response = $this->getJson('/admin/appointments/available-slots?date=' . $this->testDate);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');
@@ -156,6 +156,8 @@ test('cannot reschedule to already booked time slot', function () {
 });
 
 test('customer cannot reschedule an appointment', function () {
+    // clear admin from beforeEach
+    auth()->guard('web')->logout();
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->create(['customer_id' => $customer->id]);
 

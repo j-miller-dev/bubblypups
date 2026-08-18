@@ -10,6 +10,7 @@ import ContactModal from "@/Components/ContactModal";
 import Toast from "@/Components/ui/Toast";
 import { useState } from "react";
 import RescheduleModal from "@/Components/RescheduleModal";
+import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
 
 interface Booking {
     id: number;
@@ -54,7 +55,6 @@ function BookingRow({
     return (
         <li className="px-5 py-4 hover:bg-gray-50 transition-colors">
             <div className="flex items-start gap-4">
-                {/* Avatar */}
                 {b.photo_url ? (
                     <img
                         src={b.photo_url}
@@ -67,7 +67,6 @@ function BookingRow({
                     </div>
                 )}
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <p className="font-display font-extrabold text-gray-900">
@@ -91,7 +90,6 @@ function BookingRow({
                     </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-wrap gap-2 shrink-0">
                     {showConfirm && (
                         <button
@@ -155,9 +153,12 @@ export default function Bookings({ appointments }: BookingsProps) {
     const [selectedAppointment, setSelectedAppointment] =
         useState<Booking | null>(null);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-    const [selectedContact, setSelectedContact] = useState<Booking | null>(
-        null,
-    );
+    const [selectedContact, setSelectedContact] = useState<Booking | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean;
+        type: "confirm" | "cancel" | null;
+        appointmentId: number | null;
+    }>({ open: false, type: null, appointmentId: null });
 
     const pendingBookings = appointments.filter((b) => b.status === "pending");
     const waitingOnClient = appointments.filter(
@@ -168,15 +169,20 @@ export default function Bookings({ appointments }: BookingsProps) {
     );
 
     const handleConfirm = (id: number) => {
-        if (confirm("Confirm this appointment?")) {
-            router.post(`/admin/appointments/${id}/confirm`);
-        }
+        setConfirmDialog({ open: true, type: "confirm", appointmentId: id });
     };
 
     const handleCancel = (id: number) => {
-        if (confirm("Are you sure you want to cancel this appointment?")) {
-            router.delete(`/admin/appointments/${id}`);
+        setConfirmDialog({ open: true, type: "cancel", appointmentId: id });
+    };
+
+    const handleDialogConfirm = () => {
+        if (confirmDialog.type === "confirm") {
+            router.post(`/admin/appointments/${confirmDialog.appointmentId}/confirm`);
+        } else if (confirmDialog.type === "cancel") {
+            router.delete(`/admin/appointments/${confirmDialog.appointmentId}`);
         }
+        setConfirmDialog({ open: false, type: null, appointmentId: null });
     };
 
     const handleReschedule = (appointment: Booking) => {
@@ -209,7 +215,6 @@ export default function Bookings({ appointments }: BookingsProps) {
             </div>
 
             <div className="space-y-8">
-                {/* To Confirm */}
                 <div>
                     <SectionHeader
                         label="To Confirm"
@@ -235,7 +240,6 @@ export default function Bookings({ appointments }: BookingsProps) {
                     </div>
                 </div>
 
-                {/* Waiting on Client */}
                 <div>
                     <SectionHeader
                         label="Waiting on Client Approval"
@@ -245,9 +249,7 @@ export default function Bookings({ appointments }: BookingsProps) {
                     <div className="card overflow-hidden">
                         <ul className="divide-y divide-gray-100">
                             {waitingOnClient.length === 0
-                                ? emptyRow(
-                                      "No booking proposals waiting from clients",
-                                  )
+                                ? emptyRow("No booking proposals waiting from clients")
                                 : waitingOnClient.map((b) => (
                                       <BookingRow
                                           key={b.id}
@@ -263,7 +265,6 @@ export default function Bookings({ appointments }: BookingsProps) {
                     </div>
                 </div>
 
-                {/* Confirmed */}
                 <div>
                     <SectionHeader
                         label="Confirmed"
@@ -307,6 +308,29 @@ export default function Bookings({ appointments }: BookingsProps) {
                 customerName={selectedContact?.owner ?? ""}
                 email={selectedContact?.email ?? null}
                 phone={selectedContact?.phone ?? null}
+            />
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onClose={() =>
+                    setConfirmDialog({ open: false, type: null, appointmentId: null })
+                }
+                onConfirm={handleDialogConfirm}
+                title={
+                    confirmDialog.type === "confirm"
+                        ? "Confirm appointment?"
+                        : "Cancel appointment?"
+                }
+                description={
+                    confirmDialog.type === "confirm"
+                        ? "This will notify the customer that their appointment is confirmed."
+                        : "Are you sure? This will notify the customer that their appointment has been cancelled."
+                }
+                confirmLabel={
+                    confirmDialog.type === "confirm"
+                        ? "Yes, confirm"
+                        : "Cancel appointment"
+                }
+                destructive={confirmDialog.type === "cancel"}
             />
         </AdminLayout>
     );
