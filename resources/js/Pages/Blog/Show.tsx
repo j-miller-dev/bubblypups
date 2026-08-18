@@ -76,7 +76,7 @@ export default function Show({ post }: ShowProps) {
 
                     {/* Body */}
                     <div
-                        className="prose prose-lg max-w-none mt-10 prose-headings:font-display prose-headings:font-extrabold prose-a:text-brand-500 prose-a:no-underline hover:prose-a:underline"
+                        className="prose prose-lg max-w-none mt-10 prose-headings:font-display prose-headings:font-extrabold prose-h2:mt-12 prose-h3:mt-8 prose-a:text-brand-500 prose-a:no-underline hover:prose-a:underline"
                         dangerouslySetInnerHTML={{ __html: post.body }}
                     />
 

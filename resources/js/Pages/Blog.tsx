@@ -152,14 +152,14 @@ export default function Blog({ posts }: BlogProps) {
                     <>
                         {/* Featured post */}
                         {featured && (
-                            <div className="mb-16 border-b border-gray-200 pb-16">
+                            <div className="mb-20 border-b border-gray-200 pb-20">
                                 <PostCard post={featured} featured />
                             </div>
                         )}
 
                         {/* Grid */}
                         {rest.length > 0 && (
-                            <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
                                 {rest.map((post) => (
                                     <PostCard key={post.id} post={post} />
                                 ))}

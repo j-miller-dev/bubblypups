@@ -98,13 +98,18 @@ function MobileNav() {
         .filter((el): el is HTMLAnchorElement => el !== null)
         .map((el) => ({ current: el }));
 
+    const mainLinks = mobileLinks.slice(0, 4);
+    const bookNow = mobileLinks[4];
+    const login = mobileLinks[5];
+
     return (
         <DisclosurePanel className="lg:hidden">
             <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-400">
                 <MobileNavBubbles navRefs={refObjects} />
 
-                <nav className="flex flex-col items-center gap-8 relative z-10">
-                    {mobileLinks.map(({ href, label }, linkIndex) => (
+                <nav className="flex flex-col items-center relative z-10">
+                    {/* Main nav links */}
+                    {mainLinks.map(({ href, label }, linkIndex) => (
                         <motion.div
                             key={href}
                             initial={{ opacity: 0, rotateX: -90 }}
@@ -114,13 +119,13 @@ function MobileNav() {
                                 ease: "easeInOut",
                                 rotateX: {
                                     duration: 0.3,
-                                    delay: linkIndex * 0.1,
+                                    delay: linkIndex * 0.08,
                                 },
                             }}
                         >
                             <Link
                                 href={href}
-                                className="text-3xl font-medium text-white"
+                                className="block px-6 py-2.5 text-3xl font-extrabold text-white"
                                 ref={(el) => {
                                     navRefs.current[linkIndex] = el;
                                 }}
@@ -129,13 +134,56 @@ function MobileNav() {
                             </Link>
                         </motion.div>
                     ))}
+
+                    {/* Divider */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.35 }}
+                        className="my-6 w-10 border-t border-white/30"
+                    />
+
+                    {/* Book Now CTA */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.2 }}
+                    >
+                        <Link
+                            href={bookNow.href}
+                            className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-xl font-extrabold font-display text-brand-500 shadow-sm"
+                            ref={(el) => {
+                                navRefs.current[4] = el;
+                            }}
+                        >
+                            <CalendarIcon className="size-5" />
+                            {bookNow.label}
+                        </Link>
+                    </motion.div>
+
+                    {/* Login */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <Link
+                            href={login.href}
+                            className="mt-3 block px-4 py-2 text-sm font-display font-extrabold text-white/60 hover:text-white transition-colors"
+                            ref={(el) => {
+                                navRefs.current[5] = el;
+                            }}
+                        >
+                            Already a customer? Login
+                        </Link>
+                    </motion.div>
                 </nav>
 
                 <DisclosureButton
-                    className="absolute bottom-8 flex items-center justify-center z-10"
+                    className="absolute bottom-8 flex size-14 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
                     aria-label="Close menu"
                 >
-                    <XMarkIcon className="size-12 text-white" />
+                    <XMarkIcon className="size-7 text-white" />
                 </DisclosureButton>
             </div>
         </DisclosurePanel>
