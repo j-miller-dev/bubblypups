@@ -563,8 +563,8 @@ export default function BookingCreate({ services }: Props) {
                                                     className={[
                                                         "rounded-button px-3 py-2 text-sm font-display font-extrabold border transition-colors",
                                                         selectedTime === slot
-                                                            ? "bg-brand-500 text-white border-brand-500"
-                                                            : "bg-white text-gray-700 border-gray-200 hover:border-brand-300 hover:bg-brand-50",
+                                                            ? "bg-brand-500 text-white border-brand-500 shadow-sm"
+                                                            : "bg-white text-gray-900 border-brand-200 hover:border-brand-400 hover:bg-brand-50",
                                                     ].join(" ")}
                                                 >
                                                     {slot}
@@ -633,6 +633,31 @@ export default function BookingCreate({ services }: Props) {
                                 placeholder="Add any notes about this appointment…"
                             />
                         </div>
+
+                        {!canSubmit && (
+                            <div className="flex flex-wrap gap-2 text-xs text-gray-500 font-display font-extrabold">
+                                {!(data.dog_id || showNewCustomerForm) && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
+                                        <span className="text-gray-400">○</span> Select a dog
+                                    </span>
+                                )}
+                                {!data.service_id && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
+                                        <span className="text-gray-400">○</span> Select a service
+                                    </span>
+                                )}
+                                {!selectedDate && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
+                                        <span className="text-gray-400">○</span> Pick a date
+                                    </span>
+                                )}
+                                {selectedDate && !selectedTime && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">
+                                        <span>○</span> Pick a time slot above
+                                    </span>
+                                )}
+                            </div>
+                        )}
 
                         <div className="flex flex-col sm:flex-row gap-3 justify-end border-t border-gray-100 pt-5">
                             <button
