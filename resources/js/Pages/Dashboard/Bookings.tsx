@@ -88,9 +88,8 @@ function BookingRow({
                     <p className="text-sm text-gray-400 mt-0.5">
                         {b.date} at {b.time}
                     </p>
-                </div>
 
-                <div className="flex flex-wrap gap-2 shrink-0">
+                <div className="mt-3 flex flex-wrap gap-2">
                     {showConfirm && (
                         <button
                             onClick={() => onConfirm(b.id)}
@@ -121,6 +120,7 @@ function BookingRow({
                         <PhoneIcon className="size-4" />
                         Contact
                     </button>
+                </div>
                 </div>
             </div>
         </li>

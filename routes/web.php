@@ -145,7 +145,7 @@ Route::middleware(['ensure.not.customer', 'auth'])->prefix('admin')->name('admin
     // Available slots API for modal
     Route::get('/appointments/available-slots', [AppointmentController::class, 'availableSlots'])->name('appointments.available-slots');
 
-    Route::get('/blocked-times', [BlockedTimeController::class, 'index'])->name('blocked-times.index');
+    Route::get('/blocked-times', [BusinessHoursController::class, 'index'])->name('blocked-times.index');
     Route::post('/blocked-times', [BlockedTimeController::class, 'store'])->name('blocked-times.store');
     Route::delete('/blocked-times/{blockedTime}', [BlockedTimeController::class, 'destroy'])->name('blocked-times.destroy');
 

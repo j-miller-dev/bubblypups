@@ -1,7 +1,12 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { router, usePage } from "@inertiajs/react";
-import { useState } from "react";
-import { XMarkIcon, PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import {
+    XMarkIcon,
+    PencilIcon,
+    TrashIcon,
+    PlusIcon,
+} from "@heroicons/react/24/outline";
 import { ClockIcon } from "@heroicons/react/20/solid";
 import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
 
@@ -26,14 +31,11 @@ interface AvailabilityProps {
     blockedTimes: BlockedTime[];
 }
 
-function formatDateTime(iso: string) {
-    return new Date(iso).toLocaleString("en-AU", {
-        month: "short",
+function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-AU", {
         day: "numeric",
+        month: "short",
         year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
     });
 }
 
@@ -41,7 +43,14 @@ export default function Availability({
     businessHours,
     blockedTimes,
 }: AvailabilityProps) {
-    const { errors } = usePage().props as any;
+    const { errors, flash } = usePage().props as any;
+    const conflicts: {
+        id: number;
+        date: string;
+        time: string;
+        dog: string;
+        owner: string;
+    }[] = flash?.conflict ?? [];
 
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [editingDay, setEditingDay] = useState<BusinessHour | null>(null);
@@ -57,6 +66,14 @@ export default function Availability({
         end_datetime: "",
         reason: "",
     });
+
+    const [showConflictDialog, setShowConflictDialog] = useState(false);
+
+    useEffect(() => {
+        if (conflicts.length > 0) {
+            setShowConflictDialog(true);
+        }
+    }, [conflicts.length]);
 
     const handleEditDay = (day: BusinessHour) => {
         setEditingDay(day);
@@ -81,7 +98,11 @@ export default function Availability({
         router.post("/admin/blocked-times", blockForm, {
             preserveScroll: true,
             onSuccess: () =>
-                setBlockForm({ start_datetime: "", end_datetime: "", reason: "" }),
+                setBlockForm({
+                    start_datetime: "",
+                    end_datetime: "",
+                    reason: "",
+                }),
         });
     };
 
@@ -89,9 +110,29 @@ export default function Availability({
         setDeleteId(id);
     };
 
+    const handleForceBlock = () => {
+        router.post(
+            "/admin/blocked-times",
+            { ...blockForm, force: true },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowConflictDialog(false);
+                    setBlockForm({
+                        start_datetime: "",
+                        end_datetime: "",
+                        reason: "",
+                    });
+                },
+            },
+        );
+    };
+
     const handleConfirmDelete = () => {
         if (deleteId !== null) {
-            router.delete(`/admin/blocked-times/${deleteId}`, { preserveScroll: true });
+            router.delete(`/admin/blocked-times/${deleteId}`, {
+                preserveScroll: true,
+            });
         }
         setDeleteId(null);
     };
@@ -102,8 +143,7 @@ export default function Availability({
                 {/* Header */}
                 <div className="mb-8">
                     <h2 className="!text-2xl md:!text-3xl text-gray-950">
-                        My{" "}
-                        <span className="text-brand-500">Availability</span>
+                        My <span className="text-brand-500">Availability</span>
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
                         Manage your weekly hours and block time off.
@@ -173,9 +213,13 @@ export default function Availability({
                                 >
                                     <div>
                                         <p className="text-sm font-display font-extrabold text-gray-900">
-                                            {formatDateTime(blocked.start_datetime)}
+                                            {formatDate(
+                                                blocked.start_datetime,
+                                            )}
                                             {" — "}
-                                            {formatDateTime(blocked.end_datetime)}
+                                            {formatDate(
+                                                blocked.end_datetime,
+                                            )}
                                         </p>
                                         {blocked.reason && (
                                             <p className="mt-0.5 text-xs text-gray-500">
@@ -221,9 +265,9 @@ export default function Availability({
 
                     <form onSubmit={handleAddBlockedTime} className="space-y-4">
                         <div>
-                            <label className="label">Start Date &amp; Time</label>
+                            <label className="label">Start Date</label>
                             <input
-                                type="datetime-local"
+                                type="date"
                                 value={blockForm.start_datetime}
                                 onChange={(e) =>
                                     setBlockForm({
@@ -237,9 +281,9 @@ export default function Availability({
                         </div>
 
                         <div>
-                            <label className="label">End Date &amp; Time</label>
+                            <label className="label">End Date</label>
                             <input
-                                type="datetime-local"
+                                type="date"
                                 value={blockForm.end_datetime}
                                 onChange={(e) =>
                                     setBlockForm({
@@ -340,7 +384,8 @@ export default function Availability({
                                                 onChange={(e) =>
                                                     setEditForm({
                                                         ...editForm,
-                                                        open_time: e.target.value,
+                                                        open_time:
+                                                            e.target.value,
                                                     })
                                                 }
                                                 className="input"
@@ -417,6 +462,67 @@ export default function Availability({
                 confirmLabel="Yes, remove"
                 destructive
             />
+            {showConflictDialog && (
+                <div className="fixed inset-0 z-50 overflow-y-auto">
+                    <div className="flex min-h-full items-end sm:items-center justify-center p-4">
+                        <div
+                            className="fixed inset-0 bg-gray-900/50"
+                            onClick={() => setShowConflictDialog(false)}
+                        />
+                        <div
+                            className="relative w-full max-w-md rounded-t-3xl sm:rounded-2xl bg-white p-6
+  shadow-xl"
+                        >
+                            <div className="mb-4 flex justify-center sm:hidden">
+                                <div className="h-1.5 w-12 rounded-full bg-gray-200" />
+                            </div>
+                            <p className="font-display font-extrabold text-gray-900 text-lg mb-1">
+                                Appointments affected
+                            </p>
+                            <p className="text-sm text-gray-500 mb-4">
+                                These appointments fall within the blocked time.
+                                Proceeding will cancel them and notify each
+                                customer by email.
+                            </p>
+                            <ul className="mb-6 space-y-2">
+                                {conflicts.map((c) => (
+                                    <li
+                                        key={c.id}
+                                        className="flex items-center gap-3 rounded-lg bg-red-50
+  border border-red-100 px-4 py-3"
+                                    >
+                                        <div>
+                                            <p
+                                                className="text-sm font-display font-extrabold
+  text-gray-900"
+                                            >
+                                                {c.dog} — {c.owner}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {c.date} at {c.time}
+                                            </p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="flex flex-col gap-3 sm:flex-row-reverse">
+                                <button
+                                    onClick={handleForceBlock}
+                                    className="btn-primary w-full sm:w-auto justify-center"
+                                >
+                                    Cancel appointments & block time
+                                </button>
+                                <button
+                                    onClick={() => setShowConflictDialog(false)}
+                                    className="btn-outline w-full sm:w-auto justify-center"
+                                >
+                                    Go back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }
