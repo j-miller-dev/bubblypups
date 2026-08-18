@@ -7,6 +7,25 @@ import { CalendarIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import FAQSection from "@/Components/FAQSection.tsx";
 import Gallery from "@/Components/Gallery";
 import { Link } from "@inertiajs/react";
+import { BeforeAfterSlider } from "@/Components/BeforeAfterSlider";
+
+const transformations = [
+    {
+        before: null,
+        emoji: "🐩",
+        after: "/images/gallery/502319044_17994059882802840_6920213472963083229_n.jpg",
+    },
+    {
+        before: null,
+        emoji: "🦮",
+        after: "/images/gallery/508686865_17993965757802840_5635872540663735746_n.jpg",
+    },
+    {
+        before: null,
+        emoji: "🐕",
+        after: "/images/gallery/511543675_17994714224802840_1330661720326907512_n.jpg",
+    },
+];
 
 
 function Hero() {
@@ -55,6 +74,27 @@ export default function Home() {
                     <Services />
                 </section>
                 <Gallery />
+
+                {/* Before & After Transformations */}
+                <section className="bg-white py-20 sm:py-28">
+                    <Container>
+                        <div className="mb-10 text-center">
+                            <span className="inline-block rounded-full bg-brand-100 px-4 py-1 text-sm font-display font-extrabold text-brand-600 mb-3">
+                                The Bubbly Difference
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-gray-900 tracking-tight">
+                                Pup <span className="text-brand-400">Transformations</span>
+                            </h2>
+                            <p className="mt-3 text-gray-500 max-w-sm mx-auto">
+                                Drag to reveal the glow-up. Slide right to unleash the bubbles ✨
+                            </p>
+                        </div>
+                        <div className="mx-auto max-w-2xl">
+                            <BeforeAfterSlider pairs={transformations} />
+                        </div>
+                    </Container>
+                </section>
+
                 <Testimonials />
                 <CallToActionSection />
                 <FAQSection />
