@@ -1,6 +1,8 @@
 import AdminLayout from '@/Layouts/AdminLayout'
 import { Link, router } from '@inertiajs/react'
 import { PlusIcon, PencilSquareIcon, TrashIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react'
+import { ConfirmDialog } from '@/Components/ui/ConfirmDialog'
 
 interface BlogPost {
     id: number
@@ -30,11 +32,17 @@ const categoryLabels: Record<string, string> = {
 }
 
 export default function BlogIndex({ posts }: BlogIndexProps) {
+    const [deletePost, setDeletePost] = useState<BlogPost | null>(null)
+
     const handleDelete = (post: BlogPost) => {
-        if (!confirm(`Delete "${post.title}"? This cannot be undone.`)) {
-            return
+        setDeletePost(post)
+    }
+
+    const handleConfirmDelete = () => {
+        if (deletePost) {
+            router.delete(route('admin.blog.destroy', deletePost.id))
         }
-        router.delete(route('admin.blog.destroy', post.id))
+        setDeletePost(null)
     }
 
     const handlePublishToggle = (post: BlogPost) => {
@@ -181,6 +189,15 @@ export default function BlogIndex({ posts }: BlogIndexProps) {
                     ))}
                 </div>
             )}
+            <ConfirmDialog
+                open={deletePost !== null}
+                onClose={() => setDeletePost(null)}
+                onConfirm={handleConfirmDelete}
+                title={`Delete "${deletePost?.title}"?`}
+                description="This cannot be undone."
+                confirmLabel="Yes, delete"
+                destructive
+            />
         </AdminLayout>
     )
 }

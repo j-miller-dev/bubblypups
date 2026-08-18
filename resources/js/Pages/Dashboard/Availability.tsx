@@ -3,6 +3,7 @@ import { router, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import { XMarkIcon, PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { ClockIcon } from "@heroicons/react/20/solid";
+import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
 
 interface BusinessHour {
     id: number;
@@ -42,6 +43,7 @@ export default function Availability({
 }: AvailabilityProps) {
     const { errors } = usePage().props as any;
 
+    const [deleteId, setDeleteId] = useState<number | null>(null);
     const [editingDay, setEditingDay] = useState<BusinessHour | null>(null);
     const [editForm, setEditForm] = useState({
         is_open: true,
@@ -84,9 +86,14 @@ export default function Availability({
     };
 
     const handleDeleteBlockedTime = (id: number) => {
-        if (confirm("Remove this blocked time?")) {
-            router.delete(`/admin/blocked-times/${id}`, { preserveScroll: true });
+        setDeleteId(id);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deleteId !== null) {
+            router.delete(`/admin/blocked-times/${deleteId}`, { preserveScroll: true });
         }
+        setDeleteId(null);
     };
 
     return (
@@ -401,6 +408,15 @@ export default function Availability({
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                open={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={handleConfirmDelete}
+                title="Remove blocked time?"
+                description="This will make the time available for customer bookings again."
+                confirmLabel="Yes, remove"
+                destructive
+            />
         </AdminLayout>
     );
 }

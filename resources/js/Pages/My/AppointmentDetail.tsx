@@ -6,6 +6,8 @@ import {
     PhoneIcon,
     ChevronLeftIcon,
 } from "@heroicons/react/20/solid";
+import { useState } from "react";
+import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
 
 interface AppointmentDetailProps {
     customer: {
@@ -82,14 +84,15 @@ export default function AppointmentDetail({
         hour12: true,
     });
 
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
+
     const handleCancel = () => {
-        if (
-            confirm(
-                "Are you sure you want to cancel this appointment? This action cannot be undone.",
-            )
-        ) {
-            router.post(`/my/appointments/${appointment.id}/cancel`);
-        }
+        setShowCancelDialog(true);
+    };
+
+    const handleConfirmCancel = () => {
+        router.post(`/my/appointments/${appointment.id}/cancel`);
+        setShowCancelDialog(false);
     };
 
     return (
@@ -268,6 +271,15 @@ export default function AppointmentDetail({
                     </div>
                 </div>
             </div>
+            <ConfirmDialog
+                open={showCancelDialog}
+                onClose={() => setShowCancelDialog(false)}
+                onConfirm={handleConfirmCancel}
+                title="Cancel appointment?"
+                description="Are you sure? This action cannot be undone."
+                confirmLabel="Yes, cancel it"
+                destructive
+            />
         </CustomerLayout>
     );
 }
