@@ -12,19 +12,7 @@ Your appointment for {{ $appointment->dog->name }} has been rescheduled.
 **Duration:** {{ $appointment->duration }} minutes
 @endcomponent
 
-@if($appointment->status === 'waiting_on_client')
-## Please Confirm
-We've proposed a new time for your appointment. Please confirm if this works for you:
-
-@component('mail::button', ['url' => $confirmUrl, 'color' => 'success'])
-✓ Confirm This Time Works
-@endcomponent
-
-Or if you need a different time, please let us know.
-@else
-## Confirmed
-Your appointment has been rescheduled and confirmed at the new time.
-@endif
+Your appointment is confirmed at the new time — nothing else needed from you!
 
 @if($appointment->notes)
 ## Note from Groomer

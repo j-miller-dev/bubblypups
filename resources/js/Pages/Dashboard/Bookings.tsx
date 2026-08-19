@@ -131,19 +131,26 @@ function SectionHeader({
     label,
     count,
     accent,
+    description,
 }: {
     label: string;
     count: number;
     accent: string;
+    description?: string;
 }) {
     return (
-        <div className="flex items-center gap-3 mb-3">
-            <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-display font-extrabold ${accent}`}
-            >
-                {count}
-            </span>
-            <p className="font-display font-extrabold text-gray-900">{label}</p>
+        <div className="mb-3">
+            <div className="flex items-center gap-3">
+                <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-display font-extrabold ${accent}`}
+                >
+                    {count}
+                </span>
+                <p className="font-display font-extrabold text-gray-900">{label}</p>
+            </div>
+            {description && (
+                <p className="mt-1 text-xs text-gray-400">{description}</p>
+            )}
         </div>
     );
 }
@@ -220,6 +227,7 @@ export default function Bookings({ appointments }: BookingsProps) {
                         label="To Confirm"
                         count={pendingBookings.length}
                         accent="bg-yellow-100 text-yellow-700"
+                        description="New booking requests waiting for your approval. Review each one and confirm or cancel."
                     />
                     <div className="card overflow-hidden">
                         <ul className="divide-y divide-gray-100">
@@ -245,6 +253,7 @@ export default function Bookings({ appointments }: BookingsProps) {
                         label="Waiting on Client Approval"
                         count={waitingOnClient.length}
                         accent="bg-blue-100 text-blue-700"
+                        description="Bookings proposed directly to a client that they haven't responded to yet."
                     />
                     <div className="card overflow-hidden">
                         <ul className="divide-y divide-gray-100">
@@ -270,6 +279,7 @@ export default function Bookings({ appointments }: BookingsProps) {
                         label="Confirmed"
                         count={confirmedBookings.length}
                         accent="bg-green-100 text-green-700"
+                        description="All locked in! The client has been notified and is good to go."
                     />
                     <div className="card overflow-hidden">
                         <ul className="divide-y divide-gray-100">

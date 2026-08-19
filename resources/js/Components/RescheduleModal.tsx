@@ -460,19 +460,11 @@ export default function RescheduleModal({
                 </button>
                 <button
                     type="button"
-                    onClick={() => handleSubmit("waiting_on_client")}
-                    disabled={!canSubmit}
-                    className="inline-flex items-center justify-center rounded-button px-4 py-2 text-sm font-display font-extrabold bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                    Send to Client
-                </button>
-                <button
-                    type="button"
                     onClick={() => handleSubmit("confirmed")}
                     disabled={!canSubmit}
                     className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                    Confirm Now
+                    Save Reschedule
                 </button>
             </DialogActions>
         </Dialog>
