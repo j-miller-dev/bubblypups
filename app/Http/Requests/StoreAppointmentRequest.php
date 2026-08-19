@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\BlockedTime;
 use App\Models\BusinessHours;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -32,6 +33,12 @@ class StoreAppointmentRequest extends FormRequest
                 'required',
                 'date',
                 'after_or_equal:today',
+                function ($attribute, $value, $fail) {
+                    $windowWeeks = (int) Setting::get('booking_window_weeks', 4);
+                    if (Carbon::parse($value)->gt(now()->addWeeks($windowWeeks))) {
+                        $fail("Online bookings are only available up to {$windowWeeks} weeks ahead. Please call us to book further in advance.");
+                    }
+                },
                 function ($attribute, $value, $fail) {
                     $dayOfWeek = Carbon::parse($value)->format('l');
                     $hours = BusinessHours::getHoursForDay($dayOfWeek);

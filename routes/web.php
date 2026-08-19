@@ -155,6 +155,7 @@ Route::middleware(['ensure.not.customer', 'auth'])->prefix('admin')->name('admin
 
     // Business hours management
     Route::patch('/business-hours/{businessHours}', [BusinessHoursController::class, 'update'])->name('business-hours.update');
+    Route::patch('/booking-window', [BusinessHoursController::class, 'updateBookingWindow'])->name('booking-window.update');
 
     // Blog post management
     Route::get('/blog', [BlogPostController::class, 'index'])->name('blog.index');

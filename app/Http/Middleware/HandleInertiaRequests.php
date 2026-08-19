@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -43,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'breeds' => config('breeds'),
             'businessPhone' => config('business.phone'),
             'businessPhoneDisplay' => config('business.phone_display'),
+            'bookingWindowWeeks' => (int) Setting::get('booking_window_weeks', 4),
         ];
     }
 }

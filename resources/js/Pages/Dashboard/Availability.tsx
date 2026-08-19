@@ -29,6 +29,7 @@ interface BlockedTime {
 interface AvailabilityProps {
     businessHours: BusinessHour[];
     blockedTimes: BlockedTime[];
+    bookingWindowWeeks: number;
 }
 
 function formatDate(iso: string) {
@@ -42,6 +43,7 @@ function formatDate(iso: string) {
 export default function Availability({
     businessHours,
     blockedTimes,
+    bookingWindowWeeks,
 }: AvailabilityProps) {
     const { errors, flash } = usePage().props as any;
     const conflicts: {
@@ -68,6 +70,7 @@ export default function Availability({
     });
 
     const [showConflictDialog, setShowConflictDialog] = useState(false);
+    const [windowWeeks, setWindowWeeks] = useState(bookingWindowWeeks);
 
     useEffect(() => {
         if (conflicts.length > 0) {
@@ -125,6 +128,14 @@ export default function Availability({
                     });
                 },
             },
+        );
+    };
+
+    const handleSaveBookingWindow = () => {
+        router.patch(
+            "/admin/booking-window",
+            { booking_window_weeks: windowWeeks },
+            { preserveScroll: true },
         );
     };
 
@@ -324,6 +335,42 @@ export default function Availability({
                             Block This Time
                         </button>
                     </form>
+                </div>
+
+                {/* Booking Window */}
+                <div className="card p-6 mt-6">
+                    <p className="font-display font-extrabold text-gray-900 mb-1">
+                        Online Booking Window
+                    </p>
+                    <p className="text-sm text-gray-500 mb-5">
+                        Customers can only book online up to this many weeks
+                        ahead. For dates beyond this, they'll be prompted to
+                        call.
+                    </p>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 flex-1">
+                            <input
+                                type="number"
+                                min={1}
+                                max={52}
+                                value={windowWeeks}
+                                onChange={(e) =>
+                                    setWindowWeeks(parseInt(e.target.value) || 1)
+                                }
+                                className="input w-24 text-center"
+                            />
+                            <span className="text-sm text-gray-600">
+                                weeks ahead
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleSaveBookingWindow}
+                            className="btn-primary shrink-0"
+                        >
+                            Save
+                        </button>
+                    </div>
                 </div>
             </div>
 

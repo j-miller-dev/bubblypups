@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
 import { Container } from "@/Components/layout";
 import {
@@ -65,6 +65,10 @@ function SectionDivider({ label }: { label: string }) {
 
 export default function Create({ dogs, services, selectedDogId }: Props) {
     const dog = dogs?.find((d) => d.id === selectedDogId) || dogs?.[0];
+    const { bookingWindowWeeks, businessPhone } = usePage<{
+        bookingWindowWeeks: number;
+        businessPhone: string;
+    }>().props;
 
     const { data, setData, post, processing, errors } = useForm({
         dog_id: dog?.id || 0,
@@ -75,6 +79,11 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
     });
 
     const todayStr = formatDate(new Date());
+    const maxDate = useMemo(() => {
+        const d = new Date();
+        d.setDate(d.getDate() + bookingWindowWeeks * 7);
+        return formatDate(d);
+    }, [bookingWindowWeeks]);
     const [viewDate, setViewDate] = useState<Date>(new Date());
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -395,11 +404,16 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                                     day.date === todayStr;
                                                 const isPast =
                                                     day.date < todayStr;
+                                                const isBeyondWindow =
+                                                    day.date > maxDate;
                                                 return (
                                                     <button
                                                         key={day.date}
                                                         type="button"
-                                                        disabled={isPast}
+                                                        disabled={
+                                                            isPast ||
+                                                            isBeyondWindow
+                                                        }
                                                         onClick={() =>
                                                             handleDateSelect(
                                                                 day.date,
@@ -444,6 +458,18 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                                 );
                                             })}
                                         </div>
+
+                                        <p className="mt-3 text-xs text-gray-400 text-center">
+                                            Online bookings available up to{" "}
+                                            {bookingWindowWeeks} weeks ahead.{" "}
+                                            <a
+                                                href={`tel:${businessPhone}`}
+                                                className="text-brand-500 hover:underline font-medium"
+                                            >
+                                                Call us
+                                            </a>{" "}
+                                            to book further ahead.
+                                        </p>
 
                                         {errors.appointment_date && (
                                             <p className="mt-2 text-sm text-red-600">

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Dog;
 use App\Models\Service;
+use App\Models\Setting;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -51,6 +52,11 @@ class BookingController extends Controller
         $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
         ]);
+
+        $windowWeeks = (int) Setting::get('booking_window_weeks', 4);
+        if ($request->date > now()->addWeeks($windowWeeks)->format('Y-m-d')) {
+            return response()->json(['slots' => []]);
+        }
 
         $slots = $this->availabilityService->getAvailableSlots($request->date);
 

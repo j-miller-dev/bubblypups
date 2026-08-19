@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessHours;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -36,6 +37,7 @@ class BusinessHoursController extends Controller
         return Inertia::render('Dashboard/Availability', [
             'businessHours' => $businessHours,
             'blockedTimes' => $blockedTimes,
+            'bookingWindowWeeks' => (int) Setting::get('booking_window_weeks', 4),
         ]);
     }
 
@@ -55,5 +57,16 @@ class BusinessHoursController extends Controller
 
         // Redirect back with success message!
         return back()->with('success', 'Business hours updated successfully!');
+    }
+
+    public function updateBookingWindow(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'booking_window_weeks' => ['required', 'integer', 'min:1', 'max:52'],
+        ]);
+
+        Setting::set('booking_window_weeks', $validated['booking_window_weeks']);
+
+        return back()->with('success', 'Booking window updated.');
     }
 }
