@@ -11,19 +11,16 @@ import { BeforeAfterSlider } from "@/Components/BeforeAfterSlider";
 
 const transformations = [
     {
-        before: null,
-        emoji: "🐩",
-        after: "/images/gallery/502319044_17994059882802840_6920213472963083229_n.jpg",
+        before: "/images/before-after/before2.jpg",
+        after: "/images/gallery/511543675_17994714224802840_1330681720326907512_n.jpg",
     },
     {
-        before: null,
-        emoji: "🦮",
+        before: "/images/before-after/before3.jpg",
+        after: "/images/gallery/511532996_17994821429802840_3900949975547190294_n.jpg",
+    },
+    {
+        before: "/images/before-after/before1.webp",
         after: "/images/gallery/508686865_17993965757802840_5635872540663735746_n.jpg",
-    },
-    {
-        before: null,
-        emoji: "🐕",
-        after: "/images/gallery/511543675_17994714224802840_1330661720326907512_n.jpg",
     },
 ];
 
