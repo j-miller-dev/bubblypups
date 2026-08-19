@@ -3,8 +3,9 @@ import CustomerLayout from "@/Layouts/CustomerLayout";
 import AppointmentCard from "@/Components/Customer/AppointmentCard";
 import DogPhotoUpload from "@/Components/Customer/DogPhotoUpload";
 import BreedSelector from "@/Components/ui/BreedSelector";
-import { Link, useForm } from "@inertiajs/react";
-import { PencilIcon, XMarkIcon, CalendarDaysIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { Link, router, useForm } from "@inertiajs/react";
+import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
+import { PencilIcon, TrashIcon, XMarkIcon, CalendarDaysIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 
 interface DogDetailProps {
@@ -42,6 +43,7 @@ const sizeBadges: Record<string, { badge: string; label: string }> = {
 
 export default function DogDetail({ customer, dog }: DogDetailProps) {
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const { data, setData, patch, processing, errors } = useForm({
         name: dog.name,
@@ -123,16 +125,34 @@ export default function DogDetail({ customer, dog }: DogDetailProps) {
                             )}
                         </div>
 
-                        {/* Edit button */}
-                        <button
-                            onClick={() => setShowEditModal(true)}
-                            className="btn-primary mt-6 w-full justify-center !text-sm !px-4 !py-2"
-                        >
-                            <PencilIcon className="size-4" aria-hidden />
-                            Edit Profile
-                        </button>
+                        <div className="mt-6 flex flex-col gap-2">
+                            <button
+                                onClick={() => setShowEditModal(true)}
+                                className="btn-primary w-full justify-center !text-sm !px-4 !py-2"
+                            >
+                                <PencilIcon className="size-4" aria-hidden />
+                                Edit Profile
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteDialog(true)}
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-button px-4 py-2 text-sm font-display font-extrabold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                            >
+                                <TrashIcon className="size-4" aria-hidden />
+                                Remove Dog
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                <ConfirmDialog
+                    open={showDeleteDialog}
+                    onClose={() => setShowDeleteDialog(false)}
+                    onConfirm={() => router.delete(route("my.dogs.destroy", dog.id))}
+                    title={`Remove ${dog.name}?`}
+                    description="This will permanently delete this dog's profile and all associated records. This cannot be undone."
+                    confirmLabel="Yes, remove"
+                    destructive
+                />
 
                 {/* Main Content - Appointment History */}
                 <div className="lg:col-span-2">

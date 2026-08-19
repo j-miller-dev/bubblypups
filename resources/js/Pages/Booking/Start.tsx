@@ -1,6 +1,6 @@
 import MainLayout from "@/Layouts/MainLayout";
 import { Container } from "@/Components/layout";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import { Link } from "@/Components/ui";
 import {
     CalendarDaysIcon,
@@ -10,6 +10,8 @@ import {
 } from "@heroicons/react/20/solid";
 
 export default function Start() {
+    const { businessPhone } = usePage<{ businessPhone: string }>().props;
+
     return (
         <MainLayout title="Book a Grooming Appointment">
             <Head title="Book a Grooming Appointment" />
@@ -106,7 +108,7 @@ export default function Start() {
                                 </div>
                             </div>
                             <a
-                                href="tel:+61300000000"
+                                href={`tel:${businessPhone}`}
                                 className="btn-primary shrink-0 whitespace-nowrap"
                             >
                                 <PhoneIcon className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import CustomerLayout from "@/Layouts/CustomerLayout";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import {
     CalendarIcon,
     ClockIcon,
@@ -84,6 +84,8 @@ export default function AppointmentDetail({
         hour12: true,
     });
 
+    const { businessPhone } = usePage<{ businessPhone: string }>().props;
+
     const [showCancelDialog, setShowCancelDialog] = useState(false);
 
     const handleCancel = () => {
@@ -159,9 +161,14 @@ export default function AppointmentDetail({
                                 <p className="mt-1.5 text-sm text-gray-500">
                                     {appointment.service.description}
                                 </p>
-                                <div className="mt-4 flex items-center gap-1.5 text-sm text-gray-500">
-                                    <ClockIcon className="size-4 text-brand-400 shrink-0" />
-                                    {appointment.duration} minutes
+                                <div className="mt-4 flex items-center gap-4">
+                                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                        <ClockIcon className="size-4 text-brand-400 shrink-0" />
+                                        {appointment.duration} minutes
+                                    </div>
+                                    <p className="text-sm font-display font-extrabold text-brand-500">
+                                        From ${appointment.service.base_price}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -262,7 +269,7 @@ export default function AppointmentDetail({
                             Give us a call and we'll sort it out for you.
                         </p>
                         <a
-                            href="tel:+61400000000"
+                            href={`tel:${businessPhone}`}
                             className="mt-3 flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-display font-extrabold transition-colors"
                         >
                             <PhoneIcon className="size-4 shrink-0" />

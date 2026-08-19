@@ -1,12 +1,10 @@
 import { CalendarIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import { motion } from "framer-motion";
-import { Link } from "@inertiajs/react";
-
-// Update when the real phone number is confirmed.
-const PHONE_NUMBER = "+61 XXX XXX XXX";
-const PHONE_HREF = "tel:+61XXXXXXXXX";
+import { Link, usePage } from "@inertiajs/react";
 
 export default function CallToActionSection() {
+    const { businessPhone, businessPhoneDisplay } = usePage<{ businessPhone: string; businessPhoneDisplay: string }>().props;
+
     return (
         <section className="relative overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 py-24 sm:py-32">
             {/* Decorative paw prints */}
@@ -60,11 +58,11 @@ export default function CallToActionSection() {
                             Book an Appointment
                         </Link>
                         <a
-                            href={PHONE_HREF}
+                            href={`tel:${businessPhone}`}
                             className="btn bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 active:bg-white/30 w-full sm:w-auto"
                         >
                             <PhoneIcon className="h-5 w-5" />
-                            {PHONE_NUMBER}
+                            {businessPhoneDisplay}
                         </a>
                     </div>
                 </motion.div>

@@ -75,6 +75,21 @@ class CustomerDogController extends Controller
         return back()->with('success', 'Dog updated successfully!');
     }
 
+    public function destroy(Dog $dog, DogPhotoService $photoService): \Illuminate\Http\RedirectResponse
+    {
+        if ($dog->customer_id !== auth('customer')->id()) {
+            abort(403);
+        }
+
+        if ($dog->photo_url) {
+            $photoService->deletePhoto($dog);
+        }
+
+        $dog->delete();
+
+        return redirect()->route('my.dogs')->with('success', 'Dog profile removed.');
+    }
+
     public function updatePhoto(UpdateDogPhotoRequest $request, Dog $dog, DogPhotoService $photoService): \Illuminate\Http\RedirectResponse
     {
         $photoService->uploadPhoto($dog, $request->validated('photo'));

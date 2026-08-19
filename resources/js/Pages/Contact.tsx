@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import MainLayout from "@/Layouts/MainLayout";
 import { Container } from "@/Components/layout";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import {
     ChatBubbleLeftEllipsisIcon,
     CheckCircleIcon,
@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/20/solid";
 
 export default function Contact() {
+    const { businessPhone } = usePage<{ businessPhone: string }>().props;
     const { data, setData, post, processing, errors } = useForm({
         name: "",
         email: "",
@@ -185,7 +186,7 @@ export default function Contact() {
                                 </div>
                             </div>
                             <a
-                                href="tel:+61400000000"
+                                href={`tel:${businessPhone}`}
                                 className="btn-primary shrink-0 whitespace-nowrap inline-flex items-center gap-2"
                             >
                                 <PhoneIcon className="size-4" />

@@ -17,6 +17,7 @@ interface AppointmentCardProps {
             id: number;
             name: string;
             emoji: string;
+            base_price?: number;
         };
     };
     showActions?: boolean;
@@ -113,6 +114,11 @@ export default function AppointmentCard({
                     <ClockIcon className="size-4 text-brand-400 shrink-0" />
                     {formattedTime}
                 </div>
+                {service.base_price !== undefined && (
+                    <p className="text-sm font-display font-extrabold text-brand-500">
+                        From ${service.base_price}
+                    </p>
+                )}
             </div>
 
             {showActions && (

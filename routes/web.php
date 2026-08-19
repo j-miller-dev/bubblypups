@@ -119,6 +119,8 @@ Route::middleware(['auth:customer'])->prefix('my')->name('my.')->group(function 
         ->name('dogs.photo.update');
     Route::delete('/dogs/{dog}/photo', [CustomerDogController::class, 'deletePhoto'])
         ->name('dogs.photo.destroy');
+    Route::delete('/dogs/{dog}', [CustomerDogController::class, 'destroy'])
+        ->name('dogs.destroy');
 
     // Profile
     Route::get('/profile', [CustomerProfileController::class, 'edit'])
@@ -164,4 +166,4 @@ Route::middleware(['ensure.not.customer', 'auth'])->prefix('admin')->name('admin
     Route::patch('/blog/{blogPost}/publish', [BlogPostController::class, 'publish'])->name('blog.publish');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

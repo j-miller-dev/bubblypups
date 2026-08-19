@@ -6,7 +6,7 @@ import CallToActionSection from "@/Components/business/CallToActionSection.tsx";
 import { CalendarIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import FAQSection from "@/Components/FAQSection.tsx";
 import Gallery from "@/Components/Gallery";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { BeforeAfterSlider } from "@/Components/BeforeAfterSlider";
 
 const transformations = [
@@ -26,6 +26,8 @@ const transformations = [
 
 
 function Hero() {
+    const { businessPhone } = usePage<{ businessPhone: string }>().props;
+
     return (
         <section className="relative bg-white flex flex-col justify-center min-h-[calc(100svh-4rem)]">
             <Bubbles />
@@ -48,7 +50,7 @@ function Hero() {
                             Book Now
                         </Link>
                         <a
-                            href="tel:+1234567890"
+                            href={`tel:${businessPhone}`}
                             className="btn-secondary w-full sm:w-auto"
                         >
                             <PhoneIcon className="h-5 w-5" />

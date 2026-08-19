@@ -1,9 +1,10 @@
+import React from "react";
 import BreedSelector from "@/Components/ui/BreedSelector";
 import MainLayout from "@/Layouts/MainLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { UserPlusIcon } from "@heroicons/react/20/solid";
 
-function SectionDivider({ label }) {
+function SectionDivider({ label }: { label: string }) {
     return (
         <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-100" />
@@ -28,7 +29,7 @@ export default function CustomerRegister() {
         dog_notes: "",
     });
 
-    const submit = (e) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route("customer.register"));
     };

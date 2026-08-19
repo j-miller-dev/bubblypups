@@ -41,6 +41,8 @@ class HandleInertiaRequests extends Middleware
                 'conflicts' => $request->session()->get('conflicts'),
             ],
             'breeds' => config('breeds'),
+            'businessPhone' => config('business.phone'),
+            'businessPhoneDisplay' => config('business.phone_display'),
         ];
     }
 }
