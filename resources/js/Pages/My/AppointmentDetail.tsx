@@ -184,17 +184,17 @@ export default function AppointmentDetail({
                         </div>
                     </div>
 
-                    {/* Penciled in notice */}
+                    {/* Pending review notice */}
                     {appointment.status === "pending" && (
-                        <div className="rounded-card border border-amber-200 bg-amber-50 px-5 py-4">
+                        <div className="rounded-card border border-brand-200 bg-brand-50 px-5 py-4">
                             <div className="flex items-start gap-3">
-                                <span className="text-xl shrink-0 mt-0.5">📋</span>
+                                <span className="text-xl shrink-0 mt-0.5">🐾</span>
                                 <div>
-                                    <p className="text-sm font-display font-extrabold text-amber-800">
-                                        This appointment is penciled in
+                                    <p className="text-sm font-display font-extrabold text-brand-800">
+                                        Your booking is being reviewed
                                     </p>
-                                    <p className="mt-1 text-sm text-amber-700">
-                                        We'll review the job requirements and confirm your time — or reach out if a small adjustment is needed. You'll receive an email once it's locked in.
+                                    <p className="mt-1 text-sm text-brand-700">
+                                        We'll confirm your time shortly. If a small adjustment is needed to fit the day perfectly, we'll reach out first. You'll receive an SMS and email once it's all locked in.
                                     </p>
                                 </div>
                             </div>

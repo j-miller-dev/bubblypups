@@ -566,16 +566,16 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
                                 </div>
                             </div>
 
-                            {/* Penciled in notice */}
-                            <div className="rounded-card border border-amber-200 bg-amber-50 px-5 py-4">
+                            {/* How booking works notice */}
+                            <div className="rounded-card border border-brand-200 bg-brand-50 px-5 py-4">
                                 <div className="flex items-start gap-3">
-                                    <span className="text-xl shrink-0 mt-0.5">📋</span>
+                                    <span className="text-xl shrink-0 mt-0.5">🐾</span>
                                     <div>
-                                        <p className="text-sm font-display font-extrabold text-amber-800">
-                                            Your appointment will be penciled in, not locked in
+                                        <p className="text-sm font-display font-extrabold text-brand-800">
+                                            We'll confirm your time shortly
                                         </p>
-                                        <p className="mt-1 text-sm text-amber-700">
-                                            As a one-groomer salon, we assess each job before confirming times. We'll review your request and confirm within 24 hours — or reach out if a small time adjustment is needed.
+                                        <p className="mt-1 text-sm text-brand-700">
+                                            We're a one-groomer salon, so each booking is reviewed to make sure your pup gets the full attention they deserve. We'll confirm your time — or suggest a small tweak if needed. You'll receive an SMS and email once it's locked in.
                                         </p>
                                     </div>
                                 </div>

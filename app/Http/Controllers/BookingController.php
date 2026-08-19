@@ -88,6 +88,6 @@ class BookingController extends Controller
         }
 
         return redirect()->route('my.appointments')
-            ->with('success', 'You\'re penciled in! We\'ll review the job and confirm your time within 24 hours.');
+            ->with('success', 'Booking request received! We\'ll confirm your time shortly — keep an eye out for an SMS or email.');
     }
 }
