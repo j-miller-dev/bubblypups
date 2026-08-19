@@ -203,7 +203,14 @@ export default function Profile({ customer }: ProfileProps) {
                             Need to update your password?
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
-                            Please contact us and we'll get that sorted for you.
+                            Use the{" "}
+                            <a
+                                href={route("customer.password.request")}
+                                className="font-medium text-brand-500 hover:text-brand-600"
+                            >
+                                forgot password
+                            </a>{" "}
+                            flow to reset it yourself.
                         </p>
                     </div>
                 </div>

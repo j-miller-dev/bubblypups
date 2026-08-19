@@ -34,13 +34,13 @@ class DogPhotoService
         // Store the file
         $path = $photo->storeAs($this->directory, $filename, $this->disk);
 
-        // Generate the public URL
-        $url = Storage::disk($this->disk)->url($path);
+        // Store a relative path so it works across any domain/tunnel
+        $relativePath = '/storage/'.$path;
 
         // Update the dog's photo_url
-        $dog->update(['photo_url' => $url]);
+        $dog->update(['photo_url' => $relativePath]);
 
-        return $url;
+        return $relativePath;
     }
 
     /**
@@ -77,15 +77,18 @@ class DogPhotoService
      */
     protected function getPathFromUrl(string $url): ?string
     {
-        // Get the storage URL prefix
+        // Handle relative paths like /storage/dog-photos/...
+        if (str_starts_with($url, '/storage/')) {
+            return substr($url, strlen('/storage/'));
+        }
+
+        // Handle legacy full URLs
         $storageUrl = Storage::disk($this->disk)->url('');
 
-        // Remove the storage URL prefix to get the relative path
         if (str_starts_with($url, $storageUrl)) {
             return substr($url, strlen($storageUrl));
         }
 
-        // Handle cases where only the path portion is stored
         if (str_contains($url, $this->directory)) {
             $pos = strpos($url, $this->directory);
 

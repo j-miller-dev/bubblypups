@@ -1,5 +1,7 @@
-import { Link } from "@inertiajs/react";
+import { useState } from "react";
+import { Link, router } from "@inertiajs/react";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/20/solid";
+import { ConfirmDialog } from "@/Components/ui/ConfirmDialog";
 
 interface AppointmentCardProps {
     appointment: {
@@ -47,6 +49,8 @@ export default function AppointmentCard({
     appointment,
     showActions = true,
 }: AppointmentCardProps) {
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
+
     const status =
         statusStyles[appointment.status] ?? statusStyles.pending;
 
@@ -120,22 +124,28 @@ export default function AppointmentCard({
                         View Details
                     </Link>
                     {canCancel && (
-                        <Link
-                            href={`/my/appointments/${appointment.id}/cancel`}
-                            method="post"
-                            as="button"
+                        <button
+                            onClick={() => setShowCancelDialog(true)}
                             className="rounded-button px-3 py-2 text-sm font-medium font-display text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
-                            onBefore={() =>
-                                confirm(
-                                    "Are you sure you want to cancel this appointment?",
-                                )
-                            }
                         >
                             Cancel
-                        </Link>
+                        </button>
                     )}
                 </div>
             )}
+
+            <ConfirmDialog
+                open={showCancelDialog}
+                onClose={() => setShowCancelDialog(false)}
+                onConfirm={() => {
+                    router.post(`/my/appointments/${appointment.id}/cancel`);
+                    setShowCancelDialog(false);
+                }}
+                title="Cancel appointment?"
+                description="Are you sure you want to cancel this grooming appointment? This cannot be undone."
+                confirmLabel="Yes, cancel it"
+                destructive
+            />
         </div>
     );
 }
