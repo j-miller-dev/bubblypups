@@ -204,8 +204,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             </MenuButton>
                             <MenuItems
                                 transition
-                                className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-card border border-gray-100 bg-white py-2 shadow-lg transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                                className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-card border border-gray-100 bg-white py-2 shadow-lg transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                             >
+                                <MenuItem>
+                                    <Link
+                                        href={route("profile.edit")}
+                                        className="block w-full px-3 py-1.5 text-left text-sm font-display font-extrabold text-gray-700 data-focus:bg-gray-50"
+                                    >
+                                        Profile
+                                    </Link>
+                                </MenuItem>
                                 <MenuItem>
                                     <Link
                                         href={route("logout")}
