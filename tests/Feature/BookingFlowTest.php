@@ -283,3 +283,68 @@ test('booking notifies all admin users on submission', function () {
 
     Notification::assertSentTo($admin, NewBookingNotification::class);
 });
+
+test('a second booking for an already-taken slot is rejected gracefully, not with a 500', function () {
+    $customer1 = Customer::factory()->create();
+    $dog1 = Dog::factory()->for($customer1)->create();
+    $customer2 = Customer::factory()->create();
+    $dog2 = Dog::factory()->for($customer2)->create();
+
+    $date = now()->addDays(7)->format('Y-m-d');
+
+    $this->actingAs($customer1, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog1->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => $date,
+            'appointment_time' => '10:00',
+        ])
+        ->assertRedirect();
+
+    $response = $this->actingAs($customer2, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog2->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => $date,
+            'appointment_time' => '10:00',
+        ]);
+
+    $response->assertSessionHasErrors('appointment_time');
+    expect($response->status())->not->toBe(500);
+    expect(\App\Models\Appointment::whereDate('appointment_date', $date)->where('appointment_time', '10:00')->count())->toBe(1);
+});
+
+test('cancelling an appointment frees its slot for a new booking', function () {
+    $customer1 = Customer::factory()->create();
+    $dog1 = Dog::factory()->for($customer1)->create();
+    $customer2 = Customer::factory()->create();
+    $dog2 = Dog::factory()->for($customer2)->create();
+
+    $date = now()->addDays(7)->format('Y-m-d');
+
+    $appointment = \App\Models\Appointment::factory()->create([
+        'customer_id' => $customer1->id,
+        'dog_id' => $dog1->id,
+        'service_id' => $this->service->id,
+        'appointment_date' => $date,
+        'appointment_time' => '10:00:00',
+        'duration' => $this->service->duration_minutes,
+        'status' => \App\Enums\AppointmentStatus::Cancelled,
+    ]);
+
+    $response = $this->actingAs($customer2, 'customer')
+        ->post('/booking', [
+            'dog_id' => $dog2->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => $date,
+            'appointment_time' => '10:00',
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('appointments', [
+        'customer_id' => $customer2->id,
+        'dog_id' => $dog2->id,
+        'appointment_time' => '10:00',
+        'status' => 'pending',
+    ]);
+});

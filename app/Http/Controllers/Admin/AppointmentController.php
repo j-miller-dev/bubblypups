@@ -11,11 +11,15 @@ use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\Service;
 use App\Services\AvailabilityService;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,10 +45,15 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
+            'service_id' => ['required_without:exclude_appointment_id', 'nullable', 'integer', 'exists:services,id'],
             'exclude_appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
         ]);
 
-        $slots = $availabilityService->getAvailableSlots($request->date, $request->input('exclude_appointment_id'));
+        // Rescheduling never changes the service, so derive it from the appointment being excluded
+        // when the caller doesn't pass one explicitly.
+        $serviceId = $request->integer('service_id') ?: Appointment::findOrFail($request->input('exclude_appointment_id'))->service_id;
+
+        $slots = $availabilityService->getAvailableSlots($request->date, $serviceId, $request->input('exclude_appointment_id'));
 
         $existingAppointments = Appointment::query()
             ->with(['dog', 'dog.customer', 'service'])
@@ -67,50 +76,71 @@ class AppointmentController extends Controller
         ]);
     }
 
-    public function store(StoreAppointmentRequest $request): RedirectResponse
+    public function store(StoreAppointmentRequest $request, AvailabilityService $availabilityService): RedirectResponse
     {
-        // Determine dog_id and customer_id: use existing or create new customer+dog
-        if ($request->filled('dog_id')) {
-            $dog = Dog::with('customer')->findOrFail($request->dog_id);
-            $dogId = $dog->id;
-            $customerId = $dog->customer_id;
-        } else {
-            // Create new customer with auto-generated password
-            $customer = Customer::create([
-                'name' => $request->input('new_customer.name'),
-                'email' => $request->input('new_customer.email'),
-                'phone' => $request->input('new_customer.phone'),
-                'password' => Hash::make(Str::random(16)),
-            ]);
+        try {
+            $appointment = Cache::lock('booking-slot:'.$request->appointment_date, 10)
+                ->block(5, function () use ($request, $availabilityService) {
+                    return DB::transaction(function () use ($request, $availabilityService) {
+                        // Get service to determine duration
+                        $service = Service::findOrFail($request->service_id);
 
-            // Create new dog for this customer
-            $dog = Dog::create([
-                'customer_id' => $customer->id,
-                'name' => $request->input('new_dog.name'),
-                'breed' => $request->input('new_dog.breed'),
-                'size' => $request->input('new_dog.size'),
-                'special_notes' => $request->input('new_dog.special_notes'),
-            ]);
+                        if (! $availabilityService->isRangeAvailable(
+                            $request->appointment_date,
+                            $request->appointment_time,
+                            $service->duration_minutes,
+                        )) {
+                            throw ValidationException::withMessages([
+                                'appointment_time' => 'This time slot was just booked. Please choose another time.',
+                            ]);
+                        }
 
-            $dogId = $dog->id;
-            $customerId = $customer->id;
+                        // Determine dog_id and customer_id: use existing or create new customer+dog
+                        if ($request->filled('dog_id')) {
+                            $dog = Dog::with('customer')->findOrFail($request->dog_id);
+                            $dogId = $dog->id;
+                            $customerId = $dog->customer_id;
+                        } else {
+                            // Create new customer with auto-generated password
+                            $customer = Customer::create([
+                                'name' => $request->input('new_customer.name'),
+                                'email' => $request->input('new_customer.email'),
+                                'phone' => $request->input('new_customer.phone'),
+                                'password' => Hash::make(Str::random(16)),
+                            ]);
+
+                            // Create new dog for this customer
+                            $dog = Dog::create([
+                                'customer_id' => $customer->id,
+                                'name' => $request->input('new_dog.name'),
+                                'breed' => $request->input('new_dog.breed'),
+                                'size' => $request->input('new_dog.size'),
+                                'special_notes' => $request->input('new_dog.special_notes'),
+                            ]);
+
+                            $dogId = $dog->id;
+                            $customerId = $customer->id;
+                        }
+
+                        // Create appointment
+                        return Appointment::create([
+                            'dog_id' => $dogId,
+                            'customer_id' => $customerId,
+                            'service_id' => $request->service_id,
+                            'appointment_date' => $request->appointment_date,
+                            'appointment_time' => $request->appointment_time,
+                            'duration' => $service->duration_minutes,
+                            'status' => $request->status,
+                            'notes' => $request->notes,
+                            'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
+                        ]);
+                    });
+                });
+        } catch (LockTimeoutException $e) {
+            throw ValidationException::withMessages([
+                'appointment_time' => 'We\'re processing another booking for this time. Please try again in a moment.',
+            ]);
         }
-
-        // Get service to determine duration
-        $service = Service::findOrFail($request->service_id);
-
-        // Create appointment
-        $appointment = Appointment::create([
-            'dog_id' => $dogId,
-            'customer_id' => $customerId,
-            'service_id' => $request->service_id,
-            'appointment_date' => $request->appointment_date,
-            'appointment_time' => $request->appointment_time,
-            'duration' => $service->duration_minutes,
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
-        ]);
 
         // Load relationships for notification
         $appointment->load(['dog.customer', 'service']);
@@ -196,19 +226,8 @@ class AppointmentController extends Controller
 
     public function reschedule(RescheduleAppointmentRequest $request, Appointment $appointment)
     {
-        // Check if the new time conflicts with blocked times
-        $appointmentDateTime = \Carbon\Carbon::parse($request->appointment_date.' '.$request->appointment_time);
-
-        $isBlocked = \App\Models\BlockedTime::query()
-            ->where('start_datetime', '<=', $appointmentDateTime)
-            ->where('end_datetime', '>=', $appointmentDateTime)
-            ->exists();
-
-        if ($isBlocked) {
-            return back()->withErrors([
-                'appointment_time' => 'This time slot is blocked and unavailable.',
-            ]);
-        }
+        // RescheduleAppointmentRequest already validated the new slot is available
+        // (business hours, blocked times, and overlap with other appointments).
 
         // Capture previous date/time BEFORE saving (for notification)
         $previousDate = $appointment->appointment_date->toDateString();

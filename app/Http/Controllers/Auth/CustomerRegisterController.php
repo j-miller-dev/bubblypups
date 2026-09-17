@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Models\Customer;
 use App\Models\Dog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class CustomerRegisterController extends Controller
@@ -21,24 +22,27 @@ class CustomerRegisterController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-        // Create customer
-        $customer = Customer::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => $request->password, // Auto-hashed by cast
-        ]);
-        // Create their first dog
-        $dog = Dog::create([
-            'customer_id' => $customer->id,
-            'name' => $request->dog_name,
-            'breed' => $request->dog_breed,
-            'size' => $request->dog_size,
-            'special_notes' => $request->dog_notes,
-        ]);
+        $dog = DB::transaction(function () use ($request) {
+            // Create customer
+            $customer = Customer::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => $request->password, // Auto-hashed by cast
+            ]);
+
+            // Create their first dog
+            return Dog::create([
+                'customer_id' => $customer->id,
+                'name' => $request->dog_name,
+                'breed' => $request->dog_breed,
+                'size' => $request->dog_size,
+                'special_notes' => $request->dog_notes,
+            ]);
+        });
 
         // Log them in
-        Auth::guard('customer')->login($customer);
+        Auth::guard('customer')->login($dog->customer);
 
         // Redirect to booking with their new dog
         return redirect()->route('booking.create', ['dog_id' => $dog->id])

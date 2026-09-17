@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Customer;
 use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\User;
+use App\Notifications\AppointmentCancelledByCustomerNotification;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 /**
@@ -78,6 +81,19 @@ class CustomerAppointmentController extends Controller
 
         $appointment->status = AppointmentStatus::Cancelled;
         $appointment->save();
+
+        $appointment->load(['dog.customer']);
+
+        try {
+            User::all()->each(function ($admin) use ($appointment) {
+                $admin->notify(new AppointmentCancelledByCustomerNotification($appointment));
+            });
+        } catch (\Exception $e) {
+            Log::error('Failed to send admin cancellation notification', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'Appointment cancelled successfully.');
     }

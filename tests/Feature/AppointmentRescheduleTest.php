@@ -5,6 +5,7 @@ use App\Models\Appointment;
 use App\Models\BusinessHours;
 use App\Models\Customer;
 use App\Models\Dog;
+use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -18,6 +19,14 @@ beforeEach(function () {
 
     BusinessHours::create([
         'day_of_week' => 'thursday',
+        'is_open' => true,
+        'open_time' => '09:00',
+        'close_time' => '17:00',
+        'slot_duration' => 30,
+    ]);
+
+    BusinessHours::create([
+        'day_of_week' => 'friday',
         'is_open' => true,
         'open_time' => '09:00',
         'close_time' => '17:00',
@@ -37,7 +46,7 @@ test('available slots endpoint excludes appointment being rescheduled', function
         'status' => 'confirmed',
     ]);
 
-    $response = $this->getJson('/admin/appointments/available-slots?date=' . $this->testDate . '&exclude_appointment_id=' . $appointment->id);
+    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate.'&exclude_appointment_id='.$appointment->id);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');
@@ -58,7 +67,9 @@ test('available slots endpoint shows slot as booked when not excluding appointme
         'status' => 'confirmed',
     ]);
 
-    $response = $this->getJson('/admin/appointments/available-slots?date=' . $this->testDate);
+    $service = Service::factory()->create(['duration_minutes' => 30]);
+
+    $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate.'&service_id='.$service->id);
 
     $response->assertSuccessful();
     $slots = $response->json('slots');

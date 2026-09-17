@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\AppointmentStatus;
-use App\Models\BlockedTime;
 use App\Models\BusinessHours;
+use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -62,32 +62,18 @@ class StoreAppointmentRequest extends FormRequest
                 'required',
                 'date_format:H:i',
                 function ($attribute, $value, $fail) {
-                    if (! $this->appointment_date) {
+                    if (! $this->appointment_date || ! $this->service_id) {
                         return;
                     }
 
-                    $dayOfWeek = Carbon::parse($this->appointment_date)->format('l');
-                    $hours = BusinessHours::getHoursForDay($dayOfWeek);
+                    $available = app(AvailabilityService::class)->isSlotAvailable(
+                        $this->appointment_date,
+                        $value,
+                        (int) $this->service_id,
+                    );
 
-                    if ($hours && $hours->is_open) {
-                        $slotTime = Carbon::parse($this->appointment_date.' '.$value);
-                        $open = Carbon::parse($this->appointment_date.' '.$hours->open_time);
-                        $close = Carbon::parse($this->appointment_date.' '.$hours->close_time);
-
-                        if ($slotTime->lt($open) || $slotTime->gte($close)) {
-                            $fail('This time is outside business hours.');
-                        }
-                    }
-
-                    $slotTime = Carbon::parse($this->appointment_date.' '.$value);
-
-                    $blocked = BlockedTime::query()
-                        ->where('start_datetime', '<=', $slotTime)
-                        ->where('end_datetime', '>=', $slotTime)
-                        ->exists();
-
-                    if ($blocked) {
-                        $fail('This time slot is blocked and unavailable.');
+                    if (! $available) {
+                        $fail('This time slot is not available for booking.');
                     }
                 },
             ],

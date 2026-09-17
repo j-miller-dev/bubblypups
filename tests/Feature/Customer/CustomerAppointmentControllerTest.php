@@ -1,8 +1,12 @@
 <?php
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Customer;
 use App\Models\Dog;
+use App\Models\User;
+use App\Notifications\AppointmentCancelledByCustomerNotification;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     $this->customer = Customer::factory()->create();
@@ -92,4 +96,35 @@ test('guests are redirected from appointments index', function () {
 
     $this->get(route('my.appointments'))
         ->assertRedirect();
+});
+
+test('cancelling an appointment notifies admin users', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create();
+
+    $appointment = Appointment::factory()->for($this->dog)->create([
+        'appointment_date' => now()->addDays(3)->toDateString(),
+        'status' => AppointmentStatus::Confirmed,
+    ]);
+
+    $this->post(route('my.appointments.cancel', $appointment))
+        ->assertRedirect();
+
+    expect($appointment->fresh()->status)->toBe(AppointmentStatus::Cancelled);
+
+    Notification::assertSentTo($admin, AppointmentCancelledByCustomerNotification::class);
+});
+
+test('cannot cancel another customers appointment', function () {
+    $otherCustomer = Customer::factory()->create();
+    $otherDog = Dog::factory()->for($otherCustomer)->create();
+
+    $appointment = Appointment::factory()->for($otherDog)->create([
+        'appointment_date' => now()->addDays(3)->toDateString(),
+        'status' => AppointmentStatus::Confirmed,
+    ]);
+
+    $this->post(route('my.appointments.cancel', $appointment))
+        ->assertForbidden();
 });

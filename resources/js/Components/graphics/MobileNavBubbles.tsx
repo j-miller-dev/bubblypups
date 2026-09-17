@@ -15,7 +15,7 @@ interface MobileNavBubblesProps {
 
 export const MobileNavBubbles: React.FC<MobileNavBubblesProps> = ({ navRefs }) => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
