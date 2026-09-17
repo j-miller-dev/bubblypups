@@ -13,7 +13,6 @@ use Inertia\Inertia;
  * information including name, email, and phone number. Email uniqueness is enforced
  * while allowing customers to keep their current email address during updates.
  */
-
 class CustomerProfileController extends Controller
 {
     public function edit()
@@ -29,7 +28,7 @@ class CustomerProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:customers,email,' . $customer->id,
+            'email' => 'required|email|unique:customers,email,'.$customer->id,
             'phone' => 'required|string|max:20',
         ]);
 

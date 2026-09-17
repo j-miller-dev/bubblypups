@@ -24,7 +24,6 @@ class CustomerLoginController extends Controller
         if (Auth::guard('customer')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-
             return redirect()->intended(route('my.dashboard'));
         }
 

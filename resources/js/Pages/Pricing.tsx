@@ -1,4 +1,3 @@
-import React from 'react';
 import MainLayout from '@/Layouts/MainLayout';
 import { Container } from '@/Components/layout';
 import { Gradient } from '@/Components/graphics';

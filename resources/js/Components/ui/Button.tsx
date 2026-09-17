@@ -22,6 +22,11 @@ const variants = {
     'text-sm font-medium font-display whitespace-nowrap text-gray-950',
     'data-disabled:bg-transparent data-disabled:opacity-40 data-hover:bg-gray-50',
   ),
+  plain: clsx(
+    'relative inline-flex items-center justify-center px-2 py-[calc(--spacing(1.5)-1px)]',
+    'rounded-lg border border-transparent text-sm font-medium font-display whitespace-nowrap text-gray-950',
+    'data-disabled:opacity-40 data-hover:bg-gray-100',
+  ),
 }
 
 type ButtonProps = {

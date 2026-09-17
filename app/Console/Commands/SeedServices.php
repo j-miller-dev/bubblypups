@@ -15,6 +15,7 @@ class SeedServices extends Command
     {
         if (Service::count() > 0) {
             $this->warn('Services already exist. Skipping.');
+
             return 0;
         }
 
@@ -103,7 +104,7 @@ class SeedServices extends Command
             Service::create($service);
         }
 
-        $this->info('Created ' . count($services) . ' services.');
+        $this->info('Created '.count($services).' services.');
 
         return 0;
     }

@@ -24,7 +24,6 @@ interface UpcomingBookingsCalProps {
     currentDate: string; // initial selected date in YYYY-MM-DD
     appointments?: any[];
     onSelectDate?: (date: string) => void; // optional callback when a date is selected
-    loadBookings?: (date: string) => Promise<BookingItem[]>; // optional async loader
 }
 
 function formatDate(d: Date) {
@@ -38,7 +37,6 @@ export default function UpcomingBookingsCal({
     currentDate,
     appointments = [], // ADD default
     onSelectDate,
-    loadBookings,
 }: UpcomingBookingsCalProps) {
     const [days, setDays] = useState<
         {

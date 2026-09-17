@@ -15,35 +15,6 @@ export default function Overview({ appointments }: OverviewProps) {
         String(today.getDate()).padStart(2, "0"),
     ].join("-");
 
-    async function loadBookings(date: string) {
-        try {
-            const res = await fetch(
-                `/dashboard/bookings?date=${encodeURIComponent(date)}`,
-                { headers: { Accept: "application/json" } },
-            );
-            if (!res.ok) return [] as any[];
-            const data = await res.json();
-            const items = (
-                Array.isArray(data?.bookings)
-                    ? data.bookings
-                    : Array.isArray(data)
-                      ? data
-                      : []
-            ).map((b: any, idx: number) => ({
-                id: b.id ?? idx,
-                name: b.name ?? b.client_name ?? b.dog_name ?? "Booking",
-                datetime: b.datetime ?? b.start_at ?? `${date}T00:00:00`,
-                date: b.date ?? undefined,
-                time: b.time ?? undefined,
-                imageUrl: b.imageUrl ?? b.avatar_url ?? undefined,
-                location: b.location ?? b.address ?? undefined,
-            }));
-            return items;
-        } catch {
-            return [] as any[];
-        }
-    }
-
     return (
         <AdminLayout>
             <div className="space-y-6">
@@ -75,7 +46,6 @@ export default function Overview({ appointments }: OverviewProps) {
                 <UpcomingBookingsCal
                     currentDate={todayString}
                     appointments={appointments}
-                    loadBookings={loadBookings}
                 />
             </div>
         </AdminLayout>

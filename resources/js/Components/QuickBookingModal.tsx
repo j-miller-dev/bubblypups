@@ -24,13 +24,6 @@ interface QuickBookingModalProps {
     onClose: () => void;
 }
 
-interface QuickBookingFormData {
-    appointment_date: string;
-    appointment_time: string;
-    status: "confirmed" | "waiting_on_client";
-    notes: string;
-}
-
 // Helper function to format date as YYYY-MM-DD
 function formatDate(d: Date): string {
     const y = d.getFullYear();
@@ -62,7 +55,7 @@ export default function QuickBookingModal({
     const todayStr = formatDate(new Date());
 
     // Inertia form for submitting reschedule
-    const { data, setData, patch, processing, reset } = useForm({
+    const { data, setData, processing, reset } = useForm({
         appointment_date: "",
         appointment_time: "",
         status: "confirmed" as "confirmed" | "waiting_on_client",

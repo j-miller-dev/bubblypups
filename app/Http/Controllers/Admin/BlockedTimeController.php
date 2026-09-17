@@ -23,7 +23,7 @@ class BlockedTimeController extends Controller
         ]);
 
         $startDatetime = Carbon::parse($validated['start_datetime'])->startOfDay();
-        $endDatetime   = Carbon::parse($validated['end_datetime'])->endOfDay();
+        $endDatetime = Carbon::parse($validated['end_datetime'])->endOfDay();
 
         // Check for conflicting appointments
         $conflictingAppointments = \App\Models\Appointment::query()
@@ -37,11 +37,11 @@ class BlockedTimeController extends Controller
 
         // If conflicts exist, return error with details
         if ($conflictingAppointments->isNotEmpty() && ! $request->boolean('force')) {
-            return back()->with('conflicts', $conflictingAppointments->map(fn($apt) => [
-                'id'    => $apt->id,
-                'date'  => $apt->appointment_date->format('M d, Y'),
-                'time'  => $apt->appointment_time->format('g:i A'),
-                'dog'   => $apt->dog->name,
+            return back()->with('conflicts', $conflictingAppointments->map(fn ($apt) => [
+                'id' => $apt->id,
+                'date' => $apt->appointment_date->format('M d, Y'),
+                'time' => $apt->appointment_time->format('g:i A'),
+                'dog' => $apt->dog->name,
                 'owner' => $apt->dog->customer->name,
             ])->toArray());
         }
@@ -58,8 +58,8 @@ class BlockedTimeController extends Controller
         // Create the blocked time
         BlockedTime::create([
             'start_datetime' => $startDatetime,
-            'end_datetime'   => $endDatetime,
-            'reason'         => $validated['reason'] ?? null,
+            'end_datetime' => $endDatetime,
+            'reason' => $validated['reason'] ?? null,
         ]);
 
         // Redirect back with success message
