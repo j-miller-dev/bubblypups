@@ -76,16 +76,16 @@ Route::get('/appointments/{appointment}/confirm-reschedule', [
 
 // Customer Authentication
 Route::get('/register', [CustomerRegisterController::class, 'create'])->name('customer.register.form');
-Route::post('/register', [CustomerRegisterController::class, 'store'])->name('customer.register');
+Route::post('/register', [CustomerRegisterController::class, 'store'])->middleware('throttle:5,1')->name('customer.register');
 Route::get('/customer/login', [CustomerLoginController::class, 'create'])->name('customer.login.form');
-Route::post('/customer/login', [CustomerLoginController::class, 'store'])->name('customer.login');
+Route::post('/customer/login', [CustomerLoginController::class, 'store'])->middleware('throttle:5,1')->name('customer.login');
 Route::post('/customer/logout', [CustomerLoginController::class, 'destroy'])->name('customer.logout');
 
 // Customer Password Reset
 Route::get('/customer/forgot-password', [CustomerForgotPasswordController::class, 'create'])->name('customer.password.request');
-Route::post('/customer/forgot-password', [CustomerForgotPasswordController::class, 'store'])->name('customer.password.email');
+Route::post('/customer/forgot-password', [CustomerForgotPasswordController::class, 'store'])->middleware('throttle:6,1')->name('customer.password.email');
 Route::get('/customer/reset-password/{token}', [CustomerNewPasswordController::class, 'create'])->name('customer.password.reset');
-Route::post('/customer/reset-password', [CustomerNewPasswordController::class, 'store'])->name('customer.password.update');
+Route::post('/customer/reset-password', [CustomerNewPasswordController::class, 'store'])->middleware('throttle:6,1')->name('customer.password.update');
 
 // Customer Routes (Protected)
 Route::middleware(['auth:customer'])->group(function () {
