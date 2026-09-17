@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'breeds' => config('breeds'),
             'businessPhone' => config('business.phone'),
             'businessPhoneDisplay' => config('business.phone_display'),
+            'businessInstagramUrl' => config('business.instagram_url'),
             'bookingWindowWeeks' => (int) Setting::get('booking_window_weeks', 4),
         ];
     }

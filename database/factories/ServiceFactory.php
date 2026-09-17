@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -33,6 +34,7 @@ class ServiceFactory extends Factory
                 'medium' => $service['base_price'],
                 'large' => $service['base_price'] * 1.30,
             ],
+            'duration_tiers' => Service::defaultDurationTiers($service['duration_minutes']),
         ];
     }
 }

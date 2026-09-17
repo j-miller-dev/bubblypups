@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\BusinessHours;
+use App\Models\Dog;
 use App\Models\Setting;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
@@ -52,7 +53,19 @@ class StoreAppointmentRequest extends FormRequest
                 'required',
                 'date_format:H:i',
                 function ($attribute, $value, $fail) {
-                    if (! $this->appointment_date || ! $this->service_id) {
+                    if (! $this->appointment_date || ! $this->service_id || ! $this->dog_id) {
+                        return;
+                    }
+
+                    if (Carbon::parse($this->appointment_date.' '.$value)->isPast()) {
+                        $fail('This time has already passed.');
+
+                        return;
+                    }
+
+                    $dog = Dog::find($this->dog_id);
+
+                    if (! $dog) {
                         return;
                     }
 
@@ -60,6 +73,7 @@ class StoreAppointmentRequest extends FormRequest
                         $this->appointment_date,
                         $value,
                         (int) $this->service_id,
+                        $dog->size,
                     );
 
                     if (! $available) {

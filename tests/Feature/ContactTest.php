@@ -78,3 +78,32 @@ test('contact form sends notification to owner', function () {
 
     Notification::assertSentOnDemand(NewContactNotification::class);
 });
+
+test('contact form rejects submissions with the honeypot field filled in', function () {
+    $this->postJson(route('contact.store'), [
+        'name' => 'Bot',
+        'email' => 'bot@example.com',
+        'message' => 'Buy cheap watches',
+        'website' => 'http://spam.example.com',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['website']);
+
+    $this->assertDatabaseMissing('contacts', ['email' => 'bot@example.com']);
+});
+
+test('contact form is throttled after 5 requests per minute', function () {
+    for ($i = 0; $i < 5; $i++) {
+        $this->post(route('contact.store'), [
+            'name' => 'Jane Smith',
+            'email' => 'jane@example.com',
+            'message' => 'Hello, I have a question.',
+        ]);
+    }
+
+    $this->post(route('contact.store'), [
+        'name' => 'Jane Smith',
+        'email' => 'jane@example.com',
+        'message' => 'Hello, I have a question.',
+    ])->assertStatus(429);
+});

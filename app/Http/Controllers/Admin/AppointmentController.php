@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -46,14 +47,28 @@ class AppointmentController extends Controller
         $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
             'service_id' => ['required_without:exclude_appointment_id', 'nullable', 'integer', 'exists:services,id'],
+            'dog_id' => ['nullable', 'integer', 'exists:dogs,id'],
+            'dog_size' => ['nullable', 'string', 'in:small,medium,large'],
             'exclude_appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
         ]);
 
+        $excludeAppointment = $request->filled('exclude_appointment_id')
+            ? Appointment::with('dog')->findOrFail($request->input('exclude_appointment_id'))
+            : null;
+
         // Rescheduling never changes the service, so derive it from the appointment being excluded
         // when the caller doesn't pass one explicitly.
-        $serviceId = $request->integer('service_id') ?: Appointment::findOrFail($request->input('exclude_appointment_id'))->service_id;
+        $serviceId = $request->integer('service_id') ?: $excludeAppointment->service_id;
 
-        $slots = $availabilityService->getAvailableSlots($request->date, $serviceId, $request->input('exclude_appointment_id'));
+        // Resolve the dog's size to compute the correct duration: an explicit dog_id (existing
+        // dog), an explicit dog_size (new dog not yet created), the appointment being
+        // rescheduled (service/dog don't change), or fall back to medium.
+        $dogSize = $request->filled('dog_id')
+            ? Dog::find($request->integer('dog_id'))?->size
+            : $request->input('dog_size');
+        $dogSize ??= $excludeAppointment?->dog?->size ?? 'medium';
+
+        $slots = $availabilityService->getAvailableSlots($request->date, $serviceId, $dogSize, $request->input('exclude_appointment_id'));
 
         $existingAppointments = Appointment::query()
             ->with(['dog', 'dog.customer', 'service'])
@@ -85,16 +100,6 @@ class AppointmentController extends Controller
                         // Get service to determine duration
                         $service = Service::findOrFail($request->service_id);
 
-                        if (! $availabilityService->isRangeAvailable(
-                            $request->appointment_date,
-                            $request->appointment_time,
-                            $service->duration_minutes,
-                        )) {
-                            throw ValidationException::withMessages([
-                                'appointment_time' => 'This time slot was just booked. Please choose another time.',
-                            ]);
-                        }
-
                         // Determine dog_id and customer_id: use existing or create new customer+dog
                         if ($request->filled('dog_id')) {
                             $dog = Dog::with('customer')->findOrFail($request->dog_id);
@@ -122,6 +127,18 @@ class AppointmentController extends Controller
                             $customerId = $customer->id;
                         }
 
+                        $duration = $service->getDurationForSize($dog->size);
+
+                        if (! $availabilityService->isRangeAvailable(
+                            $request->appointment_date,
+                            $request->appointment_time,
+                            $duration,
+                        )) {
+                            throw ValidationException::withMessages([
+                                'appointment_time' => 'This time slot was just booked. Please choose another time.',
+                            ]);
+                        }
+
                         // Create appointment
                         return Appointment::create([
                             'dog_id' => $dogId,
@@ -129,7 +146,7 @@ class AppointmentController extends Controller
                             'service_id' => $request->service_id,
                             'appointment_date' => $request->appointment_date,
                             'appointment_time' => $request->appointment_time,
-                            'duration' => $service->duration_minutes,
+                            'duration' => $duration,
                             'status' => $request->status,
                             'notes' => $request->notes,
                             'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
@@ -155,6 +172,21 @@ class AppointmentController extends Controller
                 'appointment_id' => $appointment->id,
                 'error' => $e->getMessage(),
             ]);
+        }
+
+        // A newly created customer has an unguessable random password and no way to log
+        // in online yet — send them a set-password link so they can access their account.
+        if (! $request->filled('dog_id')) {
+            try {
+                Password::broker('customers')->sendResetLink([
+                    'email' => $appointment->dog->customer->email,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send customer activation email', [
+                    'customer_id' => $appointment->dog->customer_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return back()->with('success', 'Appointment created successfully!');
@@ -232,10 +264,16 @@ class AppointmentController extends Controller
         // Capture previous date/time BEFORE saving (for notification)
         $previousDate = $appointment->appointment_date->toDateString();
         $previousTime = $appointment->appointment_time->format('H:i');
+        $timeChanged = $previousDate !== $request->appointment_date || $previousTime !== $request->appointment_time;
 
         $appointment->appointment_date = $request->appointment_date;
         $appointment->appointment_time = $request->appointment_time;
         $appointment->status = $request->status;
+
+        if ($timeChanged) {
+            // A reminder already sent for the old slot doesn't apply to the new one.
+            $appointment->reminder_sent_at = null;
+        }
 
         if ($request->status === AppointmentStatus::WaitingOnClient->value) {
             $appointment->confirmed_at = null;

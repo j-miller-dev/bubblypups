@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
 function FacebookIcon({ className }: { className?: string }) {
     return (
@@ -20,6 +20,9 @@ function InstagramIcon({ className }: { className?: string }) {
 
 export function Footer() {
     const year = new Date().getFullYear();
+    const { businessInstagramUrl } = usePage<{
+        businessInstagramUrl: string | null;
+    }>().props;
 
     return (
         <footer className="bg-white border-t border-gray-100">
@@ -44,15 +47,17 @@ export function Footer() {
                         >
                             <FacebookIcon className="size-5" />
                         </a>
-                        <a
-                            href="https://instagram.com/bubblypups"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="Instagram"
-                            className="text-gray-400 hover:text-brand-500 transition-colors"
-                        >
-                            <InstagramIcon className="size-5" />
-                        </a>
+                        {businessInstagramUrl && (
+                            <a
+                                href={businessInstagramUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Instagram"
+                                className="text-gray-400 hover:text-brand-500 transition-colors"
+                            >
+                                <InstagramIcon className="size-5" />
+                            </a>
+                        )}
                     </div>
 
                     <p className="text-xs text-gray-400">

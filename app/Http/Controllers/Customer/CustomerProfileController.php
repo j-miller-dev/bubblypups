@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Rules\AustralianPhoneNumber;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -29,7 +30,7 @@ class CustomerProfileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:customers,email,'.$customer->id,
-            'phone' => 'required|string|max:20',
+            'phone' => ['required', 'string', 'max:20', new AustralianPhoneNumber],
         ]);
 
         $customer->update($validated);

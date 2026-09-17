@@ -13,7 +13,7 @@ test('new users can register', function () {
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'phone' => '555-123-4567',
+        'phone' => '0412345678',
         'password' => 'password',
         'password_confirmation' => 'password',
         'dog_name' => 'Buddy',
@@ -22,6 +22,25 @@ test('new users can register', function () {
 
     $this->assertAuthenticated('customer');
     $response->assertRedirectContains(route('booking.create', absolute: false));
+    $this->assertDatabaseHas('customers', [
+        'email' => 'test@example.com',
+        'phone' => '+61412345678',
+    ]);
+});
+
+test('registration rejects an invalid phone number', function () {
+    $response = $this->postJson('/register', [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'phone' => '555-123-4567',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'dog_name' => 'Buddy',
+        'dog_size' => 'medium',
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['phone']);
 });
 
 test('registration rolls back the customer if dog creation fails', function () {
@@ -35,7 +54,7 @@ test('registration rolls back the customer if dog creation fails', function () {
         $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'phone' => '555-123-4567',
+            'phone' => '0412345678',
             'password' => 'password',
             'password_confirmation' => 'password',
             'dog_name' => 'Buddy',

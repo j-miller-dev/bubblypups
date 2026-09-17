@@ -60,11 +60,21 @@ test('a candidate slot that would finish after closing time is rejected', functi
     expect($this->availability->isRangeAvailable($this->testDate, '16:45', 30))->toBeFalse();
 });
 
+test('a candidate slot not aligned to the day\'s slot duration grid is rejected', function () {
+    // BusinessHours slot_duration is 30, open_time is 09:00
+    expect($this->availability->isRangeAvailable($this->testDate, '09:15', 30))->toBeFalse();
+    expect($this->availability->isRangeAvailable($this->testDate, '09:07', 30))->toBeFalse();
+    expect($this->availability->isRangeAvailable($this->testDate, '09:30', 30))->toBeTrue();
+});
+
 test('getAvailableSlots excludes every slot a longer appointment overlaps', function () {
-    $service = Service::factory()->create(['duration_minutes' => 30]);
+    $service = Service::factory()->create([
+        'duration_minutes' => 30,
+        'duration_tiers' => Service::defaultDurationTiers(30),
+    ]);
     ($this->createAppointment)($this->testDate, '10:00', 90); // occupies 10:00-11:30
 
-    $slots = $this->availability->getAvailableSlots($this->testDate, $service->id);
+    $slots = $this->availability->getAvailableSlots($this->testDate, $service->id, 'medium');
 
     expect($slots)->not->toContain('10:00')
         ->not->toContain('10:30')
@@ -73,14 +83,17 @@ test('getAvailableSlots excludes every slot a longer appointment overlaps', func
 });
 
 test('a cancelled appointment frees its slot for reuse', function () {
-    $service = Service::factory()->create(['duration_minutes' => 30]);
+    $service = Service::factory()->create([
+        'duration_minutes' => 30,
+        'duration_tiers' => Service::defaultDurationTiers(30),
+    ]);
     $appointment = ($this->createAppointment)($this->testDate, '10:00', 30, AppointmentStatus::Confirmed);
 
-    expect($this->availability->getAvailableSlots($this->testDate, $service->id))->not->toContain('10:00');
+    expect($this->availability->getAvailableSlots($this->testDate, $service->id, 'medium'))->not->toContain('10:00');
 
     $appointment->update(['status' => AppointmentStatus::Cancelled]);
 
-    expect($this->availability->getAvailableSlots($this->testDate, $service->id))->toContain('10:00');
+    expect($this->availability->getAvailableSlots($this->testDate, $service->id, 'medium'))->toContain('10:00');
 });
 
 test('a candidate slot overlapping a blocked period is rejected regardless of duration', function () {
@@ -91,5 +104,27 @@ test('a candidate slot overlapping a blocked period is rejected regardless of du
     ]);
 
     expect($this->availability->isRangeAvailable($this->testDate, '11:45', 30))->toBeFalse();
+    expect($this->availability->isRangeAvailable($this->testDate, '13:00', 30))->toBeTrue();
+});
+
+test('a candidate ending exactly when a blocked period starts is accepted', function () {
+    BlockedTime::create([
+        'start_datetime' => $this->testDate.' 12:00:00',
+        'end_datetime' => $this->testDate.' 13:00:00',
+        'reason' => 'Lunch',
+    ]);
+
+    // 11:30-12:00 ends exactly at the blocked period's start: no overlap.
+    expect($this->availability->isRangeAvailable($this->testDate, '11:30', 30))->toBeTrue();
+});
+
+test('a candidate starting exactly when a blocked period ends is accepted', function () {
+    BlockedTime::create([
+        'start_datetime' => $this->testDate.' 12:00:00',
+        'end_datetime' => $this->testDate.' 13:00:00',
+        'reason' => 'Lunch',
+    ]);
+
+    // 13:00-13:30 starts exactly at the blocked period's end: no overlap.
     expect($this->availability->isRangeAvailable($this->testDate, '13:00', 30))->toBeTrue();
 });
