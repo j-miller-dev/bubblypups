@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\Notification;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->service = Service::factory()->create(['duration_minutes' => 60]);
+    $this->service = Service::factory()->create([
+        'duration_minutes' => 60,
+        'duration_tiers' => Service::defaultDurationTiers(60),
+    ]);
 
     foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day) {
         BusinessHours::create([
@@ -218,9 +221,12 @@ test('booking accepts a slot outside blocked time range', function () {
 });
 
 test('booking uses service duration not hardcoded 60 minutes', function () {
-    $service = Service::factory()->create(['duration_minutes' => 45]);
+    $service = Service::factory()->create([
+        'duration_minutes' => 45,
+        'duration_tiers' => Service::defaultDurationTiers(45),
+    ]);
     $customer = Customer::factory()->create();
-    $dog = Dog::factory()->for($customer)->create();
+    $dog = Dog::factory()->for($customer)->create(['size' => 'medium']);
 
     $this->actingAs($customer, 'customer')
         ->post('/booking', [

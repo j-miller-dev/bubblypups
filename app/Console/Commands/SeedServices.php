@@ -26,6 +26,7 @@ class SeedServices extends Command
                 'emoji' => '🐕‍🦺',
                 'base_price' => 65.00,
                 'duration_minutes' => 120,
+                'duration_tiers' => Service::defaultDurationTiers(120),
                 'pricing_tiers' => [
                     'small' => 55.00,
                     'medium' => 65.00,
@@ -39,6 +40,7 @@ class SeedServices extends Command
                 'emoji' => '✂️',
                 'base_price' => 35.00,
                 'duration_minutes' => 60,
+                'duration_tiers' => Service::defaultDurationTiers(60),
                 'pricing_tiers' => [
                     'small' => 30.00,
                     'medium' => 35.00,
@@ -52,6 +54,7 @@ class SeedServices extends Command
                 'emoji' => '🛁',
                 'base_price' => 28.00,
                 'duration_minutes' => 45,
+                'duration_tiers' => Service::defaultDurationTiers(45),
                 'pricing_tiers' => [
                     'small' => 25.00,
                     'medium' => 28.00,
@@ -65,6 +68,7 @@ class SeedServices extends Command
                 'emoji' => '🦷',
                 'base_price' => 22.00,
                 'duration_minutes' => 30,
+                'duration_tiers' => Service::defaultDurationTiers(30),
                 'pricing_tiers' => [
                     'small' => 20.00,
                     'medium' => 22.00,
@@ -78,6 +82,7 @@ class SeedServices extends Command
                 'emoji' => '💅',
                 'base_price' => 15.00,
                 'duration_minutes' => 15,
+                'duration_tiers' => Service::defaultDurationTiers(15),
                 'pricing_tiers' => [
                     'small' => 12.00,
                     'medium' => 15.00,
@@ -91,6 +96,7 @@ class SeedServices extends Command
                 'emoji' => '🌪️',
                 'base_price' => 40.00,
                 'duration_minutes' => 75,
+                'duration_tiers' => Service::defaultDurationTiers(75),
                 'pricing_tiers' => [
                     'small' => 35.00,
                     'medium' => 40.00,

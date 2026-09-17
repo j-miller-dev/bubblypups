@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\BusinessHours;
+use App\Models\Dog;
 use App\Models\Setting;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
@@ -52,7 +53,7 @@ class StoreAppointmentRequest extends FormRequest
                 'required',
                 'date_format:H:i',
                 function ($attribute, $value, $fail) {
-                    if (! $this->appointment_date || ! $this->service_id) {
+                    if (! $this->appointment_date || ! $this->service_id || ! $this->dog_id) {
                         return;
                     }
 
@@ -62,10 +63,17 @@ class StoreAppointmentRequest extends FormRequest
                         return;
                     }
 
+                    $dog = Dog::find($this->dog_id);
+
+                    if (! $dog) {
+                        return;
+                    }
+
                     $available = app(AvailabilityService::class)->isSlotAvailable(
                         $this->appointment_date,
                         $value,
                         (int) $this->service_id,
+                        $dog->size,
                     );
 
                     if (! $available) {

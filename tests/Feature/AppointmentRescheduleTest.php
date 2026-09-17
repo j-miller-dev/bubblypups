@@ -67,7 +67,10 @@ test('available slots endpoint shows slot as booked when not excluding appointme
         'status' => 'confirmed',
     ]);
 
-    $service = Service::factory()->create(['duration_minutes' => 30]);
+    $service = Service::factory()->create([
+        'duration_minutes' => 30,
+        'duration_tiers' => Service::defaultDurationTiers(30),
+    ]);
 
     $response = $this->getJson('/admin/appointments/available-slots?date='.$this->testDate.'&service_id='.$service->id);
 

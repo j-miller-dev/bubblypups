@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\AppointmentStatus;
 use App\Models\BusinessHours;
+use App\Models\Dog;
 use App\Rules\AustralianPhoneNumber;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
@@ -73,10 +74,19 @@ class StoreAppointmentRequest extends FormRequest
                         return;
                     }
 
+                    $dogSize = $this->filled('dog_id')
+                        ? Dog::find($this->dog_id)?->size
+                        : $this->input('new_dog.size');
+
+                    if (! $dogSize) {
+                        return;
+                    }
+
                     $available = app(AvailabilityService::class)->isSlotAvailable(
                         $this->appointment_date,
                         $value,
                         (int) $this->service_id,
+                        $dogSize,
                     );
 
                     if (! $available) {

@@ -16,7 +16,10 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->admin = User::factory()->create();
-    $this->service = Service::factory()->create(['duration_minutes' => 60]);
+    $this->service = Service::factory()->create([
+        'duration_minutes' => 60,
+        'duration_tiers' => Service::defaultDurationTiers(60),
+    ]);
 
     foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day) {
         BusinessHours::create([

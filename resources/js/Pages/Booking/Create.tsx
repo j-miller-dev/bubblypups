@@ -116,14 +116,14 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
     }, [viewDate]);
 
     useEffect(() => {
-        if (!data.appointment_date || !data.service_id) return;
+        if (!data.appointment_date || !data.service_id || !data.dog_id) return;
         let ignore = false;
 
         setIsLoadingSlots(true);
         setAvailableSlots([]);
 
         fetch(
-            `/booking/available-slots?date=${data.appointment_date}&service_id=${data.service_id}`,
+            `/booking/available-slots?date=${data.appointment_date}&service_id=${data.service_id}&dog_id=${data.dog_id}`,
         )
             .then((r) => r.json())
             .then((result) => {
@@ -142,7 +142,7 @@ export default function Create({ dogs, services, selectedDogId }: Props) {
         return () => {
             ignore = true;
         };
-    }, [data.appointment_date, data.service_id]);
+    }, [data.appointment_date, data.service_id, data.dog_id]);
 
     const handleDateSelect = (date: string, isCurrentMonth: boolean) => {
         setData("appointment_date", date);
