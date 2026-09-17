@@ -8,7 +8,9 @@ use App\Models\Customer;
 use App\Models\Dog;
 use App\Models\Service;
 use App\Models\User;
+use App\Notifications\CustomerResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
@@ -98,6 +100,50 @@ test('admin can create appointment with new customer and dog', function () {
     ]);
     $this->assertDatabaseHas('dogs', ['name' => 'Biscuit']);
     $this->assertDatabaseHas('appointments', ['status' => AppointmentStatus::Pending]);
+});
+
+test('creating an appointment for a new customer sends them a set-password link', function () {
+    Notification::fake();
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.appointments.store'), [
+            'new_customer' => [
+                'name' => 'Jane Smith',
+                'email' => 'jane@example.com',
+                'phone' => '0412345678',
+            ],
+            'new_dog' => [
+                'name' => 'Biscuit',
+                'breed' => 'Poodle',
+                'size' => 'small',
+            ],
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->next('Monday')->format('Y-m-d'),
+            'appointment_time' => '10:00',
+            'status' => AppointmentStatus::Pending->value,
+        ]);
+
+    $customer = Customer::where('email', 'jane@example.com')->firstOrFail();
+
+    Notification::assertSentTo($customer, CustomerResetPasswordNotification::class);
+});
+
+test('creating an appointment for an existing customer does not send a set-password link', function () {
+    Notification::fake();
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.appointments.store'), [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->next('Monday')->format('Y-m-d'),
+            'appointment_time' => '10:00',
+            'status' => AppointmentStatus::Confirmed->value,
+        ]);
+
+    Notification::assertNotSentTo($customer, CustomerResetPasswordNotification::class);
 });
 
 test('admin cannot create appointment with new customer using an invalid phone number', function () {

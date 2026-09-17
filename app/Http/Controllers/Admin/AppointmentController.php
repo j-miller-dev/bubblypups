@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -155,6 +156,21 @@ class AppointmentController extends Controller
                 'appointment_id' => $appointment->id,
                 'error' => $e->getMessage(),
             ]);
+        }
+
+        // A newly created customer has an unguessable random password and no way to log
+        // in online yet — send them a set-password link so they can access their account.
+        if (! $request->filled('dog_id')) {
+            try {
+                Password::broker('customers')->sendResetLink([
+                    'email' => $appointment->dog->customer->email,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send customer activation email', [
+                    'customer_id' => $appointment->dog->customer_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return back()->with('success', 'Appointment created successfully!');
