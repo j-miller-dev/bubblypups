@@ -17,6 +17,7 @@ use App\Http\Controllers\Customer\CustomerAppointmentController;
 use App\Http\Controllers\Customer\CustomerDashboardController;
 use App\Http\Controllers\Customer\CustomerDogController;
 use App\Http\Controllers\Customer\CustomerProfileController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -46,9 +47,7 @@ Route::get('/company', function () {
     return Inertia::render('Company');
 })->name('company');
 
-Route::get('/pricing', function () {
-    return Inertia::render('Pricing');
-})->name('pricing');
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 Route::middleware('auth')->group(function () {
 
