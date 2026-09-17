@@ -40,7 +40,7 @@ Route::get('/contact', function () {
     return Inertia::render('Contact');
 })->name('contact');
 
-Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
+Route::post('contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
 
 Route::get('/company', function () {
     return Inertia::render('Company');
