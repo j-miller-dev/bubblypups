@@ -7,6 +7,7 @@ use App\Models\Dog;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\NewBookingNotification;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 
@@ -114,6 +115,26 @@ test('booking rejects a past date', function () {
 
     $response->assertUnprocessable();
     $response->assertJsonValidationErrors(['appointment_date']);
+});
+
+test('booking rejects an already-elapsed time on today\'s date', function () {
+    Carbon::setTestNow(Carbon::parse('next monday 12:00'));
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->format('Y-m-d'),
+            'appointment_time' => '10:00',
+        ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['appointment_time']);
+
+    Carbon::setTestNow();
 });
 
 test('booking rejects invalid time format', function () {

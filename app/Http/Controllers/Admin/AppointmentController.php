@@ -232,10 +232,16 @@ class AppointmentController extends Controller
         // Capture previous date/time BEFORE saving (for notification)
         $previousDate = $appointment->appointment_date->toDateString();
         $previousTime = $appointment->appointment_time->format('H:i');
+        $timeChanged = $previousDate !== $request->appointment_date || $previousTime !== $request->appointment_time;
 
         $appointment->appointment_date = $request->appointment_date;
         $appointment->appointment_time = $request->appointment_time;
         $appointment->status = $request->status;
+
+        if ($timeChanged) {
+            // A reminder already sent for the old slot doesn't apply to the new one.
+            $appointment->reminder_sent_at = null;
+        }
 
         if ($request->status === AppointmentStatus::WaitingOnClient->value) {
             $appointment->confirmed_at = null;

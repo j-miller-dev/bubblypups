@@ -48,7 +48,7 @@ class BusinessHoursController extends Controller
         $validated = $request->validate([
             'is_open' => ['required', 'boolean'],
             'open_time' => ['nullable', 'required_if:is_open,true', 'date_format:H:i'],
-            'close_time' => ['nullable', 'required_if:is_open,true', 'date_format:H:i'],
+            'close_time' => ['nullable', 'required_if:is_open,true', 'date_format:H:i', 'after:open_time'],
             'slot_duration' => ['required', 'integer', 'min:5', 'max:120'],
         ]);
 

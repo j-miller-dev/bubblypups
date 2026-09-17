@@ -204,6 +204,26 @@ test('admin cannot create appointment outside business hours', function () {
         ->assertJsonValidationErrors(['appointment_time']);
 });
 
+test('admin cannot create appointment at an already-elapsed time today', function () {
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('next monday 12:00'));
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    $this->actingAs($this->admin)
+        ->postJson(route('admin.appointments.store'), [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->format('Y-m-d'),
+            'appointment_time' => '10:00',
+            'status' => AppointmentStatus::Confirmed->value,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['appointment_time']);
+
+    \Carbon\Carbon::setTestNow();
+});
+
 test('store is inaccessible to guests', function () {
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->for($customer)->create();

@@ -215,3 +215,48 @@ test('reschedule with waiting_on_client status clears confirmed_at', function ()
     expect($appointment->status)->toBe(AppointmentStatus::WaitingOnClient);
     expect($appointment->confirmed_at)->toBeNull();
 });
+
+test('rescheduling to a new date/time clears a previously sent reminder', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->create(['customer_id' => $customer->id]);
+
+    $appointment = Appointment::factory()->create([
+        'customer_id' => $customer->id,
+        'dog_id' => $dog->id,
+        'appointment_date' => $this->testDate,
+        'appointment_time' => '10:00:00',
+        'status' => 'confirmed',
+        'reminder_sent_at' => now(),
+    ]);
+
+    $this->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
+        'appointment_date' => $this->nextDate,
+        'appointment_time' => '14:00',
+        'status' => 'confirmed',
+    ])->assertRedirect();
+
+    expect($appointment->fresh()->reminder_sent_at)->toBeNull();
+});
+
+test('rescheduling to the same date/time keeps the sent reminder', function () {
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->create(['customer_id' => $customer->id]);
+
+    $appointment = Appointment::factory()->create([
+        'customer_id' => $customer->id,
+        'dog_id' => $dog->id,
+        'appointment_date' => $this->testDate,
+        'appointment_time' => '10:00:00',
+        'status' => 'confirmed',
+        'reminder_sent_at' => now(),
+    ]);
+
+    $this->patchJson("/admin/appointments/{$appointment->id}/reschedule", [
+        'appointment_date' => $this->testDate,
+        'appointment_time' => '10:00',
+        'status' => 'confirmed',
+        'notes' => 'Just confirming, no change',
+    ])->assertRedirect();
+
+    expect($appointment->fresh()->reminder_sent_at)->not->toBeNull();
+});

@@ -66,6 +66,12 @@ class StoreAppointmentRequest extends FormRequest
                         return;
                     }
 
+                    if (Carbon::parse($this->appointment_date.' '.$value)->isPast()) {
+                        $fail('This time has already passed.');
+
+                        return;
+                    }
+
                     $available = app(AvailabilityService::class)->isSlotAvailable(
                         $this->appointment_date,
                         $value,

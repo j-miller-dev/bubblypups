@@ -81,6 +81,10 @@ class AvailabilityService
             return false;
         }
 
+        if ($open->diffInMinutes($start) % $businessHours->slot_duration !== 0) {
+            return false;
+        }
+
         if ($this->overlapsAny($start, $end, $this->blockedIntervalsFor($day))) {
             return false;
         }
