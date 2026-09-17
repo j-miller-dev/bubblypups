@@ -97,6 +97,39 @@ test('admin can create appointment with new customer and dog', function () {
     $this->assertDatabaseHas('appointments', ['status' => AppointmentStatus::Pending]);
 });
 
+test('creating appointment with new customer rolls back the customer if dog creation fails', function () {
+    Dog::creating(function () {
+        throw new \RuntimeException('simulated failure');
+    });
+
+    $this->withoutExceptionHandling();
+
+    try {
+        $this->actingAs($this->admin)
+            ->post(route('admin.appointments.store'), [
+                'new_customer' => [
+                    'name' => 'Jane Smith',
+                    'email' => 'jane@example.com',
+                    'phone' => '0412345678',
+                ],
+                'new_dog' => [
+                    'name' => 'Biscuit',
+                    'breed' => 'Poodle',
+                    'size' => 'small',
+                ],
+                'service_id' => $this->service->id,
+                'appointment_date' => now()->next('Monday')->format('Y-m-d'),
+                'appointment_time' => '10:00',
+                'status' => AppointmentStatus::Pending->value,
+            ]);
+    } catch (\RuntimeException $e) {
+        // expected
+    }
+
+    $this->assertDatabaseMissing('customers', ['email' => 'jane@example.com']);
+    $this->assertDatabaseMissing('appointments', ['appointment_time' => '10:00:00']);
+});
+
 test('confirmed_at is set when admin creates confirmed appointment', function () {
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->for($customer)->create();

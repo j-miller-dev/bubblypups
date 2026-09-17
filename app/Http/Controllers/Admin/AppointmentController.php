@@ -14,6 +14,7 @@ use App\Services\AvailabilityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -69,48 +70,50 @@ class AppointmentController extends Controller
 
     public function store(StoreAppointmentRequest $request): RedirectResponse
     {
-        // Determine dog_id and customer_id: use existing or create new customer+dog
-        if ($request->filled('dog_id')) {
-            $dog = Dog::with('customer')->findOrFail($request->dog_id);
-            $dogId = $dog->id;
-            $customerId = $dog->customer_id;
-        } else {
-            // Create new customer with auto-generated password
-            $customer = Customer::create([
-                'name' => $request->input('new_customer.name'),
-                'email' => $request->input('new_customer.email'),
-                'phone' => $request->input('new_customer.phone'),
-                'password' => Hash::make(Str::random(16)),
+        $appointment = DB::transaction(function () use ($request) {
+            // Determine dog_id and customer_id: use existing or create new customer+dog
+            if ($request->filled('dog_id')) {
+                $dog = Dog::with('customer')->findOrFail($request->dog_id);
+                $dogId = $dog->id;
+                $customerId = $dog->customer_id;
+            } else {
+                // Create new customer with auto-generated password
+                $customer = Customer::create([
+                    'name' => $request->input('new_customer.name'),
+                    'email' => $request->input('new_customer.email'),
+                    'phone' => $request->input('new_customer.phone'),
+                    'password' => Hash::make(Str::random(16)),
+                ]);
+
+                // Create new dog for this customer
+                $dog = Dog::create([
+                    'customer_id' => $customer->id,
+                    'name' => $request->input('new_dog.name'),
+                    'breed' => $request->input('new_dog.breed'),
+                    'size' => $request->input('new_dog.size'),
+                    'special_notes' => $request->input('new_dog.special_notes'),
+                ]);
+
+                $dogId = $dog->id;
+                $customerId = $customer->id;
+            }
+
+            // Get service to determine duration
+            $service = Service::findOrFail($request->service_id);
+
+            // Create appointment
+            return Appointment::create([
+                'dog_id' => $dogId,
+                'customer_id' => $customerId,
+                'service_id' => $request->service_id,
+                'appointment_date' => $request->appointment_date,
+                'appointment_time' => $request->appointment_time,
+                'duration' => $service->duration_minutes,
+                'status' => $request->status,
+                'notes' => $request->notes,
+                'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
             ]);
-
-            // Create new dog for this customer
-            $dog = Dog::create([
-                'customer_id' => $customer->id,
-                'name' => $request->input('new_dog.name'),
-                'breed' => $request->input('new_dog.breed'),
-                'size' => $request->input('new_dog.size'),
-                'special_notes' => $request->input('new_dog.special_notes'),
-            ]);
-
-            $dogId = $dog->id;
-            $customerId = $customer->id;
-        }
-
-        // Get service to determine duration
-        $service = Service::findOrFail($request->service_id);
-
-        // Create appointment
-        $appointment = Appointment::create([
-            'dog_id' => $dogId,
-            'customer_id' => $customerId,
-            'service_id' => $request->service_id,
-            'appointment_date' => $request->appointment_date,
-            'appointment_time' => $request->appointment_time,
-            'duration' => $service->duration_minutes,
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'confirmed_at' => $request->status === AppointmentStatus::Confirmed->value ? now() : null,
-        ]);
+        });
 
         // Load relationships for notification
         $appointment->load(['dog.customer', 'service']);
