@@ -92,9 +92,36 @@ test('admin can create appointment with new customer and dog', function () {
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('customers', ['email' => 'jane@example.com']);
+    $this->assertDatabaseHas('customers', [
+        'email' => 'jane@example.com',
+        'phone' => '+61412345678',
+    ]);
     $this->assertDatabaseHas('dogs', ['name' => 'Biscuit']);
     $this->assertDatabaseHas('appointments', ['status' => AppointmentStatus::Pending]);
+});
+
+test('admin cannot create appointment with new customer using an invalid phone number', function () {
+    $this->actingAs($this->admin)
+        ->postJson(route('admin.appointments.store'), [
+            'new_customer' => [
+                'name' => 'Jane Smith',
+                'email' => 'jane@example.com',
+                'phone' => '555-123-4567',
+            ],
+            'new_dog' => [
+                'name' => 'Biscuit',
+                'breed' => 'Poodle',
+                'size' => 'small',
+            ],
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->next('Monday')->format('Y-m-d'),
+            'appointment_time' => '10:00',
+            'status' => AppointmentStatus::Pending->value,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['new_customer.phone']);
+
+    $this->assertDatabaseMissing('customers', ['email' => 'jane@example.com']);
 });
 
 test('creating appointment with new customer rolls back the customer if dog creation fails', function () {

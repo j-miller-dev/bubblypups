@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\AppointmentStatus;
 use App\Models\BusinessHours;
+use App\Rules\AustralianPhoneNumber;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,7 +35,7 @@ class StoreAppointmentRequest extends FormRequest
             'new_customer' => ['required_without:dog_id', 'nullable', 'array'],
             'new_customer.name' => ['required_with:new_customer', 'string', 'max:255'],
             'new_customer.email' => ['required_with:new_customer', 'email', 'unique:customers,email'],
-            'new_customer.phone' => ['required_with:new_customer', 'string', 'max:255'],
+            'new_customer.phone' => ['required_with:new_customer', 'string', 'max:255', new AustralianPhoneNumber],
 
             // New dog fields (required if dog_id not provided)
             'new_dog' => ['required_without:dog_id', 'nullable', 'array'],
