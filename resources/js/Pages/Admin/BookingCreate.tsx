@@ -139,12 +139,14 @@ export default function BookingCreate({ services }: Props) {
         setDays(grid);
     }, [viewDate, selectedDate, todayStr]);
 
-    // Fetch available slots when date changes
+    // Fetch available slots when date or service changes
     useEffect(() => {
-        if (!selectedDate) return;
+        if (!selectedDate || !data.service_id) return;
         let ignore = false;
         setIsLoadingSlots(true);
-        fetch(`/admin/appointments/available-slots?date=${selectedDate}`)
+        fetch(
+            `/admin/appointments/available-slots?date=${selectedDate}&service_id=${data.service_id}`,
+        )
             .then((r) => r.json())
             .then((result) => {
                 if (!ignore) {
@@ -157,7 +159,7 @@ export default function BookingCreate({ services }: Props) {
             })
             .finally(() => { if (!ignore) setIsLoadingSlots(false); });
         return () => { ignore = true; };
-    }, [selectedDate]);
+    }, [selectedDate, data.service_id]);
 
     const handleDogSelect = (dog: Dog) => {
         setSelectedDog(dog);

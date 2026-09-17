@@ -221,14 +221,14 @@ test('store is inaccessible to guests', function () {
 
 test('available slots returns slots for a given date', function () {
     $this->actingAs($this->admin)
-        ->getJson('/admin/appointments/available-slots?date='.now()->next('Monday')->format('Y-m-d'))
+        ->getJson('/admin/appointments/available-slots?date='.now()->next('Monday')->format('Y-m-d').'&service_id='.$this->service->id)
         ->assertOk()
         ->assertJsonStructure(['slots', 'existing_appointments']);
 });
 
 test('available slots returns empty for a closed day', function () {
     $this->actingAs($this->admin)
-        ->getJson('/admin/appointments/available-slots?date='.now()->next('Sunday')->format('Y-m-d'))
+        ->getJson('/admin/appointments/available-slots?date='.now()->next('Sunday')->format('Y-m-d').'&service_id='.$this->service->id)
         ->assertOk()
         ->assertJson(['slots' => [], 'existing_appointments' => []]);
 });

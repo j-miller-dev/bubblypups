@@ -9,7 +9,11 @@ use App\Models\Dog;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Services\AvailabilityService;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class BookingController extends Controller
@@ -51,6 +55,7 @@ class BookingController extends Controller
     {
         $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
+            'service_id' => ['required', 'integer', 'exists:services,id'],
         ]);
 
         $windowWeeks = (int) Setting::get('booking_window_weeks', 4);
@@ -58,7 +63,7 @@ class BookingController extends Controller
             return response()->json(['slots' => []]);
         }
 
-        $slots = $this->availabilityService->getAvailableSlots($request->date);
+        $slots = $this->availabilityService->getAvailableSlots($request->date, $request->integer('service_id'));
 
         return response()->json(['slots' => $slots]);
     }
@@ -67,16 +72,37 @@ class BookingController extends Controller
     {
         $service = Service::findOrFail($request->service_id);
 
-        $appointment = Appointment::create([
-            'customer_id' => auth('customer')->id(),
-            'dog_id' => $request->dog_id,
-            'service_id' => $request->service_id,
-            'appointment_date' => $request->appointment_date,
-            'appointment_time' => $request->appointment_time,
-            'duration' => $service->duration_minutes,
-            'status' => AppointmentStatus::Pending,
-            'notes' => $request->notes,
-        ]);
+        try {
+            $appointment = Cache::lock('booking-slot:'.$request->appointment_date, 10)
+                ->block(5, function () use ($request, $service) {
+                    return DB::transaction(function () use ($request, $service) {
+                        if (! $this->availabilityService->isRangeAvailable(
+                            $request->appointment_date,
+                            $request->appointment_time,
+                            $service->duration_minutes,
+                        )) {
+                            throw ValidationException::withMessages([
+                                'appointment_time' => 'This time slot was just booked. Please choose another time.',
+                            ]);
+                        }
+
+                        return Appointment::create([
+                            'customer_id' => auth('customer')->id(),
+                            'dog_id' => $request->dog_id,
+                            'service_id' => $request->service_id,
+                            'appointment_date' => $request->appointment_date,
+                            'appointment_time' => $request->appointment_time,
+                            'duration' => $service->duration_minutes,
+                            'status' => AppointmentStatus::Pending,
+                            'notes' => $request->notes,
+                        ]);
+                    });
+                });
+        } catch (LockTimeoutException $e) {
+            throw ValidationException::withMessages([
+                'appointment_time' => 'We\'re processing another booking for this time. Please try again in a moment.',
+            ]);
+        }
 
         // Load relationships for notification
         $appointment->load(['dog.customer']);

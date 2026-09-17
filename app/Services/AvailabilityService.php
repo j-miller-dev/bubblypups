@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BlockedTime;
 use App\Models\BusinessHours;
+use App\Models\Service;
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -13,19 +14,25 @@ class AvailabilityService
     // Note: Business hours are now stored in the database (business_hours table)
     // Use BusinessHours model to manage operating hours
 
-    public function getAvailableSlots(string $date, ?int $excludeAppointmentId = null): array
+    /**
+     * @return array<int, string>
+     */
+    public function getAvailableSlots(string $date, int $serviceId, ?int $excludeAppointmentId = null): array
     {
+        $service = Service::find($serviceId);
+
+        if (! $service) {
+            return [];
+        }
+
         $day = Carbon::parse($date);
 
-        // Get business hours from database
         $businessHours = BusinessHours::getHoursForDay($day->format('l'));
 
-        // Check if business is open this day
         if (! $businessHours || ! $businessHours->is_open) {
             return [];
         }
 
-        // Generate all possible time slots using database values
         $allSlots = $this->generateTimeSlots(
             $day,
             $businessHours->open_time,
@@ -33,13 +40,66 @@ class AvailabilityService
             $businessHours->slot_duration
         );
 
-        // Remove blocked times
-        $slotsAfterBlocked = $this->removeBlockedSlots($allSlots, $day);
+        $existingAppointments = $this->appointmentIntervalsFor($day, $excludeAppointmentId);
+        $blockedIntervals = $this->blockedIntervalsFor($day);
 
-        // Remove booked appointments
-        $availableSlots = $this->removeBookedSlots($slotsAfterBlocked, $day, $excludeAppointmentId);
+        return array_values(array_filter($allSlots, function (string $slot) use ($day, $service, $businessHours, $existingAppointments, $blockedIntervals) {
+            $start = Carbon::parse($day->format('Y-m-d').' '.$slot);
+            $end = $start->copy()->addMinutes($service->duration_minutes);
+            $close = Carbon::parse($day->format('Y-m-d').' '.$businessHours->close_time);
 
-        return $availableSlots;
+            if ($end->gt($close)) {
+                return false;
+            }
+
+            return ! $this->overlapsAny($start, $end, $blockedIntervals)
+                && ! $this->overlapsAny($start, $end, $existingAppointments);
+        }));
+    }
+
+    /**
+     * Whether a candidate appointment of the given duration can be booked at $date/$time,
+     * accounting for business hours, blocked periods, and overlap with existing appointments.
+     */
+    public function isRangeAvailable(string $date, string $time, int $durationMinutes, ?int $excludeAppointmentId = null): bool
+    {
+        $day = Carbon::parse($date);
+
+        $businessHours = BusinessHours::getHoursForDay($day->format('l'));
+
+        if (! $businessHours || ! $businessHours->is_open) {
+            return false;
+        }
+
+        $start = Carbon::parse($day->format('Y-m-d').' '.$time);
+        $end = $start->copy()->addMinutes($durationMinutes);
+
+        $open = Carbon::parse($day->format('Y-m-d').' '.$businessHours->open_time);
+        $close = Carbon::parse($day->format('Y-m-d').' '.$businessHours->close_time);
+
+        if ($start->lt($open) || $end->gt($close)) {
+            return false;
+        }
+
+        if ($this->overlapsAny($start, $end, $this->blockedIntervalsFor($day))) {
+            return false;
+        }
+
+        return ! $this->overlapsAny($start, $end, $this->appointmentIntervalsFor($day, $excludeAppointmentId));
+    }
+
+    /**
+     * Convenience wrapper that resolves the candidate duration from a service.
+     */
+    public function isSlotAvailable(string $date, string $time, int $serviceId, ?int $excludeAppointmentId = null): bool
+    {
+        $service = Service::find($serviceId);
+
+        if (! $service) {
+            return false;
+        }
+
+        return $this->isRangeAvailable($date, $time, $service->duration_minutes, $excludeAppointmentId);
     }
 
     protected function generateTimeSlots(Carbon $day, string $start, string $end, int $slotDuration = 30): array
@@ -57,40 +117,48 @@ class AvailabilityService
         return $slots;
     }
 
-    protected function removeBlockedSlots(array $slots, Carbon $day): array
+    /**
+     * @return array<int, array{start: Carbon, end: Carbon}>
+     */
+    protected function blockedIntervalsFor(Carbon $day): array
     {
-        $blockedTimes = BlockedTime::query()
+        return BlockedTime::query()
             ->where('start_datetime', '<=', $day->copy()->endOfDay())
             ->where('end_datetime', '>=', $day->copy()->startOfDay())
-            ->get();
-
-        if ($blockedTimes->isEmpty()) {
-            return $slots;
-        }
-
-        return array_filter($slots, function ($slot) use ($day, $blockedTimes) {
-            $slotTime = Carbon::parse($day->format('Y-m-d').' '.$slot);
-
-            foreach ($blockedTimes as $blocked) {
-                if ($slotTime->between($blocked->start_datetime, $blocked->end_datetime)) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
+            ->get()
+            ->map(fn ($blocked) => ['start' => $blocked->start_datetime, 'end' => $blocked->end_datetime])
+            ->all();
     }
 
-    protected function removeBookedSlots(array $slots, Carbon $day, ?int $excludeAppointmentId = null): array
+    /**
+     * @return array<int, array{start: Carbon, end: Carbon}>
+     */
+    protected function appointmentIntervalsFor(Carbon $day, ?int $excludeAppointmentId = null): array
     {
-        $bookedSlots = Appointment::query()
+        return Appointment::query()
             ->whereDate('appointment_date', $day->toDateString())
             ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::WaitingOnClient])
             ->when($excludeAppointmentId, fn ($query, $id) => $query->where('id', '!=', $id))
-            ->pluck('appointment_time')
-            ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
-            ->toArray();
+            ->get()
+            ->map(function (Appointment $appointment) use ($day) {
+                $start = Carbon::parse($day->format('Y-m-d').' '.$appointment->appointment_time->format('H:i:s'));
 
-        return array_values(array_diff($slots, $bookedSlots));
+                return ['start' => $start, 'end' => $start->copy()->addMinutes($appointment->duration)];
+            })
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array{start: Carbon, end: Carbon}>  $intervals
+     */
+    protected function overlapsAny(Carbon $start, Carbon $end, array $intervals): bool
+    {
+        foreach ($intervals as $interval) {
+            if ($start->lt($interval['end']) && $end->gt($interval['start'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
