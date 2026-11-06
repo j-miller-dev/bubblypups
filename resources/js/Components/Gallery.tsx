@@ -3,6 +3,7 @@ import { useState } from "react";
 import FsLightbox from "fslightbox-react";
 import { motion } from "framer-motion";
 import { EyeIcon } from "@heroicons/react/20/solid";
+import { usePage } from "@inertiajs/react";
 
 function InstagramIcon({ className }: { className?: string }) {
     return (
@@ -47,10 +48,6 @@ const images = [
     "/images/gallery/549825573_18004075493802840_4005890969860040822_n.jpg",
 ];
 
-// TODO: Replace with real Instagram handle when available.
-const INSTAGRAM_HANDLE = "@bubblypups";
-const INSTAGRAM_URL = "https://instagram.com/bubblypups";
-
 const containerVariants = {
     hidden: {},
     visible: {
@@ -68,6 +65,9 @@ const itemVariants = {
 };
 
 function Gallery() {
+    const { businessInstagramUrl } = usePage<{
+        businessInstagramUrl: string | null;
+    }>().props;
     const [lightboxController, setLightboxController] = useState({
         toggler: false,
         slide: 1,
@@ -148,37 +148,38 @@ function Gallery() {
                 </motion.div>
 
                 {/* Instagram CTA strip */}
-                <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.25 }}
-                    className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6 px-6 py-5 rounded-card bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-100"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-2xl bg-white border border-brand-100 shadow-sm flex items-center justify-center shrink-0">
-                            <InstagramIcon className="w-5 h-5 text-brand-500" />
-                        </div>
-                        <div>
-                            <p className="font-display font-extrabold text-gray-950 text-base leading-tight">
-                                Follow along on Instagram
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5">
-                                {INSTAGRAM_HANDLE} · Fresh transformations
-                                posted regularly
-                            </p>
-                        </div>
-                    </div>
-                    <a
-                        href={INSTAGRAM_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-secondary whitespace-nowrap shrink-0"
+                {businessInstagramUrl && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.25 }}
+                        className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6 px-6 py-5 rounded-card bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-100"
                     >
-                        <InstagramIcon className="w-4 h-4" />
-                        Follow Us
-                    </a>
-                </motion.div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-2xl bg-white border border-brand-100 shadow-sm flex items-center justify-center shrink-0">
+                                <InstagramIcon className="w-5 h-5 text-brand-500" />
+                            </div>
+                            <div>
+                                <p className="font-display font-extrabold text-gray-950 text-base leading-tight">
+                                    Follow along on Instagram
+                                </p>
+                                <p className="text-sm text-gray-500 mt-0.5">
+                                    Fresh transformations posted regularly
+                                </p>
+                            </div>
+                        </div>
+                        <a
+                            href={businessInstagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-secondary whitespace-nowrap shrink-0"
+                        >
+                            <InstagramIcon className="w-4 h-4" />
+                            Follow Us
+                        </a>
+                    </motion.div>
+                )}
             </div>
 
             <FsLightbox

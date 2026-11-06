@@ -7,13 +7,17 @@ use App\Models\Dog;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\NewBookingNotification;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->service = Service::factory()->create(['duration_minutes' => 60]);
+    $this->service = Service::factory()->create([
+        'duration_minutes' => 60,
+        'duration_tiers' => Service::defaultDurationTiers(60),
+    ]);
 
     foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day) {
         BusinessHours::create([
@@ -116,6 +120,26 @@ test('booking rejects a past date', function () {
     $response->assertJsonValidationErrors(['appointment_date']);
 });
 
+test('booking rejects an already-elapsed time on today\'s date', function () {
+    Carbon::setTestNow(Carbon::parse('next monday 12:00'));
+
+    $customer = Customer::factory()->create();
+    $dog = Dog::factory()->for($customer)->create();
+
+    $response = $this->actingAs($customer, 'customer')
+        ->postJson('/booking', [
+            'dog_id' => $dog->id,
+            'service_id' => $this->service->id,
+            'appointment_date' => now()->format('Y-m-d'),
+            'appointment_time' => '10:00',
+        ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['appointment_time']);
+
+    Carbon::setTestNow();
+});
+
 test('booking rejects invalid time format', function () {
     $customer = Customer::factory()->create();
     $dog = Dog::factory()->for($customer)->create();
@@ -197,9 +221,12 @@ test('booking accepts a slot outside blocked time range', function () {
 });
 
 test('booking uses service duration not hardcoded 60 minutes', function () {
-    $service = Service::factory()->create(['duration_minutes' => 45]);
+    $service = Service::factory()->create([
+        'duration_minutes' => 45,
+        'duration_tiers' => Service::defaultDurationTiers(45),
+    ]);
     $customer = Customer::factory()->create();
-    $dog = Dog::factory()->for($customer)->create();
+    $dog = Dog::factory()->for($customer)->create(['size' => 'medium']);
 
     $this->actingAs($customer, 'customer')
         ->post('/booking', [

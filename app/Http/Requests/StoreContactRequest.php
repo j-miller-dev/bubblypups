@@ -18,6 +18,8 @@ class StoreContactRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255', 'required_without:phone'],
             'phone' => ['nullable', 'string', 'max:50', 'required_without:email'],
             'message' => ['required', 'string'],
+            // Honeypot: real visitors never see or fill this field.
+            'website' => ['prohibited'],
         ];
     }
 }

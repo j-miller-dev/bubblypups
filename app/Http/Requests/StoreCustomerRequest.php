@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\AustralianPhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCustomerRequest extends FormRequest
@@ -24,7 +25,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:customers,email'],
-            'phone' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20', new AustralianPhoneNumber],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
 
             // Dog information

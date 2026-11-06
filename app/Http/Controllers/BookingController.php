@@ -56,14 +56,21 @@ class BookingController extends Controller
         $request->validate([
             'date' => ['required', 'date', 'after_or_equal:today'],
             'service_id' => ['required', 'integer', 'exists:services,id'],
+            'dog_id' => ['required', 'integer'],
         ]);
+
+        $dog = auth('customer')->user()->dogs()->find($request->integer('dog_id'));
+
+        if (! $dog) {
+            abort(403);
+        }
 
         $windowWeeks = (int) Setting::get('booking_window_weeks', 4);
         if ($request->date > now()->addWeeks($windowWeeks)->format('Y-m-d')) {
             return response()->json(['slots' => []]);
         }
 
-        $slots = $this->availabilityService->getAvailableSlots($request->date, $request->integer('service_id'));
+        $slots = $this->availabilityService->getAvailableSlots($request->date, $request->integer('service_id'), $dog->size);
 
         return response()->json(['slots' => $slots]);
     }
@@ -71,15 +78,18 @@ class BookingController extends Controller
     public function store(StoreAppointmentRequest $request)
     {
         $service = Service::findOrFail($request->service_id);
+        $dog = Dog::findOrFail($request->dog_id);
 
         try {
             $appointment = Cache::lock('booking-slot:'.$request->appointment_date, 10)
-                ->block(5, function () use ($request, $service) {
-                    return DB::transaction(function () use ($request, $service) {
+                ->block(5, function () use ($request, $service, $dog) {
+                    return DB::transaction(function () use ($request, $service, $dog) {
+                        $duration = $service->getDurationForSize($dog->size);
+
                         if (! $this->availabilityService->isRangeAvailable(
                             $request->appointment_date,
                             $request->appointment_time,
-                            $service->duration_minutes,
+                            $duration,
                         )) {
                             throw ValidationException::withMessages([
                                 'appointment_time' => 'This time slot was just booked. Please choose another time.',
@@ -92,7 +102,7 @@ class BookingController extends Controller
                             'service_id' => $request->service_id,
                             'appointment_date' => $request->appointment_date,
                             'appointment_time' => $request->appointment_time,
-                            'duration' => $service->duration_minutes,
+                            'duration' => $duration,
                             'status' => AppointmentStatus::Pending,
                             'notes' => $request->notes,
                         ]);

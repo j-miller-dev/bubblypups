@@ -15,6 +15,7 @@ export default function Contact() {
         email: "",
         phone: "",
         message: "",
+        website: "", // honeypot — left blank by real visitors, flagged if filled in
     });
     const [sent, setSent] = useState(false);
 
@@ -138,6 +139,27 @@ export default function Contact() {
                                             <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* Honeypot: hidden from real visitors, often auto-filled by bots */}
+                                <div
+                                    aria-hidden="true"
+                                    className="absolute left-[-9999px] top-auto h-0 w-0 overflow-hidden"
+                                >
+                                    <label htmlFor="contact-website">
+                                        Leave this field blank
+                                    </label>
+                                    <input
+                                        id="contact-website"
+                                        type="text"
+                                        name="website"
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                        value={data.website}
+                                        onChange={(e) =>
+                                            setData("website", e.target.value)
+                                        }
+                                    />
                                 </div>
 
                                 <div>

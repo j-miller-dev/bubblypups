@@ -17,13 +17,15 @@ class AvailabilityService
     /**
      * @return array<int, string>
      */
-    public function getAvailableSlots(string $date, int $serviceId, ?int $excludeAppointmentId = null): array
+    public function getAvailableSlots(string $date, int $serviceId, string $dogSize, ?int $excludeAppointmentId = null): array
     {
         $service = Service::find($serviceId);
 
         if (! $service) {
             return [];
         }
+
+        $duration = $service->getDurationForSize($dogSize);
 
         $day = Carbon::parse($date);
 
@@ -43,9 +45,9 @@ class AvailabilityService
         $existingAppointments = $this->appointmentIntervalsFor($day, $excludeAppointmentId);
         $blockedIntervals = $this->blockedIntervalsFor($day);
 
-        return array_values(array_filter($allSlots, function (string $slot) use ($day, $service, $businessHours, $existingAppointments, $blockedIntervals) {
+        return array_values(array_filter($allSlots, function (string $slot) use ($day, $duration, $businessHours, $existingAppointments, $blockedIntervals) {
             $start = Carbon::parse($day->format('Y-m-d').' '.$slot);
-            $end = $start->copy()->addMinutes($service->duration_minutes);
+            $end = $start->copy()->addMinutes($duration);
             $close = Carbon::parse($day->format('Y-m-d').' '.$businessHours->close_time);
 
             if ($end->gt($close)) {
@@ -81,6 +83,10 @@ class AvailabilityService
             return false;
         }
 
+        if ($open->diffInMinutes($start) % $businessHours->slot_duration !== 0) {
+            return false;
+        }
+
         if ($this->overlapsAny($start, $end, $this->blockedIntervalsFor($day))) {
             return false;
         }
@@ -89,9 +95,9 @@ class AvailabilityService
     }
 
     /**
-     * Convenience wrapper that resolves the candidate duration from a service.
+     * Convenience wrapper that resolves the candidate duration from a service + dog size.
      */
-    public function isSlotAvailable(string $date, string $time, int $serviceId, ?int $excludeAppointmentId = null): bool
+    public function isSlotAvailable(string $date, string $time, int $serviceId, string $dogSize, ?int $excludeAppointmentId = null): bool
     {
         $service = Service::find($serviceId);
 
@@ -99,7 +105,7 @@ class AvailabilityService
             return false;
         }
 
-        return $this->isRangeAvailable($date, $time, $service->duration_minutes, $excludeAppointmentId);
+        return $this->isRangeAvailable($date, $time, $service->getDurationForSize($dogSize), $excludeAppointmentId);
     }
 
     protected function generateTimeSlots(Carbon $day, string $start, string $end, int $slotDuration = 30): array

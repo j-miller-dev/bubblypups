@@ -36,6 +36,17 @@ test('reset password screen can be rendered', function () {
     });
 });
 
+test('reset password link request is throttled after 6 requests per minute', function () {
+    $user = User::factory()->create();
+
+    for ($i = 0; $i < 6; $i++) {
+        $this->post('/forgot-password', ['email' => $user->email]);
+    }
+
+    $this->post('/forgot-password', ['email' => $user->email])
+        ->assertStatus(429);
+});
+
 test('password can be reset with valid token', function () {
     Notification::fake();
 
